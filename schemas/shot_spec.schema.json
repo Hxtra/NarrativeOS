@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hermes ShotSpec",
+  "type": "object",
+  "required": ["shot_id", "narration", "visual_purpose", "visual_mode", "duration_seconds"],
+  "properties": {
+    "shot_id": {"type": "string"},
+    "narration": {"type": "string"},
+    "visual_purpose": {"type": "string"},
+    "visual_mode": {"enum": ["literal", "archival", "reconstruction", "diagram", "map", "document", "metaphor"]},
+    "required_subjects": {"type": "array", "items": {"type": "string"}},
+    "required_actions": {"type": "array", "items": {"type": "string"}},
+    "forbidden_meanings": {"type": "array", "items": {"type": "string"}},
+    "duration_seconds": {"type": "number", "exclusiveMinimum": 0},
+    "fallbacks": {"type": "array", "items": {"type": "string"}}
+  }
+}
