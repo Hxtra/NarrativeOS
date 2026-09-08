@@ -1,3 +1,6 @@
+# PROTOTYPE — NOT PRODUCTION READY
+# Visual matching: BLOCKED | HyperFrames: OPTIONAL / BLOCKED | FFmpeg: PRIMARY | Captions: BROKEN | Full automation: INCOMPLETE | Delivery: NOT READY
+
 # Flannan Isles Mystery — Project README
 
 ## Project
