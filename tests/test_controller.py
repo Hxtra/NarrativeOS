@@ -22,6 +22,7 @@ def test_init_and_block(tmp_path):
 def test_intake_advances(tmp_path):
     run(tmp_path, "--init")
     (tmp_path / "project.yaml").write_text("project_id: test\n", encoding="utf-8")
+    (tmp_path / "brief.md").write_text("A short test brief.\n", encoding="utf-8")
     assert run(tmp_path).returncode == 0
     state = json.loads((tmp_path / "state.json").read_text())
     assert state["last_successful_stage"] == "INTAKE"
