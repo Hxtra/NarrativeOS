@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>Flannan Isles — Composition</title>
+<style>
+  /* === Composition base styles === */
+  :root {
+    --w: 1280px;
+    --h: 720px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    width: var(--w);
+    height: var(--h);
+    overflow: hidden;
+    font-family: "Segoe UI", "Arial", sans-serif;
+  }
+  #stage {
+    position: relative;
+    width: var(--w);
+    height: var(--h);
+    background: #0a0a0f;
+  }
+  .clip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--w);
+    height: var(--h);
+  }
+  /* Track z-order handled by data-track-index */
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="flannan_isles" data-width="1280" data-height="720" data-fps="24">
+
+  <video
+    class="clip"
+    id="shot_01"
+    data-start="0.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/11059181-hd_1366_720_25fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11059181-hd_1366_720_25fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_02"
+    data-start="7.0"
+    data-duration="7.0"
+    data-track-index="0"
+    src="footage/11230943-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11230943-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_03"
+    data-start="13.0"
+    data-duration="7.0"
+    data-track-index="0"
+    src="footage/16239001_1280_720_60fps.mp4"
+    muted
+    playsinline
+    data-asset-id="16239001_1280_720_60fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_04"
+    data-start="19.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/6256795-hd_1366_720_24fps.mp4"
+    muted
+    playsinline
+    data-asset-id="6256795-hd_1366_720_24fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_05"
+    data-start="26.0"
+    data-duration="7.0"
+    data-track-index="0"
+    src="footage/856365-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="856365-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_06"
+    data-start="32.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/11059181-hd_1366_720_25fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11059181-hd_1366_720_25fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_07"
+    data-start="40.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/11230943-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11230943-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_08"
+    data-start="48.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/16239001_1280_720_60fps.mp4"
+    muted
+    playsinline
+    data-asset-id="16239001_1280_720_60fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_09"
+    data-start="56.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/11059181-hd_1366_720_25fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11059181-hd_1366_720_25fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_10"
+    data-start="63.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/856365-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="856365-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_11"
+    data-start="71.0"
+    data-duration="6.0"
+    data-track-index="0"
+    src="footage/6256795-hd_1366_720_24fps.mp4"
+    muted
+    playsinline
+    data-asset-id="6256795-hd_1366_720_24fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_12"
+    data-start="76.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/856365-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="856365-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_13"
+    data-start="83.0"
+    data-duration="6.0"
+    data-track-index="0"
+    src="footage/16239001_1280_720_60fps.mp4"
+    muted
+    playsinline
+    data-asset-id="16239001_1280_720_60fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_14"
+    data-start="88.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/11230943-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11230943-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_15"
+    data-start="96.0"
+    data-duration="6.0"
+    data-track-index="0"
+    src="footage/856365-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="856365-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_16"
+    data-start="101.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/11059181-hd_1366_720_25fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11059181-hd_1366_720_25fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_17"
+    data-start="108.0"
+    data-duration="9.0"
+    data-track-index="0"
+    src="footage/11230943-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11230943-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_18"
+    data-start="116.0"
+    data-duration="6.0"
+    data-track-index="0"
+    src="footage/16239001_1280_720_60fps.mp4"
+    muted
+    playsinline
+    data-asset-id="16239001_1280_720_60fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_19"
+    data-start="121.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/6256795-hd_1366_720_24fps.mp4"
+    muted
+    playsinline
+    data-asset-id="6256795-hd_1366_720_24fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_20"
+    data-start="128.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/856365-hd_1280_720_30fps.mp4"
+    muted
+    playsinline
+    data-asset-id="856365-hd_1280_720_30fps"
+  ></video>
+
+  <video
+    class="clip"
+    id="shot_21"
+    data-start="135.0"
+    data-duration="8.0"
+    data-track-index="0"
+    src="footage/11059181-hd_1366_720_25fps.mp4"
+    muted
+    playsinline
+    data-asset-id="11059181-hd_1366_720_25fps"
+  ></video>
+
+  <div
+    class="clip"
+    id="title_card"
+    data-start="0.0"
+    data-duration="3.0"
+    data-track-index="1"
+    data-template="title_card"
+    data-params='{"title": "The Flannan Isles", "subtitle": "Three Keepers \u2014 One Unsolved Mystery"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_01"
+    data-start="0.3"
+    data-duration="6.7"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "In 1900, three lighthouse keepers\nvanished from the Flannan Isles.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_02"
+    data-start="7.3"
+    data-duration="5.7"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "A remote archipelago\nin the Outer Hebrides of Scotland.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_03"
+    data-start="13.3"
+    data-duration="5.699999999999999"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The lighthouse stood on Eilean M\u00f2r \u2014\nthe largest of the group.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_04"
+    data-start="19.3"
+    data-duration="6.699999999999999"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "On December 15th, a passing ship\nnoticed the light was dark.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_05"
+    data-start="26.3"
+    data-duration="5.699999999999999"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "No flag was flying.\nNo supplies had been landed for weeks.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_06"
+    data-start="32.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "When a relief vessel finally arrived\non December 26th, the lighthouse was silent.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_07"
+    data-start="40.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The door was unlocked.\nThe beds were unmade.\nA meal sat half-eaten on the table.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_08"
+    data-start="48.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "But the three keepers \u2014\nJames Ducat, Thomas Marshall,\nand Donald MacArthur \u2014 were gone.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_09"
+    data-start="56.3"
+    data-duration="6.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The lighthouse log recorded\na violent storm on the 12th and 13th of December.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_10"
+    data-start="63.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The entries grew increasingly frantic.\nThen, on the 14th,\nthe final entry read:", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_11"
+    data-start="71.3"
+    data-duration="4.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "\"Storm ended, sea calm.\nGod is over all.\"", "style": "quote"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_12"
+    data-start="76.3"
+    data-duration="6.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "But there was no storm recorded\nby weather stations on the mainland.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_13"
+    data-start="83.3"
+    data-duration="4.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "No ship reported bad weather\nin the area that week.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_14"
+    data-start="88.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "Some say the keepers disappeared\nduring a real storm \u2014\none never recorded.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_15"
+    data-start="96.3"
+    data-duration="4.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "Others believe a fight\nbroke out between them.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_16"
+    data-start="101.3"
+    data-duration="6.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "A popular theory claims one keeper\ngo mad and killed the others.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_17"
+    data-start="108.3"
+    data-duration="7.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The logbook tells a darker story:\nentries about cursing, prayers,\nand a final supper.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_18"
+    data-start="116.3"
+    data-duration="4.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "But the log was never found.\nOnly fragments survive.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_19"
+    data-start="121.3"
+    data-duration="6.700000000000003"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "Whatever happened on that remote rock,\nthe sea kept its secret.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_20"
+    data-start="128.3"
+    data-duration="6.699999999999989"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "The Flannan Isles lighthouse was automated\nin 1971. No keeper has lived there since.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="lowerthird_21"
+    data-start="135.3"
+    data-duration="6.699999999999989"
+    data-track-index="1"
+    data-template="lower_third"
+    data-params='{"text": "To this day, the disappearance remains\none of Britain's most enduring mysteries.", "style": "lower_third"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="outro_card"
+    data-start="105.87"
+    data-duration="4.0"
+    data-track-index="1"
+    data-template="title_card"
+    data-params='{"title": "The sea keeps its secrets.", "subtitle": "The Flannan Isles, 1900"}'
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_01"
+    data-start="0.3"
+    data-duration="4.28"
+    data-track-index="2"
+    data-caption-text="In 1900, three lighthouse keepers
+vanished from the Flannan Isles."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_02"
+    data-start="4.88"
+    data-duration="3.6399999999999997"
+    data-track-index="2"
+    data-caption-text="A remote archipelago
+in the Outer Hebrides of Scotland."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_03"
+    data-start="8.82"
+    data-duration="3.6099999999999994"
+    data-track-index="2"
+    data-caption-text="The lighthouse stood on Eilean Mòr —
+the largest of the group."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_04"
+    data-start="12.73"
+    data-duration="4.0"
+    data-track-index="2"
+    data-caption-text="On December 15th, a passing ship
+noticed the light was dark."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_05"
+    data-start="17.03"
+    data-duration="4.960000000000001"
+    data-track-index="2"
+    data-caption-text="No flag was flying.
+No supplies had been landed for weeks."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_06"
+    data-start="22.290000000000003"
+    data-duration="5.079999999999998"
+    data-track-index="2"
+    data-caption-text="When a relief vessel finally arrived
+on December 26th, the lighthouse was silent."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_07"
+    data-start="27.67"
+    data-duration="6.920000000000002"
+    data-track-index="2"
+    data-caption-text="The door was unlocked.
+The beds were unmade.
+A meal sat half-eaten on the table."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_08"
+    data-start="34.89"
+    data-duration="5.050000000000004"
+    data-track-index="2"
+    data-caption-text="But the three keepers —
+James Ducat, Thomas Marshall,
+and Donald MacArthur — were gone."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_09"
+    data-start="40.24"
+    data-duration="4.640000000000001"
+    data-track-index="2"
+    data-caption-text="The lighthouse log recorded
+a violent storm on the 12th and 13th of December."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_10"
+    data-start="45.18"
+    data-duration="6.25"
+    data-track-index="2"
+    data-caption-text="The entries grew increasingly frantic.
+Then, on the 14th,
+the final entry read:"
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_11"
+    data-start="51.73"
+    data-duration="4.330000000000005"
+    data-track-index="2"
+    data-caption-text=""Storm ended, sea calm.
+God is over all.""
+    data-caption-style="quote"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_12"
+    data-start="56.36"
+    data-duration="3.9000000000000057"
+    data-track-index="2"
+    data-caption-text="But there was no storm recorded
+by weather stations on the mainland."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_13"
+    data-start="60.56"
+    data-duration="3.4000000000000057"
+    data-track-index="2"
+    data-caption-text="No ship reported bad weather
+in the area that week."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_14"
+    data-start="64.26"
+    data-duration="4.359999999999999"
+    data-track-index="2"
+    data-caption-text="Some say the keepers disappeared
+during a real storm —
+one never recorded."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_15"
+    data-start="68.92"
+    data-duration="2.9200000000000017"
+    data-track-index="2"
+    data-caption-text="Others believe a fight
+broke out between them."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_16"
+    data-start="72.14"
+    data-duration="4.0"
+    data-track-index="2"
+    data-caption-text="A popular theory claims one keeper
+go mad and killed the others."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_17"
+    data-start="76.44"
+    data-duration="5.320000000000007"
+    data-track-index="2"
+    data-caption-text="The logbook tells a darker story:
+entries about cursing, prayers,
+and a final supper."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_18"
+    data-start="82.06"
+    data-duration="4.640000000000001"
+    data-track-index="2"
+    data-caption-text="But the log was never found.
+Only fragments survive."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_19"
+    data-start="87.0"
+    data-duration="3.9200000000000017"
+    data-track-index="2"
+    data-caption-text="Whatever happened on that remote rock,
+the sea kept its secret."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_20"
+    data-start="91.22"
+    data-duration="6.560000000000002"
+    data-track-index="2"
+    data-caption-text="The Flannan Isles lighthouse was automated
+in 1971. No keeper has lived there since."
+    data-caption-style="lower_third"
+  ></div>
+
+  <div
+    class="clip"
+    id="caption_21"
+    data-start="98.08"
+    data-duration="4.790000000000006"
+    data-track-index="2"
+    data-caption-text="To this day, the disappearance remains
+one of Britain\'s most enduring mysteries."
+    data-caption-style="lower_third"
+  ></div>
+
+</div>
+
+<script>
+  // === HyperFrames composition runtime ===
+  // Register timelines for each track
+  (function() {
+    const stage = document.getElementById('stage');
+    window.__timelines = window.__timelines || {};
+
+    // Main video track: play clips at their start times
+    const clips = stage.querySelectorAll('video.clip');
+    clips.forEach(clip => {
+      const startTime = parseFloat(clip.dataset.start) || 0;
+      const duration = parseFloat(clip.dataset.duration) || 0;
+      clip.addEventListener('loadedmetadata', () => {
+        clip.currentTime = startTime;
+        clip.play();
+      });
+    });
+
+    // Overlay track: load templates dynamically
+    const overlays = stage.querySelectorAll('[data-template]');
+    overlays.forEach(el => {
+      const templateName = el.dataset.template;
+      const params = JSON.parse(el.dataset.params || '{}');
+      const templatePath = 'templates/' + templateName + '.html';
+
+      fetch(templatePath)
+        .then(r => r.text())
+        .then(html => {
+          const temp = document.createElement('div');
+          temp.innerHTML = html;
+          const content = temp.querySelector('#stage > *');
+          if (content) {
+            el.appendChild(content);
+            // Trigger template's own timeline registration
+            const script = temp.querySelector('script');
+            if (script) {
+              const scriptContent = script.textContent;
+              const scriptFunc = new Function('el', 'params', scriptContent);
+              scriptFunc(el, params);
+            }
+          }
+        });
+    });
+
+    // Register main timeline
+    const mainTimeline = gsap ? gsap.timeline({ paused: true }) : null;
+    if (mainTimeline) {
+      window.__timelines['main'] = mainTimeline;
+    }
+  })();
+</script>
+</body>
+</html>

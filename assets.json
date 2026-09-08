@@ -1,0 +1,129 @@
+{
+  "assets": [
+    {
+      "provider": "pexels",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "query": "lighthouse storm night sea",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "download_url": "https://www.pexels.com/video/11059181-hd_1366_720_25fps/",
+      "sha256": "0aebba0ca081d199e4d483fedb5eea81b9672ead7fb0ba2769288c06efa74dfa",
+      "file_size": 15390982,
+      "file_size_mb": 14.68,
+      "probe": {
+        "duration_sec": 40.0,
+        "width": 1366,
+        "height": 720,
+        "fps": "25/1",
+        "codec": "h264"
+      },
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "retrieved_at": "2026-09-05T12:36:00Z",
+      "rights_state": "approved",
+      "risk_notes": "Stock footage \u2014 no identifiable people, logos, or trademarks noted."
+    },
+    {
+      "provider": "pexels",
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "query": "lighthouse storm night sea",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "download_url": "https://www.pexels.com/video/11230943-hd_1280_720_30fps/",
+      "sha256": "97fabde927ad5023f417800151cab7af1bbec88063878d8b46b7c70e17e8644b",
+      "file_size": 22823418,
+      "file_size_mb": 21.77,
+      "probe": {
+        "duration_sec": 79.188333,
+        "width": 1280,
+        "height": 720,
+        "fps": "30000/1001",
+        "codec": "h264"
+      },
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "retrieved_at": "2026-09-05T12:36:00Z",
+      "rights_state": "approved",
+      "risk_notes": "Stock footage \u2014 no identifiable people, logos, or trademarks noted."
+    },
+    {
+      "provider": "pexels",
+      "asset_id": "16239001_1280_720_60fps",
+      "query": "foggy coast cliffs",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "download_url": "https://www.pexels.com/video/16239001_1280_720_60fps/",
+      "sha256": "50eb77091e85e66e202e558be0a9d6ca66b2fda93f54581e397a7020abf5b0a6",
+      "file_size": 14381743,
+      "file_size_mb": 13.72,
+      "probe": {
+        "duration_sec": 13.013,
+        "width": 1280,
+        "height": 720,
+        "fps": "60000/1001",
+        "codec": "h264"
+      },
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "retrieved_at": "2026-09-05T12:36:00Z",
+      "rights_state": "approved",
+      "risk_notes": "Stock footage \u2014 no identifiable people, logos, or trademarks noted."
+    },
+    {
+      "provider": "pexels",
+      "asset_id": "6256795-hd_1366_720_24fps",
+      "query": "lighthouse storm night sea",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\6256795-hd_1366_720_24fps.mp4",
+      "download_url": "https://www.pexels.com/video/6256795-hd_1366_720_24fps/",
+      "sha256": "0ffd72a53ba53734832dc86cf09db7fe6ddb00ff5c4d8ca663636635898df180",
+      "file_size": 2578554,
+      "file_size_mb": 2.46,
+      "probe": {
+        "duration_sec": 19.966667,
+        "width": 1366,
+        "height": 720,
+        "fps": "24/1",
+        "codec": "h264"
+      },
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "retrieved_at": "2026-09-05T12:36:00Z",
+      "rights_state": "approved",
+      "risk_notes": "Stock footage \u2014 no identifiable people, logos, or trademarks noted."
+    },
+    {
+      "provider": "pexels",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "query": "storm waves crashing rocks",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "download_url": "https://www.pexels.com/video/856365-hd_1280_720_30fps/",
+      "sha256": "aee6eabce3188d086603a63356c80e38ee5c6ea12c67aa86cd2c057aee7b0954",
+      "file_size": 1785856,
+      "file_size_mb": 1.7,
+      "probe": {
+        "duration_sec": 9.042367,
+        "width": 1280,
+        "height": 720,
+        "fps": "30000/1001",
+        "codec": "h264"
+      },
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/license/",
+      "retrieved_at": "2026-09-05T12:36:00Z",
+      "rights_state": "approved",
+      "risk_notes": "Stock footage \u2014 no identifiable people, logos, or trademarks noted."
+    },
+    {
+      "asset_id": "icon_warning_001",
+      "asset_type": "icon",
+      "source_url": "https://publicdomainvectors.org/en/free-clipart/Warning-icon/88185.html",
+      "license": "Public Domain / CC0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "local_path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\assets\\icons\\warning.svg",
+      "sha256": "ebec16478059f0690ccd4a13d881c75bd0114de934d8fa88eec790990780768d",
+      "status": "approved_for_test",
+      "verified_by_real_stat": true,
+      "verified_file_size_bytes": 305,
+      "verified_at": "2026-09-08"
+    }
+  ],
+  "version": "1.0",
+  "generated_at": "2026-09-05T17:55:00Z"
+}

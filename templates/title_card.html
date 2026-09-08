@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>Title Card — The Flannan Isles</title>
+<style>
+  /* === Title Card Template === */
+  /* Reusable composition: dark atmospheric title card for mystery/documentary videos */
+  /* Target: 1280x720, 24fps, ~3 second hold */
+
+  :root {
+    --bg-dark: #0a0a0f;
+    --bg-mid: #12121a;
+    --text-primary: #e8e8ec;
+    --text-secondary: #909098;
+    --accent: #c8a86e;  /* warm gold for mystery tone */
+    --safe-margin: 80px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    font-family: "Segoe UI", "Arial", sans-serif;
+    color: var(--text-primary);
+  }
+
+  #stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(20,20,30,0.8) 0%, transparent 70%),
+      linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-mid) 50%, var(--bg-dark) 100%);
+  }
+
+  /* === Subtle grain overlay === */
+  #grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* === Composition content === */
+  #title-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  #title {
+    font-size: 96px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-align: center;
+    color: var(--text-primary);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.6);
+    line-height: 1.1;
+    max-width: 1100px;
+  }
+
+  #subtitle {
+    font-size: 36px;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--text-secondary);
+    margin-top: 32px;
+    text-align: center;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  #divider {
+    width: 120px;
+    height: 2px;
+    background: var(--accent);
+    margin: 28px auto;
+    opacity: 0.6;
+  }
+
+  /* === Animated entrance === */
+  /* Uses data-start / data-duration per HyperFrames convention */
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="title_card" data-width="1280" data-height="720" data-fps="24">
+
+  <div id="grain"></div>
+
+  <div id="title-container" data-start="0" data-duration="3">
+    <div id="divider"></div>
+    <h1 id="title">The Flannan Isles</h1>
+    <div id="subtitle">Three Keepers — One Unsolved Mystery</div>
+  </div>
+
+</div>
+
+<script>
+  // === HyperFrames-compatible timeline registration ===
+  // Register the GSAP timeline on window.__timelines for deterministic seeking
+
+  (function() {
+    // Wait for GSAP if loaded by HyperFrames runtime, otherwise use CSS animations
+    const stage = document.getElementById('stage');
+    const container = document.getElementById('title-container');
+
+    // Fade-in entrance
+    const tl = gsap ? gsap.timeline({ paused: true }) : null;
+
+    if (tl) {
+      tl.to(container, {
+        opacity: 1,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+      tl.to('#divider', {
+        opacity: 0.6,
+        duration: 0.5,
+        ease: "power1.out",
+      }, '-=0.6');
+      tl.fromTo('#title', {
+        y: 30,
+        opacity: 0,
+      }, {
+        y: 0,
+        opacity: 1,
+        duration: 0.7,
+        ease: "power3.out",
+      }, '-=0.5');
+      tl.fromTo('#subtitle', {
+        y: 20,
+        opacity: 0,
+      }, {
+        y: 0,
+        opacity: 1,
+        duration: 0.5,
+        ease: "power2.out",
+      }, '-=0.3');
+
+      // Hold, then fade out at end
+      tl.to(container, {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.in",
+      }, '+=1.7');
+
+      // Register on window.__timelines for HyperFrames frame adapter
+      window.__timelines = window.__timelines || {};
+      window.__timelines['title_card'] = tl;
+
+      // Expose scrub for preview
+      if (window.__hyperframes) {
+        window.__hyperframes.registerTimeline('title_card', tl);
+      }
+    } else {
+      // Fallback: CSS animation when GSAP not available
+      container.style.transition = 'opacity 0.8s ease-out';
+      container.style.opacity = '1';
+      document.getElementById('title').style.transition = 'transform 0.7s ease-out, opacity 0.7s ease-out';
+      document.getElementById('title').style.transform = 'translateY(0)';
+      document.getElementById('title').style.opacity = '1';
+    }
+  })();
+</script>
+</body>
+</html>

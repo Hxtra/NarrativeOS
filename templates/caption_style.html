@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>Caption Style — HyperFrames</title>
+<style>
+  /* === Caption Style Template === */
+  /* Reusable caption rendering for video compositions */
+  /* Two modes: "lower_third" (animated bar) and "quote" (centered italic) */
+  /* Target: 1280x720, 24fps */
+
+  :root {
+    --bg-overlay: rgba(8, 8, 14, 0.72);
+    --text-primary: #f0f0f4;
+    --text-secondary: #a8a8b0;
+    --accent: #c8a86e;
+    --caption-font: "Segoe UI", "Arial", sans-serif;
+    --caption-size: 42px;
+    --safe-left: 60px;
+    --safe-right: 60px;
+    --safe-bottom: 100px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    font-family: var(--caption-font);
+  }
+
+  #stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+  }
+
+  /* === Caption container === */
+  #caption {
+    position: absolute;
+    left: var(--safe-left);
+    right: var(--safe-right);
+    bottom: var(--safe-bottom);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Two-line caption: subtitle + main */
+  .caption-two-line {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: var(--bg-overlay);
+    padding: 18px 24px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    backdrop-filter: blur(2px);
+  }
+
+  .caption-two-line .cap-sub {
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+  }
+
+  .caption-two-line .cap-main {
+    font-size: var(--caption-size);
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.25;
+    margin-top: 6px;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  }
+
+  /* Single-line caption */
+  .caption-single {
+    background: var(--bg-overlay);
+    padding: 14px 22px;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    backdrop-filter: blur(2px);
+  }
+
+  .caption-single .cap-text {
+    font-size: var(--caption-size);
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  }
+
+  /* Quote style: centered, italic, no bar */
+  .caption-quote {
+    text-align: center;
+    justify-content: center;
+    background: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .caption-quote .cap-quote {
+    font-size: 38px;
+    font-weight: 400;
+    font-style: italic;
+    color: #d0c0e8;
+    line-height: 1.35;
+    letter-spacing: 0.03em;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  }
+
+  /* Typing/word reveal effect */
+  .cap-line {
+    display: block;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .cap-line .char {
+    display: inline-block;
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="caption_style" data-width="1280" data-height="720" data-fps="24">
+
+  <div id="caption">
+    <div id="caption-inner"></div>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const stage = document.getElementById('stage');
+    const captionEl = document.getElementById('caption');
+    const captionInner = document.getElementById('caption-inner');
+
+    // Read params from data attributes
+    const params = {
+      text: stage.dataset.paramsText || '',
+      style: stage.dataset.paramsStyle || 'lower_third',
+      subText: stage.dataset.paramsSubtext || '',
+    };
+
+    const text = params.text || '';
+    const lines = text.split('\n');
+
+    // Clear
+    captionInner.innerHTML = '';
+
+    if (params.style === 'quote') {
+      // Centered quote style
+      captionEl.className = 'caption-quote';
+      const quoteDiv = document.createElement('div');
+      quoteDiv.className = 'cap-quote';
+      quoteDiv.textContent = text;
+      captionInner.appendChild(quoteDiv);
+    } else if (lines.length >= 2) {
+      // Two-line lower third
+      captionEl.className = 'caption-two-line';
+      const subDiv = document.createElement('div');
+      subDiv.className = 'cap-sub';
+      subDiv.textContent = lines.slice(0, -1).join('  •  ');
+      captionInner.appendChild(subDiv);
+
+      const mainDiv = document.createElement('div');
+      mainDiv.className = 'cap-main';
+      mainDiv.textContent = lines[lines.length - 1];
+      captionInner.appendChild(mainDiv);
+    } else {
+      // Single line
+      captionEl.className = 'caption-single';
+      const textDiv = document.createElement('div');
+      textDiv.className = 'cap-text';
+      textDiv.textContent = text;
+      captionInner.appendChild(textDiv);
+    }
+
+    // GSAP timeline for entrance/exit
+    const tl = gsap ? gsap.timeline({ paused: true }) : null;
+
+    if (tl) {
+      // Entrance
+      tl.to(captionEl, {
+        opacity: 1,
+        duration: 0.25,
+        ease: "power2.out",
+      });
+
+      // Per-word reveal for main text (kinetic caption feel)
+      const mainEl = captionInner.querySelector('.cap-main');
+      if (mainEl) {
+        const words = mainEl.textContent.split(' ');
+        mainEl.textContent = '';
+        words.forEach((word, i) => {
+          const span = document.createElement('span');
+          span.textContent = word + (i < words.length - 1 ? ' ' : '');
+          span.style.opacity = '0';
+          span.style.display = 'inline-block';
+          mainEl.appendChild(span);
+          tl.to(span, {
+            opacity: 1,
+            duration: 0.12,
+            ease: "power1.out",
+          }, '-=0.08');
+        });
+      }
+
+      // Auto-exit at end
+      const totalDur = parseInt(stage.dataset.duration || '5', 10);
+      tl.to(captionEl, {
+        opacity: 0,
+        duration: 0.25,
+        ease: "power2.in",
+      }, totalDur - 0.4);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines['caption_style'] = tl;
+
+      if (window.__hyperframes) {
+        window.__hyperframes.registerTimeline('caption_style', tl);
+      }
+    } else {
+      // Fallback
+      captionEl.style.transition = 'opacity 0.25s ease-out';
+      captionEl.style.opacity = '1';
+    }
+  })();
+</script>
+</body>
+</html>

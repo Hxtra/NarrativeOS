@@ -1,0 +1,69 @@
+{
+  "project_id": "mystery_flannan_001",
+  "title": "The Flannan Isles Mystery \u2014 Documentary Test",
+  "mode": "prototype",
+  "status": "in_progress",
+  "current_stage": "SHOT_LIST",
+  "target_duration_seconds": 120,
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "aspect_ratio": "16:9"
+  },
+  "style_version": "style_v001",
+  "outline_version": "outline_v001",
+  "script_version": "script_v001",
+  "shot_list_version": "shot_list_v001",
+  "timeline_version": "timeline_v002",
+  "approved_artifacts": [
+    "timeline.json",
+    "style/style_bible.json",
+    "project.yaml",
+    "README.md",
+    "final_summary.mp3",
+    "tts_fish_audio.py",
+    "tts_openai_provider.py",
+    "render_clean.py",
+    "flannan_isles_final.mp4",
+    "flannan_isles_final_complete_v2.mp4",
+    "INTAKE",
+    "style/style_bible.json",
+    "beat_map"
+  ],
+  "blocking_findings": [
+    {
+      "severity": "high",
+      "stage": "captions",
+      "description": "Caption drawtext filtergraph passes (RC=0) but no caption text visible in frame extractions at 2s, 5s, 50s, 95s. Filter syntax fixed (fontfile path, text_esc with escaped backslash/colon/bracket). Sequential overlay chain verified (22 steps complete, cap_step_00.mp4 to cap_step_final.mp4). Issue: either drawtext timing doesn't match timeline in_sec values or sequential chain doesn't propagate through entire filtergraph properly.",
+      "evidence": "vision_analyze on frame_check.png (2s), frame_at_5.png, frame_at_50.png \u2014 no caption overlay visible. render_captions_final.log: Caption 00-20 all RC=0 (real). cap_step_01.mp4 through cap_step_final.mp4 exist (verified file sizes).",
+      "repair_action": "Inspect drawtext filter syntax more carefully; verify caption text is properly escaped for FFmpeg drawtext; confirm timeline in_sec values match video timing; consider rendering one caption as a standalone overlay to verify visibility independently."
+    },
+    {
+      "severity": "high",
+      "stage": "music",
+      "description": "Real music blocked. Pixabay API broken (verified: category=music returns type=photo with no download_url or audio_length). Jamendo excluded (user instruction: non-commercial license = copyright risk for monetized channel). Fish Audio (primary TTS provider, S2.1 Pro via OpenRouter) hits 402 billing gate (verified real HTTP response: Rate limit exceeded: free-models-per-day, Remaining: 0). Deepgram Flux (deepgram/flux-tts:free) hits 429 rate limit (verified real HTTP response with X-RateLimit-Reset timestamp).",
+      "evidence": "Python urllib responses saved in session; tts_provider_setup.py pricing comparison; tts_fish_audio.py 402 response text; Deepgram 429 response text with metadata headers.",
+      "repair_action": "User must either fund OpenRouter account (for Fish Audio or OpenRouter general) OR provide separate OpenAI API key (VOICE_TOOLS_OPENAI_KEY) to use OpenAI TTS (already configured as fallback). Music: implement YouTube Audio Library browser automation per user's stated plan."
+    },
+    {
+      "severity": "medium",
+      "stage": "hyperframes",
+      "description": "HyperFrames v0.8.30 installed; binary responds to --version; Chrome launches successfully with HYPERFRAMES_BROWSER_PATH set; render exits with VIDEO_SOURCE_UNRENDERABLE (video file:// absolute path resolution failure). Composition HTML (composition.html) generated correctly (21 video tags, 23 overlay divs, caption data-attributes, title/outro templates referenced).",
+      "evidence": "node node_modules/hyperframes/bin/hyperframes.mjs --version returns 0.8.30; hyperframes doctor passes all checks except optional whisper-cpp, TTS, BGM, Docker; render produces real VIDEO_SOURCE_UNRENDERABLE error message with 21 source_missing failures; browser console shows file:// load errors.",
+      "repair_action": "Serve composition.html via local HTTP server (python -m http.server or similar) so HyperFrames loader resolves video paths as http://localhost instead of file:// absolute paths. OR patch HyperFrames loader to resolve relative paths correctly."
+    },
+    {
+      "stage": "BEAT_MAP",
+      "severity": "high",
+      "message": "Timeline parse error: name 'append_event' is not defined",
+      "evidence": "timeline.json at C:\\Users\\openclaw\\Desktop\\flannan_isles\\timeline.json",
+      "repaired": false
+    }
+  ],
+  "attempts": {
+    "tts_provider": "edge_tts (replaced) -> openai_tts (tts-1-hd, onyx voice, configured in build_timeline.py) -> fish_audio (primary intended, 402 billing gate verified) -> openai_tts (confirmed working, needs .env key)"
+  },
+  "last_successful_stage": "BEAT_MAP",
+  "next_action": "SHOT_LIST"
+}

@@ -1,0 +1,2146 @@
+{
+  "schema_version": "flannan.timeline/v1.0",
+  "project_id": "flannan_isles_20260905",
+  "generated_at": "2026-09-06T16:02:48.499589+00:00",
+  "sequence": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "duration_sec": 149.0
+  },
+  "tracks": [
+    {
+      "id": "v_main",
+      "kind": "video",
+      "z": 10,
+      "items": [
+        {
+          "id": "shot_01",
+          "beat_id": "beat_01",
+          "asset_id": "11059181-hd_1366_720_25fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_01: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11059181-hd_1366_720_25fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_02",
+          "beat_id": "beat_02",
+          "asset_id": "11230943-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 7.0
+          },
+          "timeline": {
+            "in_sec": 7.0,
+            "out_sec": 14.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_02: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11230943-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_03",
+          "beat_id": "beat_03",
+          "asset_id": "16239001_1280_720_60fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 7.0
+          },
+          "timeline": {
+            "in_sec": 13.0,
+            "out_sec": 20.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_03: foggy coast cliffs",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "16239001_1280_720_60fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_04",
+          "beat_id": "beat_04",
+          "asset_id": "6256795-hd_1366_720_24fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 19.0,
+            "out_sec": 27.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_04: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "6256795-hd_1366_720_24fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_05",
+          "beat_id": "beat_05",
+          "asset_id": "856365-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 7.0
+          },
+          "timeline": {
+            "in_sec": 26.0,
+            "out_sec": 33.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_05: storm waves crashing rocks",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "856365-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_06",
+          "beat_id": "beat_06",
+          "asset_id": "11059181-hd_1366_720_25fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 32.0,
+            "out_sec": 41.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_06: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11059181-hd_1366_720_25fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_07",
+          "beat_id": "beat_07",
+          "asset_id": "11230943-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 40.0,
+            "out_sec": 49.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_07: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11230943-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_08",
+          "beat_id": "beat_08",
+          "asset_id": "16239001_1280_720_60fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 48.0,
+            "out_sec": 57.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_08: foggy coast cliffs",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "16239001_1280_720_60fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_09",
+          "beat_id": "beat_09",
+          "asset_id": "11059181-hd_1366_720_25fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 56.0,
+            "out_sec": 64.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_09: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11059181-hd_1366_720_25fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_10",
+          "beat_id": "beat_10",
+          "asset_id": "856365-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 63.0,
+            "out_sec": 72.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_10: storm waves crashing rocks",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "856365-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_11",
+          "beat_id": "beat_11",
+          "asset_id": "6256795-hd_1366_720_24fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 6.0
+          },
+          "timeline": {
+            "in_sec": 71.0,
+            "out_sec": 77.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_11: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "6256795-hd_1366_720_24fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_12",
+          "beat_id": "beat_12",
+          "asset_id": "856365-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 76.0,
+            "out_sec": 84.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_12: storm waves crashing rocks",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "856365-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_13",
+          "beat_id": "beat_13",
+          "asset_id": "16239001_1280_720_60fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 6.0
+          },
+          "timeline": {
+            "in_sec": 83.0,
+            "out_sec": 89.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_13: foggy coast cliffs",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "16239001_1280_720_60fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_14",
+          "beat_id": "beat_14",
+          "asset_id": "11230943-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 88.0,
+            "out_sec": 97.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_14: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11230943-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_15",
+          "beat_id": "beat_15",
+          "asset_id": "856365-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 6.0
+          },
+          "timeline": {
+            "in_sec": 96.0,
+            "out_sec": 102.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_15: storm waves crashing rocks",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "856365-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_16",
+          "beat_id": "beat_16",
+          "asset_id": "11059181-hd_1366_720_25fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 101.0,
+            "out_sec": 109.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_16: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11059181-hd_1366_720_25fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_17",
+          "beat_id": "beat_17",
+          "asset_id": "11230943-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 9.0
+          },
+          "timeline": {
+            "in_sec": 108.0,
+            "out_sec": 117.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_17: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11230943-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_18",
+          "beat_id": "beat_18",
+          "asset_id": "16239001_1280_720_60fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 6.0
+          },
+          "timeline": {
+            "in_sec": 116.0,
+            "out_sec": 122.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_18: foggy coast cliffs",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "16239001_1280_720_60fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_19",
+          "beat_id": "beat_19",
+          "asset_id": "6256795-hd_1366_720_24fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 121.0,
+            "out_sec": 129.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_19: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "6256795-hd_1366_720_24fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_20",
+          "beat_id": "beat_20",
+          "asset_id": "856365-hd_1280_720_30fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 128.0,
+            "out_sec": 136.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_20: storm waves crashing rocks",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "856365-hd_1280_720_30fps",
+            "rights_state": "approved"
+          }
+        },
+        {
+          "id": "shot_21",
+          "beat_id": "beat_21",
+          "asset_id": "11059181-hd_1366_720_25fps",
+          "source": {
+            "in_sec": 0.0,
+            "out_sec": 8.0
+          },
+          "timeline": {
+            "in_sec": 135.0,
+            "out_sec": 143.0
+          },
+          "transform": {
+            "fit": "cover",
+            "anchor": "center"
+          },
+          "transition_in": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "crossfade",
+            "duration_sec": 0.5
+          },
+          "rationale": "Footage for beat_21: lighthouse storm night sea",
+          "provenance": {
+            "provider": "pexels",
+            "asset_id": "11059181-hd_1366_720_25fps",
+            "rights_state": "approved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "v_overlay",
+      "kind": "video",
+      "z": 20,
+      "items": [
+        {
+          "id": "title_card",
+          "type": "template",
+          "template": "title_card",
+          "params": {
+            "title": "The Flannan Isles",
+            "subtitle": "Three Keepers \u2014 One Unsolved Mystery"
+          },
+          "timeline": {
+            "in_sec": 0.0,
+            "out_sec": 3.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.5
+          }
+        },
+        {
+          "id": "lowerthird_01",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "In 1900, three lighthouse keepers\nvanished from the Flannan Isles.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 0.3,
+            "out_sec": 7.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_02",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "A remote archipelago\nin the Outer Hebrides of Scotland.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 7.3,
+            "out_sec": 13.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_03",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The lighthouse stood on Eilean M\u00f2r \u2014\nthe largest of the group.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 13.3,
+            "out_sec": 19.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_04",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "On December 15th, a passing ship\nnoticed the light was dark.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 19.3,
+            "out_sec": 26.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_05",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "No flag was flying.\nNo supplies had been landed for weeks.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 26.3,
+            "out_sec": 32.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_06",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "When a relief vessel finally arrived\non December 26th, the lighthouse was silent.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 32.3,
+            "out_sec": 40.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_07",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The door was unlocked.\nThe beds were unmade.\nA meal sat half-eaten on the table.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 40.3,
+            "out_sec": 48.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_08",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "But the three keepers \u2014\nJames Ducat, Thomas Marshall,\nand Donald MacArthur \u2014 were gone.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 48.3,
+            "out_sec": 56.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_09",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The lighthouse log recorded\na violent storm on the 12th and 13th of December.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 56.3,
+            "out_sec": 63.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_10",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The entries grew increasingly frantic.\nThen, on the 14th,\nthe final entry read:",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 63.3,
+            "out_sec": 71.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_11",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "\"Storm ended, sea calm.\nGod is over all.\"",
+            "style": "quote"
+          },
+          "timeline": {
+            "in_sec": 71.3,
+            "out_sec": 76.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_12",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "But there was no storm recorded\nby weather stations on the mainland.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 76.3,
+            "out_sec": 83.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_13",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "No ship reported bad weather\nin the area that week.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 83.3,
+            "out_sec": 88.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_14",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "Some say the keepers disappeared\nduring a real storm \u2014\none never recorded.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 88.3,
+            "out_sec": 96.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_15",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "Others believe a fight\nbroke out between them.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 96.3,
+            "out_sec": 101.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_16",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "A popular theory claims one keeper\ngo mad and killed the others.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 101.3,
+            "out_sec": 108.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_17",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The logbook tells a darker story:\nentries about cursing, prayers,\nand a final supper.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 108.3,
+            "out_sec": 116.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_18",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "But the log was never found.\nOnly fragments survive.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 116.3,
+            "out_sec": 121.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_19",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "Whatever happened on that remote rock,\nthe sea kept its secret.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 121.3,
+            "out_sec": 128.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_20",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "The Flannan Isles lighthouse was automated\nin 1971. No keeper has lived there since.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 128.3,
+            "out_sec": 135.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "lowerthird_21",
+          "type": "template",
+          "template": "lower_third",
+          "params": {
+            "text": "To this day, the disappearance remains\none of Britain's most enduring mysteries.",
+            "style": "lower_third"
+          },
+          "timeline": {
+            "in_sec": 135.3,
+            "out_sec": 142.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.2
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.2
+          }
+        },
+        {
+          "id": "outro_card",
+          "type": "template",
+          "template": "title_card",
+          "params": {
+            "title": "The sea keeps its secrets.",
+            "subtitle": "The Flannan Isles, 1900"
+          },
+          "timeline": {
+            "in_sec": 142.0,
+            "out_sec": 146.0
+          },
+          "transition_in": {
+            "type": "fade_in",
+            "duration_sec": 0.5
+          },
+          "transition_out": {
+            "type": "fade_out",
+            "duration_sec": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "v_captions",
+      "kind": "video",
+      "z": 30,
+      "items": [
+        {
+          "id": "caption_01",
+          "beat_id": "beat_01",
+          "text": "In 1900, three lighthouse keepers\nvanished from the Flannan Isles.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 0.3,
+            "out_sec": 7.0
+          }
+        },
+        {
+          "id": "caption_02",
+          "beat_id": "beat_02",
+          "text": "A remote archipelago\nin the Outer Hebrides of Scotland.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 7.3,
+            "out_sec": 13.0
+          }
+        },
+        {
+          "id": "caption_03",
+          "beat_id": "beat_03",
+          "text": "The lighthouse stood on Eilean M\u00f2r \u2014\nthe largest of the group.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 13.3,
+            "out_sec": 19.0
+          }
+        },
+        {
+          "id": "caption_04",
+          "beat_id": "beat_04",
+          "text": "On December 15th, a passing ship\nnoticed the light was dark.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 19.3,
+            "out_sec": 26.0
+          }
+        },
+        {
+          "id": "caption_05",
+          "beat_id": "beat_05",
+          "text": "No flag was flying.\nNo supplies had been landed for weeks.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 26.3,
+            "out_sec": 32.0
+          }
+        },
+        {
+          "id": "caption_06",
+          "beat_id": "beat_06",
+          "text": "When a relief vessel finally arrived\non December 26th, the lighthouse was silent.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 32.3,
+            "out_sec": 40.0
+          }
+        },
+        {
+          "id": "caption_07",
+          "beat_id": "beat_07",
+          "text": "The door was unlocked.\nThe beds were unmade.\nA meal sat half-eaten on the table.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 40.3,
+            "out_sec": 48.0
+          }
+        },
+        {
+          "id": "caption_08",
+          "beat_id": "beat_08",
+          "text": "But the three keepers \u2014\nJames Ducat, Thomas Marshall,\nand Donald MacArthur \u2014 were gone.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 48.3,
+            "out_sec": 56.0
+          }
+        },
+        {
+          "id": "caption_09",
+          "beat_id": "beat_09",
+          "text": "The lighthouse log recorded\na violent storm on the 12th and 13th of December.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 56.3,
+            "out_sec": 63.0
+          }
+        },
+        {
+          "id": "caption_10",
+          "beat_id": "beat_10",
+          "text": "The entries grew increasingly frantic.\nThen, on the 14th,\nthe final entry read:",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 63.3,
+            "out_sec": 71.0
+          }
+        },
+        {
+          "id": "caption_11",
+          "beat_id": "beat_11",
+          "text": "\"Storm ended, sea calm.\nGod is over all.\"",
+          "style": "quote",
+          "timeline": {
+            "in_sec": 71.3,
+            "out_sec": 76.0
+          }
+        },
+        {
+          "id": "caption_12",
+          "beat_id": "beat_12",
+          "text": "But there was no storm recorded\nby weather stations on the mainland.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 76.3,
+            "out_sec": 83.0
+          }
+        },
+        {
+          "id": "caption_13",
+          "beat_id": "beat_13",
+          "text": "No ship reported bad weather\nin the area that week.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 83.3,
+            "out_sec": 88.0
+          }
+        },
+        {
+          "id": "caption_14",
+          "beat_id": "beat_14",
+          "text": "Some say the keepers disappeared\nduring a real storm \u2014\none never recorded.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 88.3,
+            "out_sec": 96.0
+          }
+        },
+        {
+          "id": "caption_15",
+          "beat_id": "beat_15",
+          "text": "Others believe a fight\nbroke out between them.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 96.3,
+            "out_sec": 101.0
+          }
+        },
+        {
+          "id": "caption_16",
+          "beat_id": "beat_16",
+          "text": "A popular theory claims one keeper\ngo mad and killed the others.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 101.3,
+            "out_sec": 108.0
+          }
+        },
+        {
+          "id": "caption_17",
+          "beat_id": "beat_17",
+          "text": "The logbook tells a darker story:\nentries about cursing, prayers,\nand a final supper.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 108.3,
+            "out_sec": 116.0
+          }
+        },
+        {
+          "id": "caption_18",
+          "beat_id": "beat_18",
+          "text": "But the log was never found.\nOnly fragments survive.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 116.3,
+            "out_sec": 121.0
+          }
+        },
+        {
+          "id": "caption_19",
+          "beat_id": "beat_19",
+          "text": "Whatever happened on that remote rock,\nthe sea kept its secret.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 121.3,
+            "out_sec": 128.0
+          }
+        },
+        {
+          "id": "caption_20",
+          "beat_id": "beat_20",
+          "text": "The Flannan Isles lighthouse was automated\nin 1971. No keeper has lived there since.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 128.3,
+            "out_sec": 135.0
+          }
+        },
+        {
+          "id": "caption_21",
+          "beat_id": "beat_21",
+          "text": "To this day, the disappearance remains\none of Britain's most enduring mysteries.",
+          "style": "lower_third",
+          "timeline": {
+            "in_sec": 135.3,
+            "out_sec": 142.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "a_voice",
+      "kind": "audio",
+      "z": 10,
+      "items": [
+        {
+          "id": "voice_01",
+          "beat_id": "beat_01",
+          "text": "In 1900, three lighthouse keepers vanished from the Flannan Isles.",
+          "timeline": {
+            "in_sec": 0.0,
+            "out_sec": 7.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_02",
+          "beat_id": "beat_02",
+          "text": "A remote archipelago in the Outer Hebrides of Scotland.",
+          "timeline": {
+            "in_sec": 7.0,
+            "out_sec": 13.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_03",
+          "beat_id": "beat_03",
+          "text": "The lighthouse stood on Eilean M\u00f2r \u2014 the largest of the group.",
+          "timeline": {
+            "in_sec": 13.0,
+            "out_sec": 19.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_04",
+          "beat_id": "beat_04",
+          "text": "On December 15th, a passing ship noticed the light was dark.",
+          "timeline": {
+            "in_sec": 19.0,
+            "out_sec": 26.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_05",
+          "beat_id": "beat_05",
+          "text": "No flag was flying. No supplies had been landed for weeks.",
+          "timeline": {
+            "in_sec": 26.0,
+            "out_sec": 32.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_06",
+          "beat_id": "beat_06",
+          "text": "When a relief vessel finally arrived on December 26th, the lighthouse was silent.",
+          "timeline": {
+            "in_sec": 32.0,
+            "out_sec": 40.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_07",
+          "beat_id": "beat_07",
+          "text": "The door was unlocked. The beds were unmade. A meal sat half-eaten on the table.",
+          "timeline": {
+            "in_sec": 40.0,
+            "out_sec": 48.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_08",
+          "beat_id": "beat_08",
+          "text": "But the three keepers \u2014 James Ducat, Thomas Marshall, and Donald MacArthur \u2014 were gone.",
+          "timeline": {
+            "in_sec": 48.0,
+            "out_sec": 56.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_09",
+          "beat_id": "beat_09",
+          "text": "The lighthouse log recorded a violent storm on the 12th and 13th of December.",
+          "timeline": {
+            "in_sec": 56.0,
+            "out_sec": 63.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_10",
+          "beat_id": "beat_10",
+          "text": "The entries grew increasingly frantic. Then, on the 14th, the final entry read:",
+          "timeline": {
+            "in_sec": 63.0,
+            "out_sec": 71.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_11",
+          "beat_id": "beat_11",
+          "text": "\"Storm ended, sea calm. God is over all.\"",
+          "timeline": {
+            "in_sec": 71.0,
+            "out_sec": 76.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_12",
+          "beat_id": "beat_12",
+          "text": "But there was no storm recorded by weather stations on the mainland.",
+          "timeline": {
+            "in_sec": 76.0,
+            "out_sec": 83.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_13",
+          "beat_id": "beat_13",
+          "text": "No ship reported bad weather in the area that week.",
+          "timeline": {
+            "in_sec": 83.0,
+            "out_sec": 88.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_14",
+          "beat_id": "beat_14",
+          "text": "Some say the keepers disappeared during a real storm \u2014 one never recorded.",
+          "timeline": {
+            "in_sec": 88.0,
+            "out_sec": 96.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_15",
+          "beat_id": "beat_15",
+          "text": "Others believe a fight broke out between them.",
+          "timeline": {
+            "in_sec": 96.0,
+            "out_sec": 101.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_16",
+          "beat_id": "beat_16",
+          "text": "A popular theory claims one keeper went mad and killed the others.",
+          "timeline": {
+            "in_sec": 101.0,
+            "out_sec": 108.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_17",
+          "beat_id": "beat_17",
+          "text": "The logbook tells a darker story: entries about cursing, prayers, and a final supper.",
+          "timeline": {
+            "in_sec": 108.0,
+            "out_sec": 116.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_18",
+          "beat_id": "beat_18",
+          "text": "But the log was never found. Only fragments survive.",
+          "timeline": {
+            "in_sec": 116.0,
+            "out_sec": 121.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_19",
+          "beat_id": "beat_19",
+          "text": "Whatever happened on that remote rock, the sea kept its secret.",
+          "timeline": {
+            "in_sec": 121.0,
+            "out_sec": 128.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_20",
+          "beat_id": "beat_20",
+          "text": "The Flannan Isles lighthouse was automated in 1971. No keeper has lived there since.",
+          "timeline": {
+            "in_sec": 128.0,
+            "out_sec": 135.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        },
+        {
+          "id": "voice_21",
+          "beat_id": "beat_21",
+          "text": "To this day, the disappearance remains one of Britain's most enduring mysteries.",
+          "timeline": {
+            "in_sec": 135.0,
+            "out_sec": 142.0
+          },
+          "provider": "openai_tts",
+          "model": "tts-1-hd",
+          "voice": "onyx",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "a_music",
+      "kind": "audio",
+      "z": 5,
+      "items": [
+        {
+          "id": "music_bed",
+          "type": "synthesized",
+          "synthesize": "dark_drone",
+          "timeline": {
+            "in_sec": 0.0,
+            "out_sec": 146.0
+          },
+          "gain_db": -18.0,
+          "ducking": {
+            "sidechain": "voice_track",
+            "threshold_db": -30,
+            "ratio": 5,
+            "attack_ms": 20,
+            "release_ms": 250
+          },
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+  "script": [
+    {
+      "id": "beat_01",
+      "text": "In 1900, three lighthouse keepers vanished from the Flannan Isles.",
+      "duration_sec": 7.0,
+      "caption": "In 1900, three lighthouse keepers\nvanished from the Flannan Isles.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 0.0,
+      "timeline_out_sec": 7.0
+    },
+    {
+      "id": "beat_02",
+      "text": "A remote archipelago in the Outer Hebrides of Scotland.",
+      "duration_sec": 6.0,
+      "caption": "A remote archipelago\nin the Outer Hebrides of Scotland.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 7.0,
+      "timeline_out_sec": 13.0
+    },
+    {
+      "id": "beat_03",
+      "text": "The lighthouse stood on Eilean M\u00f2r \u2014 the largest of the group.",
+      "duration_sec": 6.0,
+      "caption": "The lighthouse stood on Eilean M\u00f2r \u2014\nthe largest of the group.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 13.0,
+      "timeline_out_sec": 19.0
+    },
+    {
+      "id": "beat_04",
+      "text": "On December 15th, a passing ship noticed the light was dark.",
+      "duration_sec": 7.0,
+      "caption": "On December 15th, a passing ship\nnoticed the light was dark.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 19.0,
+      "timeline_out_sec": 26.0
+    },
+    {
+      "id": "beat_05",
+      "text": "No flag was flying. No supplies had been landed for weeks.",
+      "duration_sec": 6.0,
+      "caption": "No flag was flying.\nNo supplies had been landed for weeks.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 26.0,
+      "timeline_out_sec": 32.0
+    },
+    {
+      "id": "beat_06",
+      "text": "When a relief vessel finally arrived on December 26th, the lighthouse was silent.",
+      "duration_sec": 8.0,
+      "caption": "When a relief vessel finally arrived\non December 26th, the lighthouse was silent.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 32.0,
+      "timeline_out_sec": 40.0
+    },
+    {
+      "id": "beat_07",
+      "text": "The door was unlocked. The beds were unmade. A meal sat half-eaten on the table.",
+      "duration_sec": 8.0,
+      "caption": "The door was unlocked.\nThe beds were unmade.\nA meal sat half-eaten on the table.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 40.0,
+      "timeline_out_sec": 48.0
+    },
+    {
+      "id": "beat_08",
+      "text": "But the three keepers \u2014 James Ducat, Thomas Marshall, and Donald MacArthur \u2014 were gone.",
+      "duration_sec": 8.0,
+      "caption": "But the three keepers \u2014\nJames Ducat, Thomas Marshall,\nand Donald MacArthur \u2014 were gone.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 48.0,
+      "timeline_out_sec": 56.0
+    },
+    {
+      "id": "beat_09",
+      "text": "The lighthouse log recorded a violent storm on the 12th and 13th of December.",
+      "duration_sec": 7.0,
+      "caption": "The lighthouse log recorded\na violent storm on the 12th and 13th of December.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 56.0,
+      "timeline_out_sec": 63.0
+    },
+    {
+      "id": "beat_10",
+      "text": "The entries grew increasingly frantic. Then, on the 14th, the final entry read:",
+      "duration_sec": 8.0,
+      "caption": "The entries grew increasingly frantic.\nThen, on the 14th,\nthe final entry read:",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 63.0,
+      "timeline_out_sec": 71.0
+    },
+    {
+      "id": "beat_11",
+      "text": "\"Storm ended, sea calm. God is over all.\"",
+      "duration_sec": 5.0,
+      "caption": "\"Storm ended, sea calm.\nGod is over all.\"",
+      "caption_style": "quote",
+      "timeline_in_sec": 71.0,
+      "timeline_out_sec": 76.0
+    },
+    {
+      "id": "beat_12",
+      "text": "But there was no storm recorded by weather stations on the mainland.",
+      "duration_sec": 7.0,
+      "caption": "But there was no storm recorded\nby weather stations on the mainland.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 76.0,
+      "timeline_out_sec": 83.0
+    },
+    {
+      "id": "beat_13",
+      "text": "No ship reported bad weather in the area that week.",
+      "duration_sec": 5.0,
+      "caption": "No ship reported bad weather\nin the area that week.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 83.0,
+      "timeline_out_sec": 88.0
+    },
+    {
+      "id": "beat_14",
+      "text": "Some say the keepers disappeared during a real storm \u2014 one never recorded.",
+      "duration_sec": 8.0,
+      "caption": "Some say the keepers disappeared\nduring a real storm \u2014\none never recorded.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 88.0,
+      "timeline_out_sec": 96.0
+    },
+    {
+      "id": "beat_15",
+      "text": "Others believe a fight broke out between them.",
+      "duration_sec": 5.0,
+      "caption": "Others believe a fight\nbroke out between them.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 96.0,
+      "timeline_out_sec": 101.0
+    },
+    {
+      "id": "beat_16",
+      "text": "A popular theory claims one keeper went mad and killed the others.",
+      "duration_sec": 7.0,
+      "caption": "A popular theory claims one keeper\ngo mad and killed the others.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 101.0,
+      "timeline_out_sec": 108.0
+    },
+    {
+      "id": "beat_17",
+      "text": "The logbook tells a darker story: entries about cursing, prayers, and a final supper.",
+      "duration_sec": 8.0,
+      "caption": "The logbook tells a darker story:\nentries about cursing, prayers,\nand a final supper.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 108.0,
+      "timeline_out_sec": 116.0
+    },
+    {
+      "id": "beat_18",
+      "text": "But the log was never found. Only fragments survive.",
+      "duration_sec": 5.0,
+      "caption": "But the log was never found.\nOnly fragments survive.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 116.0,
+      "timeline_out_sec": 121.0
+    },
+    {
+      "id": "beat_19",
+      "text": "Whatever happened on that remote rock, the sea kept its secret.",
+      "duration_sec": 7.0,
+      "caption": "Whatever happened on that remote rock,\nthe sea kept its secret.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 121.0,
+      "timeline_out_sec": 128.0
+    },
+    {
+      "id": "beat_20",
+      "text": "The Flannan Isles lighthouse was automated in 1971. No keeper has lived there since.",
+      "duration_sec": 7.0,
+      "caption": "The Flannan Isles lighthouse was automated\nin 1971. No keeper has lived there since.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 128.0,
+      "timeline_out_sec": 135.0
+    },
+    {
+      "id": "beat_21",
+      "text": "To this day, the disappearance remains one of Britain's most enduring mysteries.",
+      "duration_sec": 7.0,
+      "caption": "To this day, the disappearance remains\none of Britain's most enduring mysteries.",
+      "caption_style": "lower_third",
+      "timeline_in_sec": 135.0,
+      "timeline_out_sec": 142.0
+    }
+  ],
+  "footage_assignments": [
+    {
+      "beat_id": "beat_01",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 0.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 8.0
+    },
+    {
+      "beat_id": "beat_02",
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 7.0,
+      "timeline_in_sec": 7.0,
+      "duration_sec": 7.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 14.0
+    },
+    {
+      "beat_id": "beat_03",
+      "asset_id": "16239001_1280_720_60fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 7.0,
+      "timeline_in_sec": 13.0,
+      "duration_sec": 7.0,
+      "mood": "foggy coast cliffs",
+      "timeline_out_sec": 20.0
+    },
+    {
+      "beat_id": "beat_04",
+      "asset_id": "6256795-hd_1366_720_24fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\6256795-hd_1366_720_24fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 19.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 27.0
+    },
+    {
+      "beat_id": "beat_05",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 7.0,
+      "timeline_in_sec": 26.0,
+      "duration_sec": 7.0,
+      "mood": "storm waves crashing rocks",
+      "timeline_out_sec": 33.0
+    },
+    {
+      "beat_id": "beat_06",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 32.0,
+      "duration_sec": 9.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 41.0
+    },
+    {
+      "beat_id": "beat_07",
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 40.0,
+      "duration_sec": 9.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 49.0
+    },
+    {
+      "beat_id": "beat_08",
+      "asset_id": "16239001_1280_720_60fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 48.0,
+      "duration_sec": 9.0,
+      "mood": "foggy coast cliffs",
+      "timeline_out_sec": 57.0
+    },
+    {
+      "beat_id": "beat_09",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 56.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 64.0
+    },
+    {
+      "beat_id": "beat_10",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 63.0,
+      "duration_sec": 9.0,
+      "mood": "storm waves crashing rocks",
+      "timeline_out_sec": 72.0
+    },
+    {
+      "beat_id": "beat_11",
+      "asset_id": "6256795-hd_1366_720_24fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\6256795-hd_1366_720_24fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 6.0,
+      "timeline_in_sec": 71.0,
+      "duration_sec": 6.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 77.0
+    },
+    {
+      "beat_id": "beat_12",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 76.0,
+      "duration_sec": 8.0,
+      "mood": "storm waves crashing rocks",
+      "timeline_out_sec": 84.0
+    },
+    {
+      "beat_id": "beat_13",
+      "asset_id": "16239001_1280_720_60fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 6.0,
+      "timeline_in_sec": 83.0,
+      "duration_sec": 6.0,
+      "mood": "foggy coast cliffs",
+      "timeline_out_sec": 89.0
+    },
+    {
+      "beat_id": "beat_14",
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 88.0,
+      "duration_sec": 9.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 97.0
+    },
+    {
+      "beat_id": "beat_15",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 6.0,
+      "timeline_in_sec": 96.0,
+      "duration_sec": 6.0,
+      "mood": "storm waves crashing rocks",
+      "timeline_out_sec": 102.0
+    },
+    {
+      "beat_id": "beat_16",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 101.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 109.0
+    },
+    {
+      "beat_id": "beat_17",
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 9.0,
+      "timeline_in_sec": 108.0,
+      "duration_sec": 9.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 117.0
+    },
+    {
+      "beat_id": "beat_18",
+      "asset_id": "16239001_1280_720_60fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 6.0,
+      "timeline_in_sec": 116.0,
+      "duration_sec": 6.0,
+      "mood": "foggy coast cliffs",
+      "timeline_out_sec": 122.0
+    },
+    {
+      "beat_id": "beat_19",
+      "asset_id": "6256795-hd_1366_720_24fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\6256795-hd_1366_720_24fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 121.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 129.0
+    },
+    {
+      "beat_id": "beat_20",
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 128.0,
+      "duration_sec": 8.0,
+      "mood": "storm waves crashing rocks",
+      "timeline_out_sec": 136.0
+    },
+    {
+      "beat_id": "beat_21",
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "source_in_sec": 0.0,
+      "source_out_sec": 8.0,
+      "timeline_in_sec": 135.0,
+      "duration_sec": 8.0,
+      "mood": "lighthouse storm night sea",
+      "timeline_out_sec": 143.0
+    }
+  ],
+  "total_narration_sec": 142.0,
+  "total_duration_sec": 149.0,
+  "assets_used": [
+    {
+      "asset_id": "11059181-hd_1366_720_25fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11059181-hd_1366_720_25fps.mp4",
+      "query": "lighthouse storm night sea",
+      "duration_sec": 40.0,
+      "file_size_mb": 14.68
+    },
+    {
+      "asset_id": "11230943-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\11230943-hd_1280_720_30fps.mp4",
+      "query": "lighthouse storm night sea",
+      "duration_sec": 79.188333,
+      "file_size_mb": 21.77
+    },
+    {
+      "asset_id": "16239001_1280_720_60fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\16239001_1280_720_60fps.mp4",
+      "query": "foggy coast cliffs",
+      "duration_sec": 13.013,
+      "file_size_mb": 13.72
+    },
+    {
+      "asset_id": "6256795-hd_1366_720_24fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\6256795-hd_1366_720_24fps.mp4",
+      "query": "lighthouse storm night sea",
+      "duration_sec": 19.966667,
+      "file_size_mb": 2.46
+    },
+    {
+      "asset_id": "856365-hd_1280_720_30fps",
+      "path": "C:\\Users\\openclaw\\Desktop\\flannan_isles\\footage\\856365-hd_1280_720_30fps.mp4",
+      "query": "storm waves crashing rocks",
+      "duration_sec": 9.042367,
+      "file_size_mb": 1.7
+    }
+  ]
+}

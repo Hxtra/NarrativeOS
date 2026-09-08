@@ -1,0 +1,94 @@
+{
+  "style_id": "cinematic_mystery_documentary_v001",
+  "visual_identity": {
+    "description": "Atmospheric documentary \u2014 Flannan Isles lighthouse mystery, 1900. Dark, desaturated, subtle grain. Prestige-documentary mood with restrained historical texture.",
+    "palette": {
+      "base": [
+        "charcoal (#0a0a0f)",
+        "deep navy (#0f1528)",
+        "weathered grey (#2a2a3a)"
+      ],
+      "accent": [
+        "muted amber (#c8a86e)",
+        "aged gold (#bfa86e)"
+      ],
+      "avoid": [
+        "neon colors",
+        "bright corporate blue (#3b82f6)",
+        "plastic saturation",
+        "high-key bright scenes"
+      ]
+    },
+    "contrast": "high but preserve shadow detail",
+    "texture": "subtle film grain, light dust, restrained gate weave",
+    "lighting": "directional, low-key, practical light sources (lighthouse lamp, storm shadows)",
+    "lens_language": "documentary wide shots for isolation, restrained close-ups for tension, slow deliberate movement"
+  },
+  "composition": {
+    "preferred_shot_sizes": [
+      "wide",
+      "medium",
+      "close-up",
+      "detail"
+    ],
+    "shot_change_default_seconds": [
+      2.5,
+      5.5
+    ],
+    "long_shot_allowed_for": [
+      "maps",
+      "diagrams",
+      "evidence documents",
+      "atmospheric establishing shots"
+    ],
+    "avoid": [
+      "random zooms",
+      "constant whip pans",
+      "unmotivated camera movement",
+      "jump cuts without transition"
+    ]
+  },
+  "motion": {
+    "still_image_default": "slow 1.03x to 1.10x push or lateral parallax",
+    "generated_video": "subtle physically plausible movement (wind, fog drift)",
+    "transitions": [
+      "hard_cut",
+      "dissolve",
+      "luma_fade",
+      "crossfade"
+    ],
+    "transition_rule": "Use transition only when it supports a change in time, place, idea, or emotional state. Crossfade preferred for story continuity; hard cut for abrupt reveals."
+  },
+  "typography": {
+    "title_family": "Segoe UI Bold / serif display (COOPBL for vintage title accent if needed)",
+    "body_family": "Segoe UI (high-legibility sans serif for lower-thirds/captions)",
+    "title_case": "title case or controlled uppercase",
+    "caption_policy": "short, readable, high contrast (white on dark bar), safe margins (60px left, 60px bottom offset from bottom)",
+    "caption_background": "semi-transparent dark bar (#0a0a0f at 0xbe opacity) with amber accent line (#c8a86e)",
+    "avoid": [
+      "tiny text (<24pt)",
+      "decorative text for factual data",
+      "text baked into generated footage images"
+    ]
+  },
+  "audio": {
+    "narration": "calm, measured, authoritative male voice (OpenAI onyx or Fish Audio equivalent)",
+    "music": "synthesized atmospheric drone (pink noise + low/high pass + volume ducking) \u2014 clearly labeled placeholder; real cinematic music requires YouTube Audio Library or licensed source",
+    "sfx": "sparse, motivated (wind, sea, lighthouse mechanism): low volume, not overpowering narration",
+    "silence": "allowed before important reveals (e.g., before final log entry quote)",
+    "mix_rule": "Narration always intelligible over music; drone ducked to 0.18 volume; ducking threshold set but verified with simple amix instead of broken sidechaincompress"
+  },
+  "editorial_rules": {
+    "visual_literalness": "Literal visuals for mechanisms, places, dates, evidence; atmospheric visuals only for mood (storm, fog, isolation).",
+    "historical_reconstruction": "No invented details presented as archival fact. Footage from Pexels (verified) used with correct source attribution.",
+    "repetition": "No same visual reused within 45 seconds unless intentional and documented (current pipeline reuses 5 clips across 21 beats \u2014 editorial limitation flagged).",
+    "continuity": "Dark/desaturated palette preserved; subtle grain; consistent lighthouse/storm atmosphere."
+  },
+  "pipeline_constraints": {
+    "hyperframes": "Installed v0.8.30; Chrome launches successfully; loader fix needed for video file path resolution (VIDEO_SOURCE_UNRENDERABLE \u2014 relative paths resolve incorrectly).",
+    "music_source": "Pixabay API broken (category=music returns type=photo, no download_url \u2014 verified with real Python urllib response). Jamendo excluded (non-commercial only). YouTube Audio Library requires browser automation.",
+    "caption_rendering": "Sequential PNG overlay chain verified (21 steps, all RC=0). Final video must include captions \u2014 visual verification required (drawtext syntax passes but must be inspected via frame extraction).",
+    "tts_provider": "openai_tts (primary active: onyx, tts-1-hd); fish_audio (primary intended: requires funded OpenRouter account \u2014 402 verified); edge_tts (replaced per user instruction).",
+    "review_gate": "Timeline must be inspected and approved before render. Timeline v2 rebuilt with actual TTS durations."
+  }
+}

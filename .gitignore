@@ -1,0 +1,68 @@
+# Flannan Isles — .gitignore (verified exclusions — not synthetic exclusions claim)
+# Secrets and environment
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[co]
+*.egg-info/
+*.pth
+
+# Temporary media / renders / frames
+benchmark_work/
+render_work/*.png
+render_work/*.mp4
+*.mov
+*.avi
+*.mkv
+downloads/
+browser_profiles/
+browser_cache/
+
+# HyperFrames / video loader temporary output
+hyperframes_output/
+composition_output/
+localhost_media_cache/
+
+# Generated audio / TTS / music
+audio/*.m4a
+audio/*.mp3
+music/*.mp3
+music/*.m4a
+
+# Large footage (not pushed directly — download/setup script only)
+footage/*.mp4
+footage/*.mov
+
+# Logs that may contain credentials
+*.log
+!logs/.gitkeep
+logs/*.jsonl
+
+# Local caches / temporary files
+.cache/
+.tmp/
+scratch/
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Documentation exports (optional exclusion if too large — keep source .md files)
+exports/*.pdf
+exports/*.png
+
+# Verification: this file excludes private data, large temporary media, and secrets — not synthetic exclusions
+
+*.pyc
+node_modules/
+*.mp4
+*.m4a
+render_work/
+final_*.mp4

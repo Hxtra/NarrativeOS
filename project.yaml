@@ -1,0 +1,16 @@
+project_id: flannan_isles_20260905
+mode: prototype
+title: The Flannan Isles Mystery — Documentary Test
+target_duration_seconds: 110
+language: en
+narration_voice: onyx  # Deep male, calm measured (OpenAI tts-1-hd); Fish Audio S2.1 Pro (primary, requires billing activation)
+factuality_standard: verified_historical_claims_only
+generated_media_allowed: false  # Only verified footage + reconstructed atmosphere
+footage_sources: [pexels]
+style_version: cinematic_mystery_documentary_v001
+timeline_version: timeline_v001
+approved_artifacts: []
+blocking_findings: []
+current_stage: timeline
+last_successful_stage: timeline
+next_action: set_tts_provider_key_and_rebuild_narration

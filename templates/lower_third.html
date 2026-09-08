@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280, height=720">
+<title>Lower Third Template — HyperFrames</title>
+<style>
+  /* === Lower Third Template === */
+  /* Reusable: animated lower-third bar with optional two-line text */
+  /* Target: 1280x720, 24fps, safe margins respected */
+  /* Usage: set params.text and params.style via HyperFrames composition */
+
+  :root {
+    --bg-dark: #0d0d14;
+    --bg-bar: rgba(13, 13, 20, 0.88);
+    --text-primary: #e8e8ec;
+    --text-secondary: #909098;
+    --accent: #c8a86e;
+    --safe-left: 60px;
+    --safe-bottom: 80px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    font-family: "Segoe UI", "Arial", sans-serif;
+  }
+
+  #stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+  }
+
+  /* === Lower third bar container === */
+  #lower-third {
+    position: absolute;
+    left: var(--safe-left);
+    bottom: var(--safe-bottom);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Background bar */
+  #bar-bg {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 36px 0 0;
+    background: var(--bg-bar);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* Accent stripe */
+  #accent-line {
+    width: 3px;
+    min-height: 40px;
+    background: var(--accent);
+    flex-shrink: 0;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Text area */
+  #text-area {
+    flex: 1;
+    padding: 14px 0 14px 16px;
+  }
+
+  /* Line 1 (subtitle / context — smaller, lighter) */
+  #line-sub {
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  /* Line 2 (main text — primary, bold) */
+  #line-main {
+    font-size: 44px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    margin-top: 4px;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  }
+
+  /* Single-line mode: only main text */
+  .single-line #line-sub { display: none; }
+  .single-line #line-main { font-size: 40px; }
+
+  /* === Quotation style variant === */
+  .quote-mode #bar-bg {
+    background: rgba(20, 18, 30, 0.92);
+    border-left-color: #8a7aaa;
+  }
+  .quote-mode #line-main {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 40px;
+    color: #c8b8e8;
+  }
+  .quote-mode #line-sub {
+    font-size: 24px;
+    color: #8888aa;
+  }
+
+  /* === Entrance animation === */
+  #bar-enter {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="lower_third" data-width="1280" data-height="720" data-fps="24">
+
+  <div id="lower-third">
+    <div id="bar-enter">
+      <div id="bar-bg">
+        <div id="accent-line"></div>
+        <div id="text-area">
+          <div id="line-sub"></div>
+          <div id="line-main"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    const stage = document.getElementById('stage');
+    const bar = document.getElementById('lower-third');
+    const lineMain = document.getElementById('line-main');
+    const lineSub = document.getElementById('line-sub');
+    const barEnter = document.getElementById('bar-enter');
+
+    // Read params from data attributes (set by HyperFrames composition)
+    const params = {
+      text: stage.dataset.paramsText || '',
+      style: stage.dataset.paramsStyle || 'lower_third',
+      subText: stage.dataset.paramsSubtext || '',
+    };
+
+    // Parse two-line text if \n present
+    const lines = params.text.split('\n');
+    if (lines.length >= 2) {
+      lineMain.textContent = lines[lines.length - 1]; // last line = main
+      // Everything before last = subtitle lines
+      const subLines = lines.slice(0, -1).join(' | ');
+      lineSub.textContent = subLines;
+      bar.classList.add('two-line');
+    } else {
+      lineMain.textContent = params.text;
+      bar.classList.add('single-line');
+    }
+
+    if (params.style === 'quote') {
+      bar.classList.add('quote-mode');
+    }
+
+    // GSAP timeline for deterministic entrance/exit
+    const tl = gsap ? gsap.timeline({ paused: true }) : null;
+
+    if (tl) {
+      tl.to(barEnter, {
+        x: 0,
+        opacity: 1,
+        duration: 0.35,
+        ease: "power2.out",
+      });
+      tl.to('#accent-line', {
+        scaleY: 1,
+        transformOrigin: "bottom center",
+        duration: 0.3,
+        ease: "power1.out",
+      }, '-=0.25');
+      tl.to('#line-main', {
+        opacity: 1,
+        duration: 0.2,
+      }, '-=0.15');
+      tl.to('#line-sub', {
+        opacity: 1,
+        duration: 0.2,
+      }, '-=0.15');
+
+      // Auto exit: fade out near end of duration
+      // The duration is set by the caller via data-duration on the stage
+      const duration = parseInt(stage.dataset.duration || '4', 10);
+      tl.to(bar, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.in",
+      }, duration - 0.5);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines['lower_third'] = tl;
+
+      if (window.__hyperframes) {
+        window.__hyperframes.registerTimeline('lower_third', tl);
+      }
+    } else {
+      // Fallback
+      bar.style.transition = 'opacity 0.35s ease-out, transform 0.35s ease-out';
+      bar.style.opacity = '1';
+      bar.style.transform = 'translateX(0)';
+    }
+  })();
+</script>
+</body>
+</html>
