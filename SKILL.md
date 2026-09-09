@@ -46,6 +46,19 @@ Use `research_workspace.py` to initialize persistent research memory and `detect
 
 Use `timeline_ir.py` for renderer-independent editorial structure. Use `cost_router.py` before expensive operations. Use `creative_memory.py` for A/B edit metadata and explicit user taste preferences.
 
+Run the integration milestone with:
+
+```bash
+python scripts/simulate_documentary.py --project /path/to/simulation
+```
+
+The simulation wires research, claims, director strategy, emotional arc,
+retention, continuity, ShotSpecs, evidence links, timeline IR, editorial
+analysis, and negotiation into `narrative_graph.json`, `negotiation_log.json`,
+and `integration_report.json`. It uses structural fixtures and must remain
+`production_ready: false` until real media evidence, rights, narration
+alignment, and human editorial review are present.
+
 ## Producer scripts
 
 The package includes deterministic local producers for quote, brief-derived planning, beat maps, ShotSpecs, review gates, local asset ingest, user voiceover registration, explicit caption timings, timeline assembly, audio mixing, graphics manifests, FFmpeg rendering, QA, and delivery review. These scripts create real artifacts only from supplied inputs. External research, web acquisition, TTS-provider calls, vision analysis, thumbnail generation, and publishing remain adapter work or explicit review gates; do not represent a local manifest as proof that those external actions occurred.

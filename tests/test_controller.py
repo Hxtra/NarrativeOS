@@ -46,3 +46,12 @@ def test_narrative_artifact_producers(tmp_path):
         assert result.returncode == 0, result.stderr
     assert (tmp_path / "director_strategy.json").is_file()
     assert (tmp_path / "research" / "research_manifest.json").is_file()
+
+def test_simulation_graph_has_audio_and_qa(tmp_path):
+    sim = ROOT / "scripts" / "simulate_documentary.py"
+    result = subprocess.run([sys.executable, str(sim), "--project", str(tmp_path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    graph = json.loads((tmp_path / "narrative_graph.json").read_text())
+    assert "audio_events" in graph["nodes"]
+    assert "qa_plan" in graph["nodes"]
+    assert (tmp_path / "integration_report.json").is_file()
