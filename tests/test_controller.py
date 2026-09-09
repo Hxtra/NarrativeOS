@@ -29,7 +29,7 @@ def test_intake_advances(tmp_path):
     assert state["current_stage"] == "STYLE_LOCK"
 
 def test_shotspec_builder_is_planning_only(tmp_path):
-    (tmp_path / "timeline.json").write_text(json.dumps({"shots":[{"shot_id":"S1","narration":"A storm approaches.","start":0,"end":3,"required_actions":["storm approaches"]}]}), encoding="utf-8")
+    (tmp_path / "beat_map.json").write_text(json.dumps({"beats":[{"beat_id":"B001","narration":"A storm approaches.","start":0,"end":3,"required_actions":["storm approaches"]}]}), encoding="utf-8")
     r = subprocess.run([sys.executable, str(SHOT), "--project", str(tmp_path)], capture_output=True, text=True)
     assert r.returncode == 0
     data = json.loads((tmp_path / "shot_specs.json").read_text())

@@ -37,6 +37,18 @@ python scripts/controller.py --project /path/to/project
 
 Use `--stage STAGE` only for controlled debugging. The controller persists `state.json`, append-only `events.jsonl`, and `errors.jsonl`. It advances only when dependencies and artifact validators pass.
 
+## Producer scripts
+
+The current package includes deterministic local producers for `quote.py`,
+`generate_script.py`, `build_beat_map.py`, `build_shotspec.py`,
+`review_gates.py`, `acquire_assets.py`, `tts_voiceover.py`,
+`align_captions.py`, `build_timeline.py`, `audio_mix.py`, `build_graphics.py`,
+`render_ffmpeg.py`, `run_qa.py`, and `delivery_review.py`. These scripts create
+real artifacts only from supplied inputs. External research, web acquisition,
+TTS-provider calls, vision analysis, thumbnail generation, and publishing
+remain adapter work or explicit review gates; do not represent a local
+manifest as proof that those external actions occurred.
+
 ## Stage contracts
 
 | Stage | Required output | Current implementation rule |
@@ -49,7 +61,7 @@ Use `--stage STAGE` only for controlled debugging. The controller persists `stat
 | SCRIPT | `script.json` | Produces narration, visual intent, claims, and source links. |
 | NARRATION_ALIGNMENT | `narration_alignment.json` | Maps script text to narration ranges or marks voiceover timing pending. |
 | BEAT_MAP | `beat_map.json` | Converts narration into timed beats with pacing and visual purpose. |
-| SHOT_PLAN | `shot_specs.json` | Creates structured ShotSpecs; this is planning, not visual approval. |
+| SHOT_PLAN | `shot_specs.json` | Creates structured ShotSpecs from `beat_map.json` or `script.json`; it must not read `timeline.json`. |
 | ASSET_ACQUISITION | `asset_candidates.json` | Uses browser/API adapters and records provenance, licensing, hashes, and download validation. |
 | ASSET_ANALYSIS | `asset_analysis.json` | FFprobe plus at least three real frames per candidate; vision/action analysis is required. |
 | ASSET_APPROVAL | `approved_assets.json` | Approves only candidates with frame evidence, rights, interval, and no hard contradiction. |
