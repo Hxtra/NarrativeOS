@@ -20,12 +20,13 @@ Build videos as a durable, evidence-gated production graph. Hermes remains the s
 ## Full production graph
 
 ```text
-INTAKE → STYLE_LOCK → QUOTE
-→ RESEARCH → EVIDENCE_REVIEW → OUTLINE → SCRIPT
+INTAKE → STYLE_LOCK → DIRECTOR_STRATEGY → QUOTE → RESEARCH_WORKSPACE
+→ RESEARCH → EVIDENCE_REVIEW → CONTRADICTION_REVIEW → OUTLINE → SCRIPT
 → NARRATION_ALIGNMENT → BEAT_MAP → SHOT_PLAN
-→ ASSET_ACQUISITION → ASSET_ANALYSIS → ASSET_APPROVAL
-→ GRAPHICS → TTS → CAPTIONS → TIMELINE → AUDIO_MIX
-→ THUMBNAIL → PREVIEW_RENDER → TECHNICAL_QA → EDITORIAL_QA
+→ ASSET_ACQUISITION → ASSET_ANALYSIS → ASSET_APPROVAL → CONTINUITY_BIBLE
+→ EVIDENCE_LINKING → GRAPHICS → TTS → CAPTIONS → TIMELINE → TIMELINE_IR
+→ AUDIO_MIX → EDITORIAL_ANALYSIS → COST_REVIEW → THUMBNAIL
+→ PREVIEW_RENDER → TECHNICAL_QA → EDITORIAL_QA
 → TARGETED_REVISION → FINAL_RENDER → DELIVERY_REVIEW → PUBLISH
 ```
 
@@ -48,6 +49,15 @@ real artifacts only from supplied inputs. External research, web acquisition,
 TTS-provider calls, vision analysis, thumbnail generation, and publishing
 remain adapter work or explicit review gates; do not represent a local
 manifest as proof that those external actions occurred.
+
+The NarrativeOS layer adds `director_brain.py`, `continuity_bible.py`,
+`evidence_links.py`, `editorial_analysis.py`, `research_workspace.py`,
+`detect_contradictions.py`, `timeline_ir.py`, `cost_router.py`, and
+`creative_memory.py`. These create inspectable director strategy, emotional
+arc, retention, entity, temporal, geographic, claim-to-shot, diversity,
+restraint, research-memory, contradiction, IR, cost, A/B, and taste artifacts.
+Heuristic artifacts remain review-required where they depend on external
+research, vision, or human taste.
 
 ## Stage contracts
 

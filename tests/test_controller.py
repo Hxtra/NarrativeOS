@@ -36,3 +36,13 @@ def test_shotspec_builder_is_planning_only(tmp_path):
     assert data["status"] == "planning_only"
     assert data["shots"][0]["required_actions"] == ["storm approaches"]
     assert data["shots"][0]["status"] == "needs_asset_review"
+
+def test_narrative_artifact_producers(tmp_path):
+    (tmp_path / "brief.md").write_text("Make a dark documentary about a disappearance.\n", encoding="utf-8")
+    (tmp_path / "beat_map.json").write_text(json.dumps({"beats":[{"beat_id":"B001","narration":"He never came home.","start":0,"end":3}]}), encoding="utf-8")
+    for script in ("director_brain.py", "continuity_bible.py", "evidence_links.py", "editorial_analysis.py", "research_workspace.py"):
+        args = [sys.executable, str(ROOT / "scripts" / script), "--project", str(tmp_path)]
+        result = subprocess.run(args, capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+    assert (tmp_path / "director_strategy.json").is_file()
+    assert (tmp_path / "research" / "research_manifest.json").is_file()

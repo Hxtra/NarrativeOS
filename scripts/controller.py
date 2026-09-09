@@ -10,10 +10,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 STAGES = [
-    "INTAKE", "STYLE_LOCK", "QUOTE", "RESEARCH", "EVIDENCE_REVIEW", "OUTLINE",
+    "INTAKE", "STYLE_LOCK", "DIRECTOR_STRATEGY", "QUOTE", "RESEARCH_WORKSPACE",
+    "RESEARCH", "EVIDENCE_REVIEW", "CONTRADICTION_REVIEW", "OUTLINE",
     "SCRIPT", "NARRATION_ALIGNMENT", "BEAT_MAP", "SHOT_PLAN", "ASSET_ACQUISITION",
-    "ASSET_ANALYSIS", "ASSET_APPROVAL", "GRAPHICS", "TTS", "CAPTIONS", "TIMELINE",
-    "AUDIO_MIX", "THUMBNAIL", "PREVIEW_RENDER", "TECHNICAL_QA", "EDITORIAL_QA",
+    "ASSET_ANALYSIS", "ASSET_APPROVAL", "CONTINUITY_BIBLE", "EVIDENCE_LINKING",
+    "GRAPHICS", "TTS", "CAPTIONS", "TIMELINE", "TIMELINE_IR", "AUDIO_MIX",
+    "EDITORIAL_ANALYSIS", "COST_REVIEW", "THUMBNAIL", "PREVIEW_RENDER", "TECHNICAL_QA", "EDITORIAL_QA",
     "TARGETED_REVISION", "FINAL_RENDER", "DELIVERY_REVIEW", "PUBLISH", "COMPLETE",
 ]
 DEPS = {stage: STAGES[:i] for i, stage in enumerate(STAGES)}
@@ -24,9 +26,12 @@ DEPS["COMPLETE"] = ["DELIVERY_REVIEW"]
 REQUIRED = {
     "INTAKE": ["project.yaml", "brief.md", "state.json"],
     "STYLE_LOCK": ["channel_profile.json"],
+    "DIRECTOR_STRATEGY": ["director_strategy.json", "emotional_arc.json", "retention_plan.json"],
     "QUOTE": ["quote_manifest.json"],
+    "RESEARCH_WORKSPACE": ["research/research_manifest.json", "research/research_graph.json"],
     "RESEARCH": ["research.json", "claim_ledger.json"],
     "EVIDENCE_REVIEW": ["evidence_review.json"],
+    "CONTRADICTION_REVIEW": ["research/contradictions/contradictions.json"],
     "OUTLINE": ["outline.json"],
     "SCRIPT": ["script.json"],
     "NARRATION_ALIGNMENT": ["narration_alignment.json"],
@@ -35,11 +40,16 @@ REQUIRED = {
     "ASSET_ACQUISITION": ["asset_candidates.json"],
     "ASSET_ANALYSIS": ["asset_analysis.json"],
     "ASSET_APPROVAL": ["approved_assets.json"],
+    "CONTINUITY_BIBLE": ["entity_bible.json", "temporal_constraints.json", "geographic_plan.json"],
+    "EVIDENCE_LINKING": ["claim_visual_links.json", "shot_explanations.json"],
     "GRAPHICS": ["graphics_manifest.json"],
     "TTS": ["narration.mp3", "tts_manifest.json"],
     "CAPTIONS": ["captions.json", "captions.ass"],
     "TIMELINE": ["timeline.json"],
+    "TIMELINE_IR": ["timeline_ir.json"],
     "AUDIO_MIX": ["audio_mix_manifest.json"],
+    "EDITORIAL_ANALYSIS": ["editorial_analysis.json"],
+    "COST_REVIEW": ["cost_decisions.json"],
     "THUMBNAIL": ["thumbnail_manifest.json"],
     "PREVIEW_RENDER": ["renders/preview.mp4", "renders/render_manifest.json"],
     "TECHNICAL_QA": ["qa/technical_qa.json"],
