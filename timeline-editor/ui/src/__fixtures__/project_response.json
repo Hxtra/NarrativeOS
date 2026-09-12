@@ -1,0 +1,535 @@
+{
+  "project_id": "demo",
+  "artifacts": {
+    "timeline": {
+      "present": true,
+      "data": {
+        "schema_version": 2,
+        "status": "simulation",
+        "output": {
+          "width": 1280,
+          "height": 720,
+          "fps": 24,
+          "fit_policy": "cover_crop"
+        },
+        "tracks": {
+          "video": "v_main",
+          "narration": "a_narration",
+          "music": "a_music"
+        },
+        "shots": [
+          {
+            "shot_id": "B001",
+            "asset_id": "sim_asset_001",
+            "start": 0.0,
+            "end": 4.0,
+            "source_start": 0,
+            "motion": "static",
+            "transition": "cut",
+            "status": "simulation_approved"
+          },
+          {
+            "shot_id": "B002",
+            "asset_id": "sim_asset_002",
+            "start": 5.0,
+            "end": 10.0,
+            "source_start": 0,
+            "motion": "static",
+            "transition": "cut",
+            "status": "simulation_approved"
+          }
+        ]
+      }
+    },
+    "timeline_ir": {
+      "present": true,
+      "data": {
+        "schema_version": 2,
+        "status": "simulation",
+        "output": {
+          "width": 1280,
+          "height": 720,
+          "fps": 24,
+          "fit_policy": "cover_crop"
+        },
+        "tracks": {
+          "video": "v_main",
+          "narration": "a_narration",
+          "music": "a_music"
+        },
+        "shots": [
+          {
+            "shot_id": "B001",
+            "asset_id": "sim_asset_001",
+            "start": 0.0,
+            "end": 7.0,
+            "source_start": 0,
+            "motion": "static",
+            "transition": "cut",
+            "status": "simulation_approved"
+          },
+          {
+            "shot_id": "B002",
+            "asset_id": "sim_asset_002",
+            "start": 5.0,
+            "end": 10.0,
+            "source_start": 0,
+            "motion": "static",
+            "transition": "cut",
+            "status": "simulation_approved"
+          }
+        ],
+        "ir_version": "1.0",
+        "validation": {
+          "status": "blocked",
+          "errors": [
+            {
+              "shot_id": "B002",
+              "error": "non-monotonic timing"
+            }
+          ]
+        }
+      }
+    },
+    "approved_assets": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "simulation",
+        "assets": [
+          {
+            "shot_id": "B001",
+            "asset_id": "sim_asset_001",
+            "status": "simulation_approved",
+            "rights_status": "public-domain-simulation",
+            "evidence_frame_paths": [],
+            "usable_interval": [
+              0,
+              3.0
+            ]
+          },
+          {
+            "shot_id": "B002",
+            "asset_id": "sim_asset_002",
+            "status": "simulation_approved",
+            "rights_status": "public-domain-simulation",
+            "evidence_frame_paths": [],
+            "usable_interval": [
+              0,
+              9.583
+            ]
+          }
+        ]
+      }
+    },
+    "assets": {
+      "present": false,
+      "data": null
+    },
+    "shot_specs": {
+      "present": true,
+      "data": {
+        "schema_version": 2,
+        "status": "planning_only",
+        "source": "beat_map.json",
+        "shots": [
+          {
+            "shot_id": "B001",
+            "beat_id": "B001",
+            "narration": "The Lantern Coast",
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "visual_mode": "literal",
+            "required_subjects": [],
+            "required_actions": [],
+            "required_location": "",
+            "required_time_period": "",
+            "forbidden_meanings": [],
+            "duration_seconds": 3.0,
+            "start": 0.0,
+            "end": 3.0,
+            "preferred_shot_type": "",
+            "fallbacks": [
+              "verified map",
+              "document treatment",
+              "labelled reconstruction"
+            ],
+            "status": "needs_asset_review"
+          },
+          {
+            "shot_id": "B002",
+            "beat_id": "B002",
+            "narration": "Create a short fictional documentary about a lighthouse keeper who maintained a lantern during a winter storm. Use a restrained, atmospheric, evidence-aware style.",
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "visual_mode": "literal",
+            "required_subjects": [],
+            "required_actions": [],
+            "required_location": "",
+            "required_time_period": "",
+            "forbidden_meanings": [],
+            "duration_seconds": 9.583,
+            "start": 3.0,
+            "end": 12.583333333333334,
+            "preferred_shot_type": "",
+            "fallbacks": [
+              "verified map",
+              "document treatment",
+              "labelled reconstruction"
+            ],
+            "status": "needs_asset_review"
+          }
+        ]
+      }
+    },
+    "beat_map": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "review_required",
+        "beats": [
+          {
+            "beat_id": "B001",
+            "narration": "The Lantern Coast",
+            "start": 0.0,
+            "end": 3.0,
+            "duration_seconds": 3.0,
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "required_subjects": [],
+            "required_actions": []
+          },
+          {
+            "beat_id": "B002",
+            "narration": "Create a short fictional documentary about a lighthouse keeper who maintained a lantern during a winter storm. Use a restrained, atmospheric, evidence-aware style.",
+            "start": 3.0,
+            "end": 12.583333333333334,
+            "duration_seconds": 9.583333333333334,
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "required_subjects": [],
+            "required_actions": []
+          }
+        ]
+      }
+    },
+    "script": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "review_required",
+        "language": "en",
+        "beats": [
+          {
+            "beat_id": "B001",
+            "narration": "The Lantern Coast",
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "required_subjects": [],
+            "required_actions": [],
+            "source_refs": []
+          },
+          {
+            "beat_id": "B002",
+            "narration": "Create a short fictional documentary about a lighthouse keeper who maintained a lantern during a winter storm. Use a restrained, atmospheric, evidence-aware style.",
+            "visual_purpose": "Find or create visuals that directly support this narration.",
+            "required_subjects": [],
+            "required_actions": [],
+            "source_refs": []
+          }
+        ],
+        "source_policy": "Every factual claim requires a source before release."
+      }
+    },
+    "claim_ledger": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "passed",
+        "claims": [
+          {
+            "claim_id": "C001",
+            "fact_key": "lantern_action",
+            "value": "keeper maintained lantern",
+            "source_refs": [
+              "SIM_SOURCE_001"
+            ],
+            "verification": "simulation"
+          }
+        ]
+      }
+    },
+    "claim_visual_links": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "review_required",
+        "links": [
+          {
+            "link_id": "L0001",
+            "claim_id": "C001",
+            "source_refs": [
+              "SIM_SOURCE_001"
+            ],
+            "shot_id": "B001",
+            "asset_id": null,
+            "status": "unresolved",
+            "reason": "Asset approval and source evidence required."
+          },
+          {
+            "link_id": "L0002",
+            "claim_id": null,
+            "source_refs": [],
+            "shot_id": "B002",
+            "asset_id": null,
+            "status": "unresolved",
+            "reason": "Asset approval and source evidence required."
+          }
+        ]
+      }
+    },
+    "entity_bible": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "review_required",
+        "entities": [
+          {
+            "entity_id": "E001",
+            "name": "The Lantern",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E002",
+            "name": "Coast\n\nCreate",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E003",
+            "name": "Use",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E004",
+            "name": "Coast",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E005",
+            "name": "Find",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E006",
+            "name": "Create",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          },
+          {
+            "entity_id": "E007",
+            "name": "Every",
+            "attributes": {},
+            "timeline": [],
+            "status": "review_required"
+          }
+        ],
+        "rules": [
+          "Do not show anachronistic objects, places, clothing, logos, dates, or technology without evidence."
+        ]
+      }
+    },
+    "audio_events": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "simulation",
+        "events": [
+          {
+            "event_id": "A001",
+            "type": "narration",
+            "start": 0,
+            "end": 10.0,
+            "duck_music_db": -8
+          },
+          {
+            "event_id": "A002",
+            "type": "silence",
+            "start": 0.8,
+            "duration": 0.8,
+            "reason": "emotional hold"
+          }
+        ],
+        "policy": "Audio events follow director arc and shot purpose."
+      }
+    },
+    "editorial_analysis": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "review_required",
+        "shot_count": 2,
+        "visual_type_counts": {
+          "unknown": 2
+        },
+        "motion_counts": {
+          "static": 2
+        },
+        "transition_counts": {
+          "cut": 2
+        },
+        "repetition_flags": [],
+        "restraint_rules": [
+          "Prefer minimum visual information.",
+          "Permit black screen, still image, text, or silence when editorially justified.",
+          "Do not stack zoom, whoosh, shake, glitch, flash, transition, and bass hit by default."
+        ],
+        "silence_candidates": [
+          {
+            "shot_id": "B001",
+            "recommended": false,
+            "reason": "Requires director review"
+          },
+          {
+            "shot_id": "B002",
+            "recommended": false,
+            "reason": "Requires director review"
+          }
+        ]
+      }
+    },
+    "qa_plan": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "simulation",
+        "checks": [
+          "technical streams",
+          "caption coverage",
+          "loudness",
+          "visual evidence",
+          "factuality",
+          "continuity",
+          "rights",
+          "cost/latency"
+        ],
+        "release_gate": "blocked until real evidence and human review"
+      }
+    },
+    "qa_technical": {
+      "present": false,
+      "data": null
+    },
+    "qa_editorial": {
+      "present": false,
+      "data": null
+    },
+    "state": {
+      "present": false,
+      "data": null
+    },
+    "integration_report": {
+      "present": true,
+      "data": {
+        "schema_version": 1,
+        "status": "simulation_complete",
+        "production_ready": false,
+        "reason": "Simulation used structural fixtures and no real vision, rights, TTS, or editorial human review.",
+        "artifacts_checked": [
+          "research.json",
+          "claim_ledger.json",
+          "director_strategy.json",
+          "emotional_arc.json",
+          "retention_plan.json",
+          "narration_alignment.json",
+          "beat_map.json",
+          "shot_specs.json",
+          "asset_candidates.json",
+          "claim_visual_links.json",
+          "timeline_ir.json",
+          "audio_events.json",
+          "editorial_analysis.json",
+          "qa_plan.json",
+          "negotiation_log.json",
+          "narrative_graph.json"
+        ],
+        "negotiations": 2,
+        "unresolved_production_gates": [
+          "real asset acquisition",
+          "real frame-level vision evidence",
+          "real narration alignment",
+          "human editorial review"
+        ]
+      }
+    }
+  },
+  "evidence_by_shot": {
+    "B001": {
+      "level": "red",
+      "reasons": [
+        "insufficient_evidence_frames (0/3)"
+      ],
+      "asset_id": "sim_asset_001",
+      "rights_status": "public-domain-simulation",
+      "evidence_frame_count": 0,
+      "usable_interval": [
+        0,
+        3.0
+      ],
+      "is_simulation": true
+    },
+    "B002": {
+      "level": "red",
+      "reasons": [
+        "insufficient_evidence_frames (0/3)"
+      ],
+      "asset_id": "sim_asset_002",
+      "rights_status": "public-domain-simulation",
+      "evidence_frame_count": 0,
+      "usable_interval": [
+        0,
+        9.583
+      ],
+      "is_simulation": true
+    }
+  },
+  "events": {
+    "present": true,
+    "items": [
+      {
+        "timestamp": "2026-09-10T02:56:57.318238+00:00",
+        "action": "revision_applied",
+        "source": "timeline_editor",
+        "shot_id": "B001",
+        "before": {
+          "shot_id": "B001",
+          "asset_id": "sim_asset_001",
+          "start": 0.0,
+          "end": 5.0,
+          "source_start": 0,
+          "motion": "static",
+          "transition": "cut",
+          "status": "simulation_approved"
+        },
+        "after": {
+          "shot_id": "B001",
+          "asset_id": "sim_asset_001",
+          "start": 0.0,
+          "end": 4.0,
+          "source_start": 0,
+          "motion": "static",
+          "transition": "cut",
+          "status": "simulation_approved"
+        },
+        "reason": "test trim",
+        "verified_real": true
+      }
+    ]
+  },
+  "loaded_at": "2026-09-10T03:01:51.524118+00:00"
+}

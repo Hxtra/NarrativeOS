@@ -21,11 +21,11 @@ Build videos as a durable, evidence-gated production graph. NarrativeOS remains 
 
 ```text
 INTAKE → STYLE_LOCK → DIRECTOR_STRATEGY → QUOTE → RESEARCH_WORKSPACE
-→ RESEARCH → EVIDENCE_REVIEW → CONTRADICTION_REVIEW → OUTLINE → SCRIPT
+→ SOURCE_INGEST → RESEARCH → CLAIM_BUILD → EVIDENCE_REVIEW → CONTRADICTION_REVIEW → OUTLINE → SCRIPT
 → NARRATION_ALIGNMENT → BEAT_MAP → SHOT_PLAN → ASSET_ACQUISITION
-→ ASSET_ANALYSIS → ASSET_APPROVAL → CONTINUITY_BIBLE → EVIDENCE_LINKING
-→ GRAPHICS → TTS → CAPTIONS → TIMELINE → TIMELINE_IR → AUDIO_MIX
-→ EDITORIAL_ANALYSIS → COST_REVIEW → THUMBNAIL → PREVIEW_RENDER
+→ ASSET_ANALYSIS → VISUAL_BENCHMARK → ASSET_APPROVAL → CONTINUITY_BIBLE → EVIDENCE_LINKING
+→ GRAPHICS → TTS → ALIGNMENT → CAPTIONS → TIMELINE → TIMELINE_IR → AUDIO_MIX
+→ EDITORIAL_ANALYSIS → EDITORIAL_REPAIR → COST_REVIEW → VARIANT_BUILD → THUMBNAIL → PREVIEW_RENDER
 → TECHNICAL_QA → EDITORIAL_QA → TARGETED_REVISION → FINAL_RENDER
 → DELIVERY_REVIEW → PUBLISH
 ```
@@ -61,7 +61,7 @@ alignment, and human editorial review are present.
 
 ## Producer scripts
 
-The package includes deterministic local producers for quote, brief-derived planning, beat maps, ShotSpecs, review gates, local asset ingest, user voiceover registration, explicit caption timings, timeline assembly, audio mixing, graphics manifests, FFmpeg rendering, QA, and delivery review. These scripts create real artifacts only from supplied inputs. External research, web acquisition, TTS-provider calls, vision analysis, thumbnail generation, and publishing remain adapter work or explicit review gates; do not represent a local manifest as proof that those external actions occurred.
+The package includes deterministic local producers for quote, brief-derived planning, beat maps, ShotSpecs, review gates, local asset ingest, user voiceover registration, explicit caption timings, timeline assembly, audio mixing, graphics manifests, FFmpeg rendering, QA, and delivery review. It also includes `ingest_sources.py`, `build_claims.py`, `build_provenance.py`, `align_audio.py`, `visual_benchmark.py`, `editorial_repair.py`, and `build_variants.py`. Local source ingestion and hashing are implemented. `align_audio.py` runs faster-whisper when installed and otherwise writes a blocked alignment record. Visual benchmark metrics remain null until real labeled evidence cases exist. Editorial repair creates scoped revision actions. Variant generation creates two deterministic policy manifests but does not claim a human preference win. External web research, provider TTS, vision analysis, thumbnail generation, and publishing remain adapter work or explicit review gates.
 
 ## Stage contracts
 

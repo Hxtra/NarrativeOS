@@ -1,0 +1,6 @@
+# Runtime dependencies for timeline_api_server.py
+# Pinned to versions verified working against this server and its test
+# suite (see tests/test_timeline_api_server.py, run with pytest).
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+pydantic==2.13.5

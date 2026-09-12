@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Test dependencies. pytest runs the real scripts/simulate_documentary.py
+# for every fixture — no synthetic/mocked artifact data.
+pytest==9.1.1
+httpx==0.28.1

@@ -1,0 +1,97 @@
+{
+  "shot_id": "B001",
+  "shot": {
+    "shot_id": "B001",
+    "asset_id": "sim_asset_001",
+    "start": 0.0,
+    "end": 4.0,
+    "source_start": 0,
+    "motion": "static",
+    "transition": "cut",
+    "status": "simulation_approved"
+  },
+  "shot_spec": {
+    "present": true,
+    "data": {
+      "shot_id": "B001",
+      "beat_id": "B001",
+      "narration": "The Lantern Coast",
+      "visual_purpose": "Find or create visuals that directly support this narration.",
+      "visual_mode": "literal",
+      "required_subjects": [],
+      "required_actions": [],
+      "required_location": "",
+      "required_time_period": "",
+      "forbidden_meanings": [],
+      "duration_seconds": 3.0,
+      "start": 0.0,
+      "end": 3.0,
+      "preferred_shot_type": "",
+      "fallbacks": [
+        "verified map",
+        "document treatment",
+        "labelled reconstruction"
+      ],
+      "status": "needs_asset_review"
+    }
+  },
+  "evidence": {
+    "level": "red",
+    "reasons": [
+      "insufficient_evidence_frames (0/3)"
+    ],
+    "asset_id": "sim_asset_001",
+    "rights_status": "public-domain-simulation",
+    "evidence_frame_count": 0,
+    "usable_interval": [
+      0,
+      3.0
+    ],
+    "is_simulation": true
+  },
+  "claim_links": [
+    {
+      "link_id": "L0001",
+      "claim_id": "C001",
+      "source_refs": [
+        "SIM_SOURCE_001"
+      ],
+      "shot_id": "B001",
+      "asset_id": null,
+      "status": "unresolved",
+      "reason": "Asset approval and source evidence required."
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "C001",
+      "fact_key": "lantern_action",
+      "value": "keeper maintained lantern",
+      "source_refs": [
+        "SIM_SOURCE_001"
+      ],
+      "verification": "simulation"
+    }
+  ],
+  "overlapping_audio_events": [
+    {
+      "event_id": "A001",
+      "type": "narration",
+      "start": 0,
+      "end": 10.0,
+      "duck_music_db": -8
+    },
+    {
+      "event_id": "A002",
+      "type": "silence",
+      "start": 0.8,
+      "duration": 0.8,
+      "reason": "emotional hold"
+    }
+  ],
+  "editorial_note": {
+    "shot_id": "B001",
+    "recommended": false,
+    "reason": "Requires director review"
+  }
+}
