@@ -79,4 +79,4 @@ TTS must be an explicit adapter with provider, model, voice, consent, language, 
 
 Do not set `delivery_ready: true` unless approved shots have evidence and rights records; claims have sources; narration and captions have complete timing; audio/video streams and loudness pass; captions are visibly rendered; editorial QA finds no material contradictions; provenance and checksums exist; no secrets are packaged; and the release package contains final media, editable timeline, transcript, captions, evaluation report, rights manifest, hashes, tool versions, and approvals.
 
-Read `references/architecture.md` for contracts, `references/vidrush-gap-plan.md` for the implementation roadmap, and `references/hyperframes.md` only when testing that optional backend.
+Read `references/architecture.md` for contracts, `references/vidrush-gap-plan.md` for the implementation roadmap, `references/editing-brain.md` for cutting, pacing, sound, music, motion, graphics, captions, platform profiles, event-graph design, and editing QA, and `references/hyperframes.md` only when testing that optional backend.
