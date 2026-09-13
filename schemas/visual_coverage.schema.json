@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NarrativeOS Visual Coverage",
+  "type": "object",
+  "required": ["coverage_id", "beat_id", "viewer_objective", "mode", "literal_word_matching"],
+  "properties": {
+    "coverage_id": {"type": "string"},
+    "beat_id": {"type": "string"},
+    "viewer_objective": {"type": "string"},
+    "mode": {"enum": ["LITERAL", "CONTEXTUAL", "ATMOSPHERIC", "EVIDENCE", "EVENT", "REACTION"]},
+    "literal_word_matching": {"type": "boolean"},
+    "visual_subject": {"type": "string"},
+    "preferred_world": {"type": "array", "items": {"type": "string"}},
+    "shot_duration_target": {"type": "object"},
+    "continuity_policy": {"type": "object"},
+    "treatments": {"type": "array", "items": {"type": "object"}},
+    "evidence_requirements": {"type": "array", "items": {"type": "string"}}
+  }
+}
+

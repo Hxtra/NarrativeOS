@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NarrativeOS Editorial Event Graph",
+  "type": "object",
+  "required": ["schema_version", "events"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "project_id": {"type": "string"},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["event_id", "type", "purpose", "timing", "affected_objects"],
+        "properties": {
+          "event_id": {"type": "string"},
+          "type": {"enum": ["REVEAL", "EMPHASIZE", "CUT"]},
+          "status": {"enum": ["proposed", "approved", "compiled", "blocked"]},
+          "purpose": {"type": "string"},
+          "beat_id": {"type": "string"},
+          "claim_id": {"type": "string"},
+          "trigger": {"type": "object"},
+          "timing": {"type": "object"},
+          "affected_objects": {"type": "array", "items": {"type": "string"}},
+          "visual": {"type": "array", "items": {"type": "object"}},
+          "audio": {"type": "array", "items": {"type": "object"}},
+          "motion": {"type": "array", "items": {"type": "object"}},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "constraints": {"type": "array", "items": {"type": "string"}},
+          "provenance": {"type": "object"}
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NarrativeOS Narration Plan",
+  "type": "object",
+  "required": ["schema_version", "segments"],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "project_id": {"type": "string"},
+    "language": {"type": "string"},
+    "voice_profile": {"type": "string"},
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "type", "timing"],
+        "properties": {
+          "segment_id": {"type": "string"},
+          "beat_id": {"type": "string"},
+          "type": {"enum": ["NARRATION", "NATURAL_AUDIO", "INTERVIEW", "QUOTE", "MUSIC_ONLY", "SILENCE", "MIXED"]},
+          "text": {"type": "string"},
+          "source_ref": {"type": "string"},
+          "reason": {"type": "string"},
+          "timing": {
+            "type": "object",
+            "required": ["target_start", "target_end"],
+            "properties": {
+              "target_start": {"type": "number", "minimum": 0},
+              "target_end": {"type": "number", "exclusiveMinimum": 0},
+              "pause_before": {"type": "number", "minimum": 0},
+              "pause_after": {"type": "number", "minimum": 0}
+            }
+          },
+          "voice_direction": {"type": "object"},
+          "relationships": {"type": "object"},
+          "status": {"enum": ["planned", "approved", "blocked", "rendered"]}
+        }
+      }
+    }
+  }
+}
+
