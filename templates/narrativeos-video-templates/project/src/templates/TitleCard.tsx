@@ -115,9 +115,36 @@ const VerticalRule: React.FC<{style: StyleProfile; delay: number}> = ({delay}) =
 	return <div style={{width: '100%', height: `${h}%`}} />;
 };
 
+/**
+ * Layout 3: minimal-sans. Restrained premium-documentary title: clean sans
+ * headline with wide tracking, no brackets or rules, small kicker, a slow
+ * low-rise reveal. Structural basis: the owner's reference analysis
+ * (handoff section 42: clean sans-serif, restrained titles, strong
+ * hierarchy, minimal decorative text).
+ */
+const MinimalSans: React.FC<{style: StyleProfile; params: TitleCardParams}> = ({style, params}) => (
+	<AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 26}}>
+		{params.kicker ? <Kicker text={params.kicker} style={style} delay={20} /> : null}
+		<div
+			style={{
+				fontFamily: style.typography.sansFamily,
+				fontWeight: style.typography.headlineWeight,
+				fontSize: 78,
+				letterSpacing: 14,
+				color: style.typography.boneColor,
+				lineHeight: 1.1,
+			}}
+		>
+			<SplitText text={params.headline} style={style} delay={12} rise={10} />
+		</div>
+		{params.sub ? <Caption text={params.sub} style={style} delay={60} align="center" /> : null}
+	</AbsoluteFill>
+);
+
 const LAYOUTS: Record<string, React.FC<{style: StyleProfile; params: TitleCardParams}>> = {
 	'centered-classic': CenteredClassic,
 	'corner-frame-broadcast': CornerFrameBroadcast,
+	'minimal-sans': MinimalSans,
 };
 
 const TitleCardComponent: React.FC<{style: StyleProfile; params: TitleCardParams}> = ({style, params}) => {

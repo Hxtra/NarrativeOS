@@ -20,7 +20,7 @@ import sys
 def probe(path: str) -> dict:
     cmd = [
         "ffprobe", "-v", "error",
-        "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate",
+        "-show_entries", "stream=codec_type,codec_name,width,height,r_frame_rate,avg_frame_rate,pix_fmt",
         "-show_entries", "format=duration",
         "-of", "json",
         path,
@@ -55,6 +55,7 @@ def probe(path: str) -> dict:
         "has_audio": audio_stream is not None,
         "audio_codec": audio_stream.get("codec_name") if audio_stream else None,
         "video_codec": video_stream.get("codec_name") if video_stream else None,
+        "pix_fmt": video_stream.get("pix_fmt") if video_stream else None,
     }
     return result
 

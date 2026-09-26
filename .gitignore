@@ -29,3 +29,5 @@ logs/
 
 node_modules/
 .playwright-mcp/
+templates/narrativeos-video-templates/project/public/vfx
+templates/narrativeos-video-templates/project/out/

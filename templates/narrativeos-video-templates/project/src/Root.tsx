@@ -3,6 +3,8 @@ import {Composition} from 'remotion';
 import './fonts';
 import {TemplatePlayer, MultiLayerPlayer} from './TemplatePlayer';
 import {resolveTemplate} from './registry/registry';
+import {TransitionProof, proofTiming} from './vfx/TransitionProof';
+import {listTransitions} from './vfx/transitionRegistry';
 
 const fps = 30;
 
@@ -270,6 +272,32 @@ export const RemotionRoot: React.FC = () => {
 					},
 				}}
 			/>
+			<Composition
+				id="Proof-TitleCard-Premium"
+				component={TemplatePlayer}
+				durationInFrames={title.durationInFrames(title.defaultParams, fps)}
+				fps={fps}
+				width={1920}
+				height={1080}
+				defaultProps={{
+					templateId: 'title_card',
+					styleId: 'premium_documentary',
+					params: {kicker: 'A NarrativeOS Original', headline: 'THE LAST TRANSMISSION', sub: 'Episode One'},
+				}}
+			/>
+			{/* One proof per registered transition recipe (ids use hyphens: Remotion forbids underscores). */}
+			{listTransitions().map((recipe) => (
+				<Composition
+					key={recipe.id}
+					id={`Proof-Transition-${recipe.id.replace(/_/g, '-')}`}
+					component={TransitionProof}
+					durationInFrames={proofTiming(recipe).durationInFrames}
+					fps={fps}
+					width={1920}
+					height={1080}
+					defaultProps={{transitionId: recipe.id, styleId: 'documentary_general', showLabel: true, cutFrame: proofTiming(recipe).cutFrame}}
+				/>
+			))}
 		</>
 	);
 };
