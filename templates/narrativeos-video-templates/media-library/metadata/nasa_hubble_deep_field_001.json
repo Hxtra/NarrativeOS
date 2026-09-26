@@ -1,0 +1,21 @@
+{
+  "id": "nasa_hubble_deep_field_001",
+  "type": "image",
+  "source": "NASA / HubbleSite",
+  "license": "public_domain",
+  "license_note": "Captured by NASA (Hubble Space Telescope) and may be freely used in the public domain, per scikit-image's own documented citation for this bundled asset.",
+  "source_url": "https://scikit-image.org/docs/stable/api/skimage.data.html",
+  "retrieved_via": "scikit-image bundled sample data (skimage.data.hubble_deep_field) — a redistribution of the NASA/HubbleSite public-domain file, not a live API fetch",
+  "bytes_obtained": true,
+  "creator": "NASA / Hubble Space Telescope",
+  "subject": "Hubble Deep Field — deep space image showing thousands of galaxies",
+  "rights_verified": true,
+  "rights_verification_method": "manual — cross-checked against scikit-image's own documented provenance note, consistent across multiple documentation versions",
+  "downloaded_at": "2026-09-20",
+  "topics": ["space", "astronomy", "NASA", "Hubble", "deep field", "galaxies"],
+  "visual_tags": ["nebula", "starfield", "deep-space", "texture"],
+  "usable_as": ["archive", "b-roll", "double-exposure-overlay"],
+  "resolution": "1000x872",
+  "aspect_ratio": 1.147,
+  "local_path": "processed/nasa_hubble_deep_field_001.jpg"
+}

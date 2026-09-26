@@ -1,0 +1,19 @@
+{
+  "id": "nasa_eileen_collins_001",
+  "type": "image",
+  "source": "NASA (via NASA Great Images database)",
+  "license": "public_domain",
+  "license_note": "No known copyright restrictions, released into the public domain.",
+  "source_url": "https://flic.kr/p/r9qvLn",
+  "retrieved_via": "scikit-image bundled sample data (skimage.data.astronaut) — a redistribution of the same NASA Great Images public-domain file, not a live NASA API fetch",
+  "creator": "NASA",
+  "subject": "Eileen Collins, NASA astronaut (selected 1992, first piloted STS-63 in 1995, retired 2006)",
+  "rights_verified": true,
+  "rights_verification_method": "manual — source citation checked against scikit-image's own documented provenance note before use, not an automated adapter",
+  "downloaded_at": "2026-09-18",
+  "topics": ["space", "astronaut", "NASA", "space shuttle"],
+  "visual_tags": ["portrait", "uniform", "helmet", "spacecraft-background"],
+  "usable_as": ["archive", "portrait"],
+  "resolution": "512x512",
+  "local_path": "processed/nasa_eileen_collins_001.jpg"
+}
