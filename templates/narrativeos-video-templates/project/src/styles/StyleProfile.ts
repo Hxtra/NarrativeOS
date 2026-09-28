@@ -1,3 +1,5 @@
+import {GENERATED_STYLES} from './generated';
+
 // The style-hub. Mirrors the pattern both real .aep templates used:
 // one central place holding grade/typography/transition-set/motion params,
 // referenced by every template component — never hardcoded per-template.
@@ -60,6 +62,12 @@ export interface StyleProfile {
 	 * genre; VALIDATED = confirmed against real references.
 	 */
 	status?: 'DOCUMENTED' | 'VALIDATED';
+	/** Editing rhythm: how long shots hold, how often cuts land, whether cuts follow the music. */
+	pacing?: {targetShotSec: number; cutsPerMinute: number; beatSync: boolean};
+	/** Where the profile came from, when it was generated from a reference video by style_intel. */
+	source?: {kind: 'reference_video'; file: string; sha256: string; analyzerVersion: string};
+	/** Traits the generator could not measure and filled with defaults (e.g. typography). */
+	unmeasured?: string[];
 	vignetteStrength: number;
 	grainOpacity: number;
 	/**
@@ -210,6 +218,12 @@ export const STYLE_REGISTRY: Record<string, StyleProfile> = {
 	documentary_broadcast_grid: documentaryBroadcastGrid,
 	premium_documentary: premiumDocumentary,
 };
+
+// Profiles generated from reference videos (python -m style_intel profile ...).
+for (const generated of GENERATED_STYLES) {
+	if (STYLE_REGISTRY[generated.id]) throw new Error(`Generated style "${generated.id}" collides with a built-in style.`);
+	STYLE_REGISTRY[generated.id] = generated;
+}
 
 export function getStyle(id: string): StyleProfile {
 	const s = STYLE_REGISTRY[id];

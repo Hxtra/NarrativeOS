@@ -14,6 +14,7 @@ Two skills live here:
 |---|---|---|
 | `SKILL.md` (root) | `narrativeos-video-editor` | The evidence-gated production graph: controller, stages, research, claims, timeline IR, FFmpeg render, QA. FFmpeg is the primary renderer. |
 | `templates/narrativeos-video-templates/` | `narrativeos-video-templates` | A registry of pre-built Remotion components ("pick a template by name, fill the params, render"), a StyleProfile hub, shared motion primitives, and a rights-aware Media Library. |
+| `style_intel/` | (Python package, not a skill) | Style Intelligence: measures a reference video's editing language as Style DNA and turns it into a StyleProfile. See `style_intel/README.md`. |
 
 The templates skill is **not yet wired into the controller pipeline.**
 `scripts/build_graphics.py` (the GRAPHICS stage) is still a stub that falls
@@ -51,6 +52,15 @@ The owner's stated long-term pieces:
   them.
 - **An editing knowledge base** built from YouTube editing tutorials and
   real edits (the case library).
+
+**NarrativeOS is general-purpose (decided 2026-09-28).** It is not only a
+documentary tool: news, gaming, podcast clips, travel, short-form social and
+more are production profiles on the same engine. Documentary is the first
+profile. Give it a reference video and it measures the editing language
+(`style_intel/`) instead of an LLM guessing at it. The owner asked for the
+system only: **do not generate or copy any style yet**. The references tried
+so far were not good ones, so `src/styles/generated/` stays empty until the
+owner picks a reference.
 
 The current priority is the **VFX/transition library**: 100+ reusable,
 layerable transitions. This phase is under way; see "Current state".
@@ -153,6 +163,22 @@ audio policy preserve/mute/duck/replace, watermark-state guard) and
 - **Not yet ingested:** the owner's 43 downloaded overlays (still on their
   phone) and the History Time Travel particle PNG sequences (need converting
   to alpha video).
+
+**Style Intelligence (added Sep 28, branch `style-intelligence`):**
+`python -m style_intel analyze <video> --out <dir>` writes Style DNA. It
+measures:
+- hard cuts plus gradual transitions (classified as light, dark or dissolve);
+- shot lengths, flashes and dips;
+- beat sync, with a significance test;
+- colour and duotone, grain and camera motion;
+- tempo and loudness;
+- speech pace (via Whisper).
+
+Typography is not measured yet; it needs OCR, which is the next addition.
+`python -m style_intel profile ... --id x` writes a typed StyleProfile that
+`STYLE_REGISTRY` loads. It only enables transitions the reference provably
+used. Tests: `tests/test_style_intel.py` (synthetic videos with known
+answers).
 
 **Verified on this PC (Sep 26):** `npm install` and `tsc --noEmit` pass.
 `Proof-TitleCard` and `Proof-ArchiveVideo` render correctly. The grain tiles
