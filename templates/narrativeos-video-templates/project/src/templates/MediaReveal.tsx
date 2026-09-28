@@ -1,10 +1,11 @@
 import React from 'react';
-import {AbsoluteFill, Img, Loop, OffthreadVideo, interpolate, staticFile, useCurrentFrame} from 'remotion';
+import {AbsoluteFill, Img, OffthreadVideo, interpolate, staticFile, useCurrentFrame} from 'remotion';
 import type {StyleProfile} from '../styles/StyleProfile';
 import {Grade, Vignette} from '../motion/FilmTexture';
 import {Kicker, Caption} from '../typography/Typography';
 import {registerTemplate} from '../registry/registry';
 import {useKenBurns, DEFAULT_KEN_BURNS, type KenBurnsSpec} from '../motion/kenBurns';
+import {OverlayLayer} from '../vfx/OverlayLayer';
 
 export interface MediaRevealParams {
 	/** The actual media slot — this is what gets swapped per shot. Path relative to /public. */
@@ -60,27 +61,9 @@ const MediaRevealComponent: React.FC<{style: StyleProfile; params: MediaRevealPa
 
 			<Grade style={style} />
 
-			{params.noiseOverlaySrc ? (
-				<AbsoluteFill style={{mixBlendMode: 'screen', opacity: 0.28, pointerEvents: 'none'}}>
-					<Loop durationInFrames={121}>
-						<OffthreadVideo
-							src={staticFile(params.noiseOverlaySrc)}
-							style={{width: '100%', height: '100%', objectFit: 'cover'}}
-							muted
-						/>
-					</Loop>
-				</AbsoluteFill>
-			) : null}
+			{params.noiseOverlaySrc ? <OverlayLayer src={staticFile(params.noiseOverlaySrc)} opacity={0.28} loopFrames={121} /> : null}
 
-			{params.leakOverlaySrc ? (
-				<AbsoluteFill style={{mixBlendMode: 'screen', opacity: leakOpacity, pointerEvents: 'none'}}>
-					<OffthreadVideo
-						src={staticFile(params.leakOverlaySrc)}
-						style={{width: '100%', height: '100%', objectFit: 'cover'}}
-						muted
-					/>
-				</AbsoluteFill>
-			) : null}
+			{params.leakOverlaySrc ? <OverlayLayer src={staticFile(params.leakOverlaySrc)} opacity={leakOpacity} /> : null}
 
 			<Vignette style={style} />
 

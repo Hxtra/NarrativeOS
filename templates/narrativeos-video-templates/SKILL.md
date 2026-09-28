@@ -84,6 +84,39 @@ extraction too, not just a typecheck pass.
 
 **Layering multiple templates in one frame:** use `MultiLayerPlayer` (`project/src/TemplatePlayer.tsx`), not `TemplatePlayer` — it takes a `layers: LayerSpec[]` array and stacks them. This is how `interview_frame` + `location_stamp` + `speaker_lower_third` actually coexist on screen (see `Proof-InterviewCombined` in `Root.tsx`). A real render will almost always need this, not a single template in isolation.
 
+## Transitions & VFX (`project/src/vfx/`, library in `vfx-library/`)
+
+A transition is **data**: a cut type plus a stack of layers, registered by
+name in `vfx/recipes.ts`. New transitions are new combinations, not new code.
+Check `listTransitions()` before writing any transition or effect code.
+
+- **Cut types:** `hard`, `crossfade`, `soft_wipe`, `halftone`.
+- **Media layers** modify the shots: `zoom_punch`, `whip_pan` (A and B travel as one strip), `directional_blur`, `blur`, `rgb_split`, `glitch_slices`, `shake`, `flicker`, `stutter`, `desaturate`.
+- **Overlay layers** composite on top: `overlay` (a real footage clip from the VFX library), `flash`, `dip`, `film_burn` (procedural).
+- **SFX cues** (`whoosh`, `impact`, `shutter`, `glitch_tick`...) are semantic. They play only when `sfxSources` maps them to files, which is waiting on a sound library.
+- **`OverlayLayer`** is the one component for every footage overlay. It uses a Screen/Add/Overlay blend, stays muted, and applies the style tint. It is **peak-aligned**: the clip's brightest frame, measured at ingest, lands on the cut. This has been verified on real clips with `scripts/verify_peak_alignment.mjs`, including a 25 fps clip on the 30 fps timeline. `MediaReveal` uses it too; that refactor was verified pixel-identical in a same-session A/B.
+- Overlay layers select clips **by category and tone, never by filename**. They only use confirmed library clips. If none exists, they render their procedural `fallback`, so every recipe renders out of the box. When the requested tone is the opposite of the clip's (warm↔cool), the clip is hue-rotated 180°.
+- **Grade the shots, not the stack.** Leaks, burns and RGB fringes sit above the grade, the same as in an editor.
+- Each recipe carries an editorial `meaning`, and each `StyleProfile.vfx.allowedTransitions` lists what that style may use. Most cuts should stay `hard_cut`.
+
+**30 recipes (all rendered and reviewed on contact sheets):**
+
+| intensity | recipes |
+|---|---|
+| clean | `hard_cut`, `crossfade_soft`, `dip_to_black` |
+| subtle | `dip_to_white`, `blur_dissolve`, `push_in_cut`, `exposure_bump`, `memory_fade`, `archive_flicker_cut`, `soft_wipe_left`, `soft_wipe_up` |
+| medium | `flash_cut`, `light_leak_warm`, `light_leak_cool`, `leak_crossfade`, `rgb_split_hit`, `stutter_cut`, `halftone_reveal` |
+| bold | `leak_flash_combo`, `film_burn_passage`, `film_burn_procedural`, `whip_zoom`, `whip_pan_left`, `whip_pan_right`, `whip_pan_up`, `impact_cut`, `shake_impact`, `glitch_cut`, `glitch_reveal`, `digital_tear` |
+
+**QA:**
+- `node scripts/transition_contact_sheet.mjs [--style id] [--only substr]` writes 8 frames per recipe to `out/contact-sheets/`. Look at them; a typecheck is not enough.
+- `node scripts/verify_peak_alignment.mjs --recipe light_leak_warm --asset <id>` checks where the clip's brightest frame lands relative to the cut.
+
+**Growing to 100+:**
+- Ingest more clips; overlay recipes pick them up automatically, by category.
+- Register variants: new layer stacks, parameters, or directions.
+- Each new recipe needs a contact sheet that someone has looked at.
+
 ## Media Library (M2 — see `media-library/README.md`)
 
 Four assets now exist: two byte-backed verified NASA photos, one
@@ -107,7 +140,7 @@ substitution) that the original design was missing.
 
 Everything else in the brief (lower thirds, archive/parallax treatment, evidence cards, transitions, quote cards, audio-reactive) is **not yet built** — see `references/roadmap.md` for the full remaining list, organized by pack, so the next session picks up from here instead of re-deriving the list.
 
-Style profiles registered: `documentary_general` (centered-classic title layout) and `documentary_broadcast_grid` (corner-frame-broadcast title layout — proves the layout-branching mechanism works, not a claim about any specific documentary genre). Style-specific profiles actually named for a genre (DW, true crime, mystery, educational...) — both their surface values AND their structural layouts — should be populated from real evidence (the case-library work / `.aep` reverse-engineering), not guessed — see `references/architecture.md` for why.
+Style profiles registered: `documentary_general` (centered-classic title layout), `documentary_broadcast_grid` (corner-frame-broadcast title layout — proves the layout-branching mechanism works, not a claim about any specific documentary genre), and `premium_documentary` (the streaming-documentary / "Netflix doc" feel, named generically — `minimal-sans` title layout in Inter, colour grade, minimal VFX density; status `DOCUMENTED`, built from the owner's reference analysis in section 42 of the master handoff, not yet checked against real references). Every profile now has a `vfx` block (density, allowed transitions, overlay opacity scale, tint). Style-specific profiles actually named for a genre (DW, true crime, mystery, educational...) — both their surface values AND their structural layouts — should be populated from real evidence (the case-library work / `.aep` reverse-engineering), not guessed — see `references/architecture.md` for why.
 
 ## How to render a template right now
 

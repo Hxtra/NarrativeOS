@@ -67,21 +67,27 @@ Not yet started.
 - Timeline/date progression bar
 - Redacted/classified document stamp
 
-## Pack 5 — Transitions (P0 — real templates put most of their engineering here)
-- Light leak/film burn — already built in the original documentary-slideshow
-  project (4 variants: wipe/flash/vertical/bloom); port into this registry
-  as a shared transition primitive rather than per-template code
-- Glitch/digital distortion — real precedent confirmed: Template 1's
-  "Fast Chromatic" hub-and-expression rig (a master control layer with
-  Color/Contrast/Direction sliders, referenced via expressions elsewhere)
-- Whip pan/camera move — real precedent confirmed: Template 2 built on
-  "Handy Seamless Transitions," a named catalog (Warp Spin, Cam Fgt, Warp
-  Side Roll — each with directional variants). Worth deciding whether to
-  license that pack's approach/naming convention or build an original
-  equivalent catalog.
-- Match cut/morph
-- Hard cut + sound sting — not visual; this is a timing+SFX recipe and
-  belongs in the case-library work, not a Remotion component
+## Pack 5 — Transitions & VFX system — foundation done (2026-09-26)
+
+Built as a system, not as per-transition templates. See `SKILL.md` "Transitions & VFX".
+
+**Done:**
+- `vfx-library/` ingest tool (ffmpeg peak, blend and tone analysis, contact sheets, schema, tests).
+- The owner's 5 Urban Slideshow overlays ingested and confirmed.
+- `OverlayLayer`, peak-aligned and verified on real clips.
+- `TransitionStack` with 4 cut types and 14 layer kinds.
+- 30 recipes with editorial meanings, each reviewed on a contact sheet.
+- A `vfx` block on every StyleProfile.
+- The `premium_documentary` style (DOCUMENTED).
+- `MediaReveal` moved onto `OverlayLayer` (pixel-identical).
+
+**Next:**
+- Ingest the owner's 43 downloaded overlay clips once they are copied to the PC, then add overlay-category recipes (`film_burn`, `lens_flare`, `dust` beds, `graphic_elements` accents) and parameter or direction variants toward **100+**.
+- Convert the History Time Travel particle PNG sequences into alpha video (ProRes 4444 or VP9 alpha) and ingest them. `OverlayLayer` already passes `transparent` for clips with alpha.
+- Build a sound library that the semantic SFX cues resolve against. The first real asset is `Distortion_Power_Zoom_03.mp3` from History Time Travel.
+- Match cut / morph: not built. It needs shot analysis (shape or motion matching), not just a layer.
+- Luma-key wipe, where the wipe follows B's own brightness. `soft_wipe` is a linear feathered wipe.
+- Glitch "Fast Chromatic" master-control rig from template 1's `.aep`: the `rgb_split` + `glitch_slices` layers cover the look, but not yet the single-slider rig.
 
 ## Pack 6 — Typography & Quotes (P1)
 - Quote card/testimonial — full-screen kinetic type, no image

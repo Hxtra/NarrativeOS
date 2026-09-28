@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/vfx_asset.schema.json",
+  "title": "NarrativeOS VFX library asset",
+  "description": "One overlay clip (light leak, film burn, dust...) in the local VFX library. The file itself lives outside the repo; this record is what the Remotion engine and the Director read.",
+  "type": "object",
+  "required": ["schema_version", "id", "sha256", "original_filename", "library_path", "category", "category_status", "tone", "technical", "analysis", "rights", "ingested_at"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^vfx_[a-z_]+_(warm|cool|neutral|mono)_[0-9]{3}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "original_filename": {"type": "string"},
+    "library_path": {"type": "string", "description": "Path relative to the library root, forward slashes."},
+    "category": {"enum": ["light_leak", "film_burn", "flash", "lens_flare", "dust", "grain", "scratches", "glitch", "smoke", "bokeh", "particles", "texture", "graphic_elements", "unclassified"]},
+    "category_status": {"enum": ["suggested", "confirmed"], "description": "suggested = heuristic guess from luma/chroma analysis; confirmed = a person or Claude looked at the contact sheet. Recipes only resolve confirmed assets."},
+    "tone": {"enum": ["warm", "cool", "neutral", "mono"]},
+    "technical": {
+      "type": "object",
+      "required": ["duration_sec", "width", "height", "source_fps", "video_codec", "pix_fmt", "has_alpha", "has_audio"],
+      "properties": {
+        "duration_sec": {"type": ["number", "null"]},
+        "width": {"type": ["integer", "null"]},
+        "height": {"type": ["integer", "null"]},
+        "source_fps": {"type": ["number", "null"]},
+        "real_source_frame_count": {"type": ["integer", "null"]},
+        "video_codec": {"type": ["string", "null"]},
+        "pix_fmt": {"type": ["string", "null"]},
+        "has_alpha": {"type": "boolean"},
+        "has_audio": {"type": "boolean"},
+        "audio_codec": {"type": ["string", "null"]},
+        "file_size_bytes": {"type": "integer"}
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "required": ["frames_analyzed", "peak_frame", "peak_time_sec", "luma_mean", "luma_min", "luma_max", "background_luma_p10", "recommended_blend", "chroma_u_mean", "chroma_v_mean"],
+      "properties": {
+        "frames_analyzed": {"type": "integer", "minimum": 1},
+        "peak_frame": {"type": "integer", "minimum": 0, "description": "Source frame index with the highest mean luma — where a transition should centre."},
+        "peak_time_sec": {"type": "number", "minimum": 0},
+        "luma_mean": {"type": "number"},
+        "luma_min": {"type": "number"},
+        "luma_max": {"type": "number"},
+        "background_luma_p10": {"type": "number", "description": "Median over frames of signalstats YLOW (10th-percentile luma). Low = mostly-black background, i.e. built for Screen/Add."},
+        "bright_frame_fraction": {"type": "number"},
+        "chroma_u_mean": {"type": "number"},
+        "chroma_v_mean": {"type": "number"},
+        "recommended_blend": {"enum": ["screen", "add", "overlay", "multiply", "normal"]}
+      }
+    },
+    "rights": {
+      "type": "object",
+      "required": ["source_url", "license", "rights_status", "redistributable"],
+      "properties": {
+        "source_url": {"type": ["string", "null"]},
+        "license": {"type": ["string", "null"]},
+        "rights_status": {"enum": ["unknown", "verified", "restricted"]},
+        "redistributable": {"type": "boolean"},
+        "notes": {"type": "string"}
+      }
+    },
+    "contact_sheet": {"type": ["string", "null"]},
+    "ingested_at": {"type": "string"}
+  }
+}

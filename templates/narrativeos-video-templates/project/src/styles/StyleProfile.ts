@@ -30,14 +30,36 @@ export interface MotionSpec {
 	titleStaggerFrames: number;
 }
 
+/**
+ * How a style uses the VFX/transition library (src/vfx). The Director may
+ * only pick transitions listed in allowedTransitions; the first entry is
+ * the style's default cut. Overlay opacity and tint are scaled here so one
+ * recipe reads right in every style.
+ */
+export interface VfxStyleSpec {
+	density: 'minimal' | 'moderate' | 'bold';
+	allowedTransitions: string[];
+	/** Multiplies every overlay/burn opacity in a recipe. */
+	overlayOpacityScale: number;
+	/** Applied to footage overlays so a stock leak matches the grade. */
+	tint: {hueRotate: number; saturate: number};
+}
+
 export interface StyleProfile {
 	id: string;
 	label: string;
 	grade: GradeSpec;
 	typography: TypographySpec;
 	motion: MotionSpec;
-	/** Which transitions this style is allowed to reach for, in preference order. */
+	/** Which transitions this style is allowed to reach for, in preference order. Legacy; see `vfx`. */
 	transitionSet: BurnKind[];
+	vfx: VfxStyleSpec;
+	/**
+	 * Evidence status of the profile itself: DOCUMENTED = described from a
+	 * reference analysis but not yet checked against real renders of that
+	 * genre; VALIDATED = confirmed against real references.
+	 */
+	status?: 'DOCUMENTED' | 'VALIDATED';
 	vignetteStrength: number;
 	grainOpacity: number;
 	/**
@@ -89,6 +111,12 @@ export const documentaryGeneral: StyleProfile = {
 		titleStaggerFrames: 1.5,
 	},
 	transitionSet: ['wipe', 'flash', 'vertical', 'bloom'],
+	vfx: {
+		density: 'moderate',
+		allowedTransitions: ['hard_cut', 'dip_to_black', 'archive_flicker_cut', 'film_burn_passage', 'light_leak_warm', 'crossfade_soft', 'halftone_reveal', 'flash_cut', 'push_in_cut'],
+		overlayOpacityScale: 1,
+		tint: {hueRotate: 0, saturate: 1},
+	},
 	vignetteStrength: 0.9,
 	grainOpacity: 0.34,
 };
@@ -120,6 +148,12 @@ export const documentaryBroadcastGrid: StyleProfile = {
 		titleStaggerFrames: 1.0,
 	},
 	transitionSet: ['flash', 'none'],
+	vfx: {
+		density: 'moderate',
+		allowedTransitions: ['hard_cut', 'soft_wipe_left', 'soft_wipe_up', 'flash_cut', 'dip_to_black', 'rgb_split_hit', 'glitch_cut', 'whip_pan_left', 'whip_pan_right'],
+		overlayOpacityScale: 0.8,
+		tint: {hueRotate: 0, saturate: 0.9},
+	},
 	vignetteStrength: 0.5,
 	grainOpacity: 0.12,
 	layouts: {
@@ -127,9 +161,54 @@ export const documentaryBroadcastGrid: StyleProfile = {
 	},
 };
 
+/**
+ * Premium streaming-documentary look (the "Netflix documentary" feel), named
+ * generically on purpose: no brand clone. Basis: the owner's reference
+ * analysis in NarrativeOS_Master_Handoff.md section 42 (clean sans, restrained
+ * titles, purposeful hard cuts, slow push-ins, cinematic grade, subtle grain,
+ * selective light effects). DOCUMENTED until checked against real references.
+ */
+export const premiumDocumentary: StyleProfile = {
+	id: 'premium_documentary',
+	label: 'Premium Documentary (streaming-doc feel)',
+	status: 'DOCUMENTED',
+	grade: {
+		// Colour, not black-and-white: gentle contrast, slightly lifted blacks, restrained saturation.
+		filter: 'contrast(1.08) saturate(0.86) brightness(0.97)',
+		shadow: 'rgba(14,34,44,0.28)',
+		highlight: 'rgba(255,214,170,0.12)',
+	},
+	typography: {
+		serifFamily: 'PlayfairLocal, Georgia, serif',
+		sansFamily: 'InterLocal, Helvetica, Arial, sans-serif',
+		headlineWeight: 600,
+		kickerLetterSpacing: 6,
+		boneColor: 'rgba(246,244,240,0.98)',
+		boneDimColor: 'rgba(222,220,214,0.7)',
+	},
+	motion: {
+		weaveAmount: 0, // digital cinema camera: no projector jitter
+		kenBurnsEase: [0.45, 0, 0.55, 1],
+		titleStaggerFrames: 0.6,
+	},
+	transitionSet: ['none'],
+	vfx: {
+		density: 'minimal',
+		allowedTransitions: ['hard_cut', 'push_in_cut', 'dip_to_black', 'crossfade_soft', 'memory_fade', 'exposure_bump', 'light_leak_warm', 'blur_dissolve'],
+		overlayOpacityScale: 0.6,
+		tint: {hueRotate: -6, saturate: 0.85},
+	},
+	vignetteStrength: 0.45,
+	grainOpacity: 0.1,
+	layouts: {
+		title_card: 'minimal-sans',
+	},
+};
+
 export const STYLE_REGISTRY: Record<string, StyleProfile> = {
 	documentary_general: documentaryGeneral,
 	documentary_broadcast_grid: documentaryBroadcastGrid,
+	premium_documentary: premiumDocumentary,
 };
 
 export function getStyle(id: string): StyleProfile {
