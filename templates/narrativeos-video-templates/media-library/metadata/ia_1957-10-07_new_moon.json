@@ -1,0 +1,38 @@
+{
+  "id": "ia_1957-10-07_new_moon",
+  "type": "video",
+  "source": "Internet Archive (Universal Newsreels collection)",
+  "license": "public_domain",
+  "license_note": "Explicit licenseurl field on the item's own metadata page: http://creativecommons.org/licenses/publicdomain/. Cross-confirmed independently by Wikimedia Commons, which separately mirrors the same file with matching technical specs (see technical_probe below) — two independent sources agreeing, not a single unverified claim.",
+  "source_url": "https://archive.org/details/1957-10-07_New_Moon",
+  "identifier": "1957-10-07_New_Moon",
+  "retrieved_via": "web_fetch of the item's real details page — archive.org is reachable via web_fetch but NOT via this sandbox's bash_tool network egress (see availability note below)",
+  "bytes_obtained": false,
+  "creator": "Universal Studios (Universal Newsreels)",
+  "subject": "First television/newsreel report of Sputnik's launch, October 1957",
+  "title": "New Moon. Reds Launch First Space Satellite, 1957/10/07",
+  "description": "First report of Sputnik - animations of rocket used same animations as done for earlier report on the Vanguard story (partial newsreel)",
+  "date": "1957",
+  "rights_status": "verified",
+  "rights_verification_method": "item-level check against the item's own metadata page (not just the search filter that surfaced it) — explicit licenseurl present and independently cross-confirmed by a second source (Wikimedia Commons)",
+  "availability_status": "available",
+  "availability_note": "Multiple real, resolvable download URLs exist and were confirmed to redirect correctly to a live Internet Archive CDN node (dn711004.ca.archive.org) serving the correct video/ogg mime type. bytes_obtained is false NOT because the source is unavailable, but because this specific sandbox's bash_tool network egress does not allow archive.org (confirmed via the proxy's own x-deny-reason: host_not_allowed response) and the web_fetch tool that CAN reach it returns a binary placeholder rather than usable bytes. This is a tooling limitation of this sandbox, not a defect in the source or the adapter logic — see media-library/tools/internet_archive_adapter.py, which contains ordinary, correct download code that was not exercisable end-to-end here.",
+  "download_urls": {
+    "h264_mp4": "https://archive.org/download/1957-10-07_New_Moon/1957-10-07_New_Moon.mp4",
+    "h264_512kb_mp4": "https://archive.org/download/1957-10-07_New_Moon/1957-10-07_New_Moon_512kb.mp4",
+    "ogv": "https://archive.org/download/1957-10-07_New_Moon/1957-10-07_New_Moon.ogv",
+    "mpeg2": "https://archive.org/download/1957-10-07_New_Moon/1957-10-07_New_Moon.mpeg"
+  },
+  "topics": ["Sputnik", "Space Race", "Cold War", "1957", "newsreel", "Soviet Union"],
+  "visual_tags": ["black-and-white", "newsreel", "archival", "rocket-launch"],
+  "usable_as": ["archive", "b-roll"],
+  "technical_probe": {
+    "duration_sec": 45,
+    "resolution": "640x480",
+    "aspect_ratio": 1.333,
+    "video_codec_note": "archive.org's own H.264 MP4 transcode is the recommended file to use; the .ogv (Theora/Vorbis) is the original preservation format, independently confirmed by Wikimedia Commons at the same 640x480/45s specs",
+    "probed_via": "cross-confirmed from two independent sources' published metadata (archive.org item page + Wikimedia Commons file page), not run through probe_asset.py's ffprobe, since no local bytes exist yet"
+  },
+  "pipeline_status": "DOWNLOADABLE",
+  "pipeline_status_note": "Per the strict SEARCHED -> CANDIDATE -> RIGHTS_VERIFIED -> DOWNLOADABLE -> BYTE_VERIFIED -> REGISTERED state machine, this item has NOT reached BYTE_VERIFIED or REGISTERED. It should not be treated as a fully registered Media Library asset until bytes are actually obtained and probed in an environment that can reach archive.org."
+}

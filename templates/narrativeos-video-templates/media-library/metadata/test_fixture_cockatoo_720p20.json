@@ -1,0 +1,36 @@
+{
+  "id": "test_fixture_cockatoo_720p20",
+  "type": "video",
+  "status": "engineering_test_fixture_only",
+  "_do_not_use_as_documentary_content": true,
+  "source": "imageio-binaries (imageio project's own test asset repository)",
+  "license": "UNKNOWN — no rights statement found anywhere in imageio's documentation for this specific file, unlike its clearly-credited images (astronaut.png -> NASA, hubble_deep_field.png -> NASA, several others credited to named photographers). Do not treat as public domain or otherwise cleared.",
+  "source_url": "https://github.com/imageio/imageio-binaries/raw/master/images/cockatoo.mp4",
+  "retrieved_via": "direct fetch from GitHub (within this environment's reachable domains)",
+  "bytes_obtained": true,
+  "rights_verified": false,
+  "rights_verification_method": "explicitly NOT verified — searched imageio's own docs and found no rights statement for this asset specifically, unlike its sibling assets. Used here strictly to test ArchiveVideo's handling of a real video file's real technical properties (frame rate, audio), never as documentary content.",
+  "topics": [],
+  "visual_tags": ["engineering-test-only"],
+  "usable_as": ["technical-qa-fixture"],
+  "local_path": "test-fixtures/cockatoo_test.mp4",
+
+  "technical_probe": {
+    "probed_via": "media-library/tools/probe_asset.py (real ffprobe run, not estimated)",
+    "probed_at": "2026-09-20",
+    "source_fps": 20.0,
+    "source_fps_is_common_value": false,
+    "width": 1280,
+    "height": 720,
+    "aspect_ratio": 1.778,
+    "duration_sec": 14.0,
+    "real_source_frame_count": 280,
+    "has_audio": true,
+    "audio_codec": "mp3",
+    "video_codec": "h264"
+  },
+  "watermark": {
+    "status": "unknown",
+    "action": "manual_review"
+  }
+}

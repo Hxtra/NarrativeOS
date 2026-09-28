@@ -75,6 +75,10 @@ For every `ShotSpec`, acquire independent candidates. Probe media with FFprobe, 
 
 TTS must be an explicit adapter with provider, model, voice, consent, language, cost, and request metadata. Support user-uploaded narration. Caption timing must come from actual alignment or explicit timing input. The timeline must include video, narration, music, effects, captions, graphics, and markers. Use FFmpeg with explicit motion, transitions, audio buses, ducking, loudness normalization, and QA.
 
+## Motion-design templates
+
+`templates/narrativeos-video-templates/` is a companion skill: a registry of pre-built Remotion components (title cards, lower thirds, archive treatments, double exposure, credits, and more) driven by a `StyleProfile` and a params object, plus a rights-aware Media Library. Check its `SKILL.md` template manifest before writing any new motion-design code. It is not yet wired into the `GRAPHICS` stage; `build_graphics.py` still falls back to deterministic text overlays until that integration is deliberately built.
+
 ## Delivery gate
 
 Do not set `delivery_ready: true` unless approved shots have evidence and rights records; claims have sources; narration and captions have complete timing; audio/video streams and loudness pass; captions are visibly rendered; editorial QA finds no material contradictions; provenance and checksums exist; no secrets are packaged; and the release package contains final media, editable timeline, transcript, captions, evaluation report, rights manifest, hashes, tool versions, and approvals.
