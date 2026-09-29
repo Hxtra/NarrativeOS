@@ -8,14 +8,18 @@ from editorial_style import resolve_style, fingerprint
 
 
 def test_video_disabled():
+    # Video is a known kind that is explicitly switched off: the job is DISABLED and no transition can move it.
+    job = generation.plan_request({'request_id': 'v', 'kind': 'video', 'purpose': 'test', 'enabled': True}, resolve_style({}), {})
+    assert job['state'] == 'DISABLED' and job['capability']['enabled'] is False
     with pytest.raises(ValueError, match='disabled'):
-        generation.plan_request({'request_id': 'v', 'kind': 'video', 'purpose': 'test', 'enabled': True}, resolve_style({}), {})
+        generation.attach_quote(job, {'version': 'v1', 'request_hash': 'x', 'provider': 'p', 'model': 'm', 'amount': 0,
+                                      'currency': 'USD', 'basis': 'local_zero_cost', 'rights_terms': 'r'})
 
 
 def test_adapter_verification_and_approval(tmp_path):
     assert callable(getattr(generation, 'execute_request', None))
-    request = generation.plan_request({'request_id': 'i', 'kind': 'image', 'purpose': 'concept', 'visual_role': 'conceptual'}, resolve_style({}), {})
-    quote = {'version': 'v1', 'request_hash': request['request_hash'], 'provider': 'offline-fixture', 'model': 'fixture-v1', 'amount': 0, 'currency': 'USD', 'rights_terms': 'engineering fixture only'}
+    request = generation.plan_request({'request_id': 'i', 'kind': 'image', 'purpose': 'concept', 'visual_role': 'conceptual', 'width': 8, 'height': 8}, resolve_style({}), {})
+    quote = {'version': 'v1', 'request_hash': request['request_hash'], 'provider': 'offline-fixture', 'model': 'fixture-v1', 'amount': 0, 'currency': 'USD', 'basis': 'local_zero_cost', 'rights_terms': 'engineering fixture only'}
     approval = {'quote_hash': fingerprint(quote), 'cost_approved': True, 'rights_approved': True}
     import cv2, numpy as np
     output = tmp_path / 'fixture.png'

@@ -4,7 +4,17 @@ from __future__ import annotations
 import argparse, json
 from pathlib import Path
 from copy import deepcopy
-ALLOWED={"REVEAL","EMPHASIZE","CUT","HOLD","ANTICIPATE","J_CUT","L_CUT"}
+ALLOWED={"REVEAL","EMPHASIZE","CUT","HOLD","ANTICIPATE","J_CUT","L_CUT","MOTION","TRANSITION"}
+MOTION_KINDS={"push_in","pull_out"}
+
+
+def _known_recipes()->set:
+    """Transition recipe ids registered in the Remotion VFX library (single source of truth)."""
+    import sys
+    root=str(Path(__file__).resolve().parents[1])
+    if root not in sys.path: sys.path.insert(0,root)
+    from style_intel.profile import known_transitions
+    return known_transitions()
 
 def validate(graph:dict)->list[dict]:
     import math
@@ -22,6 +32,8 @@ def validate(graph:dict)->list[dict]:
                     raise ValueError("invalid base timing")
                 previous = b
         changed = set()
+        from editing_config import DIRECTOR_DEFAULTS
+        max_overlap = float(graph.get("director_config", {}).get("max_audio_overlap_sec", DIRECTOR_DEFAULTS["max_audio_overlap_sec"]))
         for e in graph.get("events",[]):
             eid=e.get("event_id")
             if not eid or eid in seen: errors.append({"event_id":eid,"error":"missing or duplicate event_id"})
@@ -55,13 +67,29 @@ def validate(graph:dict)->list[dict]:
                     offset = float(o["offset_sec"])
                     left, right = shots[i], shots[j]
                     host = left if e["type"] == "J_CUT" else right  # the shot whose picture carries the other shot's sound
-                    if (j != i + 1 or not math.isfinite(offset) or not 0 < offset <= 2.0
+                    if (j != i + 1 or not math.isfinite(offset) or not 0 < offset <= max_overlap
                             or offset >= host["end"] - host["start"] or duration != offset
                             or set(e["affected_objects"]) != {ids[i], ids[j]}
                             or not (left.get("has_native_audio") and right.get("has_native_audio"))):
                         raise ValueError("invalid J/L-cut overlap")
-            elif "boundary" in e or e.get("type") in {"J_CUT", "L_CUT"}:
-                raise ValueError("boundary and J/L-cut events require a base timeline")
+                if e["type"] == "MOTION":
+                    m = e.get("motion") or {}
+                    shot = shots[ids.index(e["affected_objects"][0])]
+                    scales = [float(m.get("scale_from", 1)), float(m.get("scale_to", 1))]
+                    if (len(e["affected_objects"]) != 1 or m.get("kind") not in MOTION_KINDS
+                            or not all(math.isfinite(x) and 0.5 <= x <= 2.0 for x in scales)
+                            or start < shot["start"] or start + duration > shot["end"] + 1e-6):
+                        raise ValueError("invalid MOTION: one shot, known kind, sane scale, inside the shot")
+                if e["type"] == "TRANSITION":
+                    tr = e.get("transition") or {}
+                    i, j = ids.index(tr["left_shot_id"]), ids.index(tr["right_shot_id"])
+                    allowed = graph.get("director_config", {}).get("allowed_transitions")
+                    if (j != i + 1 or start != shots[i]["end"] or set(e["affected_objects"]) != {ids[i], ids[j]}
+                            or tr.get("recipe") not in _known_recipes()
+                            or (allowed is not None and tr.get("recipe") not in allowed)):
+                        raise ValueError("invalid TRANSITION: adjacent shots, at the cut, registered recipe allowed by the style")
+            elif "boundary" in e or e.get("type") in {"J_CUT", "L_CUT", "MOTION", "TRANSITION"}:
+                raise ValueError("boundary, J/L-cut, MOTION and TRANSITION events require a base timeline")
     except (KeyError, TypeError, ValueError, AttributeError) as exc:
         errors.append({"error": str(exc)})
     return errors
@@ -88,8 +116,12 @@ def compile_graph(graph:dict)->dict:
                 for shot in (left, right):
                     shot["native_audio_execution"] = "ir_only_renderer_pending"
             else:
-                markers.append({"event_id": e["event_id"], "type": e["type"], "start": e["timing"]["start"],
-                                "end": e["timing"]["start"] + e["timing"]["duration"], "purpose": e["purpose"], "execution": "review_marker_only"})
+                marker = {"event_id": e["event_id"], "type": e["type"], "start": e["timing"]["start"],
+                          "end": e["timing"]["start"] + e["timing"]["duration"], "purpose": e["purpose"], "execution": "review_marker_only"}
+                for payload in ("motion", "transition", "source"):
+                    if payload in e:
+                        marker[payload] = deepcopy(e[payload])
+                markers.append(marker)
         for shot in out["shots"]:
             shot["status"] = "simulation_approved"
             shot["approved"] = False

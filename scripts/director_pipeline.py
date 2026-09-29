@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import math
 from pathlib import Path
 import sys
 
@@ -45,7 +44,11 @@ def run(args) -> dict:
     style = resolve_style(read(args.profile), read(args.dna) if args.dna else None)
     perception = {'schema_version': 1, 'music': music, 'speech': speech, 'visual': visual,
                   'timebases': {'music': 'timeline_zero; supply a pre-trimmed mix', 'speech': 'timeline', 'visual': 'source_local'}}
-    graph = plan_edit(timeline, perception, style)
+    director = None
+    if args.director_provider:
+        # Model-assisted: any reasoning model behind the provider interface; its proposals are validated like ours.
+        director = {'mode': 'model_assisted', 'provider': read(args.director_provider)}
+    graph = plan_edit(timeline, perception, style, director)
     graph['perception_artifact'] = 'perception.json'
     graph['visual_policy'] = 'Measurements retained for human review; no semantic visual decisions inferred.'
     proposal = compile_graph(graph)
@@ -54,12 +57,13 @@ def run(args) -> dict:
                  'production_directions.json': production_directions(narration, alignment, style),
                  'event_graph.json': graph, 'timeline.proposed.json': proposal}
     sources = [args.timeline, args.music, args.alignment, args.visuals, args.profile]
-    sources += [p for p in [args.narration, args.dna] if p]
+    sources += [p for p in [args.narration, args.dna, args.director_provider] if p]
     report = {'status': 'review_required', 'production_ready': False, 'provider_calls': 0,
               'ai_video_enabled': False, 'director': graph['director'],
               'inputs': [{'path': str(p.resolve()), 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in sources],
               'artifacts': list(artifacts), 'events': len(graph['events']),
-              'limitations': ['Deterministic Director: no AI model is invoked.', 'Visual evidence is measured, not semantic approval.',
+              'allowed_transitions': style['editing']['allowed_transitions'], 'allowed_transitions_source': style['editing'].get('allowed_transitions_source'),
+              'limitations': ['Deterministic Director unless --director-provider is given; model proposals are validated and rejected ones are listed.', 'Visual evidence is measured, not semantic approval.',
                               'HOLD/ANTICIPATE are review markers; no invented camera movement.',
                               'J/L-cuts only when the style requests them and source audio is provable; native audio is not rendered yet. No speech retiming.', 'No render, rights approval or timeline promotion performed.']}
     artifacts['manifest.json'] = report
@@ -77,6 +81,7 @@ def main() -> int:
         ap.add_argument('--' + flag, type=Path, required=True)
     ap.add_argument('--narration', type=Path)
     ap.add_argument('--dna', type=Path)
+    ap.add_argument('--director-provider', type=Path, help='reasoning provider config (model_provider.py); omit for the deterministic Director')
     args = ap.parse_args()
     try:
         result = run(args)

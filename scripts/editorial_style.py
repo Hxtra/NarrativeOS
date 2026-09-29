@@ -12,17 +12,28 @@ def fingerprint(value: dict) -> str:
 def resolve_style(profile: dict, dna: dict | None = None) -> dict:
     intent = profile.get("editorial_intent", {})
     common = {"tone": intent.get("tone", "neutral"), "avoid": deepcopy(intent.get("avoid", []))}
+    from editing_config import DIRECTOR_DEFAULTS
     dna = dna or {}
     measured = dna.get("editing", {}).get("shot_duration_sec", {}).get("median")
+    editing = {"target_shot_sec": measured, **deepcopy(DIRECTOR_DEFAULTS)}
+    if dna.get("editing") and dna.get("visual"):
+        # Transitions come from what the reference measurably used, never from guesses (style_intel.profile).
+        from style_intel.profile import choose_transitions
+        editing["allowed_transitions"] = choose_transitions(dna)
+        editing["allowed_transitions_source"] = "style_dna"
+        editing["transition_vocabulary"] = deepcopy(dna["editing"].get("transition_vocabulary"))
+    else:
+        editing["allowed_transitions_source"] = "default: no full Style DNA, hard cuts only"
     style = {"schema_version": 1, "profile_version": profile.get("profile_version"),
              "measurement_source": dna.get("source", {}).get("sha256"),
-             "editing": {"target_shot_sec": measured, "min_shot_sec": 1.0, "snap_window_sec": 0.2, "rhythm_mode": "free", "anticipation_sec": 0,
-                         "accent_action": "none", "audio_overlap": {"mode": "none", "offset_sec": 0}},
+             "editing": editing,
              "narration": {"pace": 1.0}, "captions": {"font_size": 42, "animation": "none"},
              "image": {}, "music": {}, "sfx": {}}
     for kind in ("editing", "narration", "captions", "image", "music", "sfx"):
         style[kind].update(common)
         style[kind].update(deepcopy(intent.get(kind, {})))
+    if "allowed_transitions" in intent.get("editing", {}):
+        style["editing"]["allowed_transitions_source"] = "profile"
     style["style_id"] = fingerprint(style)
     return style
 
