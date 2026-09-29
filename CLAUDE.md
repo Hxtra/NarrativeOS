@@ -33,11 +33,17 @@ The owner's stated long-term pieces:
 
 - **Its own harness and an enforced workflow**, with stages that must be
   followed in order.
-- **Specialised agents per job.** A decision agent (JEV), script, editing,
-  image generation and video generation agents, and a separate
-  **bug-fixing/recovery agent**. When stage N fails, the failure is
-  classified and handed to the recovery agent; the script agent never
-  debugs.
+- **Specialised agents per job.** Script, editing, image generation and
+  music/SFX generation agents, and a separate **bug-fixing/recovery agent**.
+  When stage N fails, the failure is classified and handed to the recovery
+  agent; the script agent never debugs. **JEV was removed (2026-09-29):**
+  the owner judged it not intelligent enough. The Director is deterministic
+  code over measured perception (`scripts/director_brain.py`). If a model is
+  added later, it must be a strong one (e.g. Claude) and it only proposes;
+  validators still decide.
+- **AI-generated video stays disabled** until the owner turns it on. Image,
+  music and SFX generation are allowed through `scripts/generation.py`, and
+  only after a quote plus cost and rights approval.
 - **Many styles, including a "Netflix documentary" style.** It exists as
   `premium_documentary`.
 - **Reference-style copying.** Give it a video or link and it adapts its
@@ -179,6 +185,40 @@ Typography is not measured yet; it needs OCR, which is the next addition.
 `STYLE_REGISTRY` loads. It only enables transitions the reference provably
 used. Tests: `tests/test_style_intel.py` (synthetic videos with known
 answers).
+
+**Perception & Rhythm Engine (added Sep 29, branch `perception-rhythm-engine`;
+started by the Hermes agent, reviewed and finished here).** Full design and
+status table: `references/perception-and-rhythm.md`. In short:
+
+- **Music map** (`style_intel/audio.py::temporal_map`): onsets, beats, 0.5 s
+  energy curve, section/phrase candidates, BUILD/IMPACT/BREAKDOWN
+  candidates. Kick, snare, chorus, downbeats and meter are reported as not
+  measured.
+- **Speech map** (`scripts/perception.py`): words and pauses from supplied
+  alignment. Pauses are preserved. Fillers and repeats are trim candidates
+  only; nothing is auto-cut.
+- **Visual map**: cuts (hard and gradual) and camera motion per source.
+- **Rhythm review**: flags mechanical shot lengths, every cut on the beat,
+  and repeated camera motion.
+- **Deterministic Director** (`scripts/director_brain.py::plan_edit`):
+  snaps existing boundaries to nearby music (reveals prefer impacts),
+  EMPHASIZE on impacts inside a shot, HOLD/ANTICIPATE markers, and
+  J/L-cuts when the style asks and source audio is provable. Everything is
+  a proposal; approved timelines are never overwritten. J/L-cuts exist in
+  the timeline IR only: the FFmpeg renderer does not play native audio yet.
+- **One editorial intent for all modalities** (`scripts/editorial_style.py`).
+- **Generation** (`scripts/generation.py`): image, music and SFX requests
+  styled by the production. It covers:
+  - a continuity bible, where an approved generated image becomes the
+    reference for later ones of the same person or place;
+  - a deterministic prompt builder;
+  - a pluggable command adapter for local generators.
+
+  No provider is configured, so real generation is BLOCKED until the
+  owner picks one. Video is disabled.
+- **CLI:** `python scripts/director_pipeline.py --timeline ... --music ...
+  --alignment ... --visuals ... --profile ... --out <new dir>` writes a
+  review bundle.
 
 **Verified on this PC (Sep 26):** `npm install` and `tsc --noEmit` pass.
 `Proof-TitleCard` and `Proof-ArchiveVideo` render correctly. The grain tiles
