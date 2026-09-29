@@ -106,6 +106,9 @@ def validator(project, stage):
     blocked = []
     for artifact in required:
         if artifact.endswith((".json", ".yaml")):
+            data = load_json(project / artifact, {})
+            if isinstance(data, dict) and data.get("review", {}).get("required") is True and data.get("review", {}).get("approved") is not True:
+                blocked.append({"artifact": artifact, "status": "review_required"})
             status = status_of(project, artifact)
             if status in {"blocked", "pending", "review_required"}: blocked.append({"artifact": artifact, "status": status})
     if blocked: return False, {"blocked_artifacts": blocked}

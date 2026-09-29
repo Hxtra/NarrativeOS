@@ -6,6 +6,13 @@ from pathlib import Path
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--project',type=Path,required=True); args=ap.parse_args(); p=args.project
+    if (p/'timeline.json').exists():
+        existing = json.loads((p/'timeline.json').read_text())
+        if (existing.get('status') == 'approved' or existing.get('approved') is True
+                or existing.get('review', {}).get('approved') is True
+                or existing.get('review', {}).get('required') is True
+                or any(s.get('status') == 'approved' for s in existing.get('shots', []))):
+            raise SystemExit('Refusing to overwrite an approved/review-controlled timeline; create a separate proposal project.')
     specs=json.loads((p/'shot_specs.json').read_text()).get('shots',[]); approved=json.loads((p/'approved_assets.json').read_text()).get('assets',[])
     byshot={x.get('shot_id'):x for x in approved}; shots=[]
     for s in specs:

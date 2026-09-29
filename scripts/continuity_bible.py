@@ -3,6 +3,17 @@
 from __future__ import annotations
 import argparse,json,re
 from pathlib import Path
+from copy import deepcopy
+
+
+def generation_context(bible: dict, entity_ids: list[str], location_id: str | None) -> dict:
+    """Reuse canonical IDs and art direction, never guess a new identity/place."""
+    entities = {e["entity_id"]: e for e in bible.get("entities", [])}
+    locations = {e["location_id"]: e for e in bible.get("locations", [])}
+    selected = [deepcopy(entities[eid]) for eid in entity_ids]
+    location = deepcopy(locations[location_id]) if location_id else None
+    return {"entities": selected, "location": location, "generation_lock": deepcopy(bible.get("generation_lock", {}))}
+
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--project',type=Path,required=True); args=ap.parse_args(); p=args.project
