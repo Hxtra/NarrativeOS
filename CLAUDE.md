@@ -36,14 +36,18 @@ The owner's stated long-term pieces:
 - **Specialised agents per job.** Script, editing, image generation and
   music/SFX generation agents, and a separate **bug-fixing/recovery agent**.
   When stage N fails, the failure is classified and handed to the recovery
-  agent; the script agent never debugs. **JEV was removed (2026-09-29):**
-  the owner judged it not intelligent enough. The Director is deterministic
-  code over measured perception (`scripts/director_brain.py`). If a model is
-  added later, it must be a strong one (e.g. Claude) and it only proposes;
-  validators still decide.
-- **AI-generated video stays disabled** until the owner turns it on. Image,
-  music and SFX generation are allowed through `scripts/generation.py`, and
-  only after a quote plus cost and rights approval.
+  agent; the script agent never debugs.
+- **Model-agnostic reasoning.** The architecture is: reasoning/Director
+  model provider → model abstraction (`scripts/model_provider.py`) →
+  Director (`scripts/director_brain.py`). The Director is rule-based by
+  default. A reasoning model can be attached (`mode: model_assisted`) to
+  propose extra events, which pass the same validators as rule output. No
+  model or vendor is assumed. *(Historical: an earlier design used a model
+  called JEV as the decision agent; the owner removed it on 2026-09-29.)*
+- **AI-generated video stays disabled** by a capability flag until the owner
+  turns it on. Image, music, SFX and voice generation go through the job
+  state machine in `scripts/generation.py`, and only after a quote plus cost
+  and rights gates.
 - **Many styles, including a "Netflix documentary" style.** It exists as
   `premium_documentary`.
 - **Reference-style copying.** Give it a video or link and it adapts its
@@ -186,39 +190,48 @@ Typography is not measured yet; it needs OCR, which is the next addition.
 used. Tests: `tests/test_style_intel.py` (synthetic videos with known
 answers).
 
-**Perception & Rhythm Engine (added Sep 29, branch `perception-rhythm-engine`;
-started by the Hermes agent, reviewed and finished here).** Full design and
-status table: `references/perception-and-rhythm.md`. In short:
+**Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
+completed on branch `editorial-intelligence-completion`).** Exact status
+tables are in `references/perception-and-rhythm.md` and
+`references/generative-media.md`. In short:
 
-- **Music map** (`style_intel/audio.py::temporal_map`): onsets, beats, 0.5 s
-  energy curve, section/phrase candidates, BUILD/IMPACT/BREAKDOWN
-  candidates. Kick, snare, chorus, downbeats and meter are reported as not
-  measured.
-- **Speech map** (`scripts/perception.py`): words and pauses from supplied
-  alignment. Pauses are preserved. Fillers and repeats are trim candidates
-  only; nothing is auto-cut.
-- **Visual map**: cuts (hard and gradual) and camera motion per source.
-- **Rhythm review**: flags mechanical shot lengths, every cut on the beat,
-  and repeated camera motion.
-- **Deterministic Director** (`scripts/director_brain.py::plan_edit`):
-  snaps existing boundaries to nearby music (reveals prefer impacts),
-  EMPHASIZE on impacts inside a shot, HOLD/ANTICIPATE markers, and
-  J/L-cuts when the style asks and source audio is provable. Everything is
-  a proposal; approved timelines are never overwritten. J/L-cuts exist in
-  the timeline IR only: the FFmpeg renderer does not play native audio yet.
-- **One editorial intent for all modalities** (`scripts/editorial_style.py`).
-- **Generation** (`scripts/generation.py`): image, music and SFX requests
-  styled by the production. It covers:
-  - a continuity bible, where an approved generated image becomes the
-    reference for later ones of the same person or place;
-  - a deterministic prompt builder;
-  - a pluggable command adapter for local generators.
-
-  No provider is configured, so real generation is BLOCKED until the
-  owner picks one. Video is disabled.
-- **CLI:** `python scripts/director_pipeline.py --timeline ... --music ...
-  --alignment ... --visuals ... --profile ... --out <new dir>` writes a
-  review bundle.
+- **Music map** (`style_intel/audio.py::temporal_map`). Every event is
+  labelled MEASURED (onsets, energy) or INFERRED (beats, tempo, sections,
+  phrases, BUILD/IMPACT/BREAKDOWN). A `measurements` table lists what is
+  NOT_MEASURED and why: kick, snare, downbeat, meter, chorus and others.
+  Thresholds are in `MUSIC_MAP_DEFAULTS`.
+- **Director** (`scripts/director_brain.py::plan_edit`). Rule-based, and
+  music events can become CUT, REVEAL, HOLD, ANTICIPATE, EMPHASIZE, MOTION,
+  TRANSITION or J/L_CUT. A beat is never automatically a cut. Every
+  tolerance is in `scripts/editing_config.py`. Transitions are chosen only
+  from `allowed_transitions`, which a Style DNA fills with what the
+  reference measurably used (`style_intel.shots.transition_vocabulary`,
+  then `profile.choose_transitions`). Everything is a proposal: approved
+  timelines are never overwritten. MOTION, TRANSITION and J/L are not
+  rendered yet.
+- **Model abstraction** (`scripts/model_provider.py`). `model_assisted` mode
+  takes any command- or callable-based reasoning provider. Its proposals are
+  validated, and rejected ones are listed.
+- **Perception** (`scripts/perception.py`): the speech map (protected
+  pauses, filler and repeat trim candidates), the visual map (cuts plus the
+  transition vocabulary, and camera motion), and a rhythm review.
+- **Generation** (`scripts/generation.py` + `generation_cli.py`). Image,
+  music, SFX and voice jobs go through
+  REQUESTED → QUOTED → COST_APPROVED → RIGHTS_APPROVED → READY → GENERATING
+  → GENERATED → REGISTERED. Quotes and approvals are hash-bound, and gates
+  that don't apply are recorded as not applicable. Video is DISABLED by a
+  capability flag. No provider is configured: real generation is BLOCKED
+  until the owner picks one.
+- **Media semantics** (`scripts/media_semantics.py`, enforced in
+  `evidence_links.py`). Generated media is never evidence, whatever it
+  depicts.
+- **Continuity bible** (`scripts/continuity_bible.py`). Explicit records for
+  people, locations, objects and environments. An approved generated image
+  becomes the entity's approved reference and is reused automatically by
+  later requests.
+- **CLIs:**
+  - `scripts/director_pipeline.py` (music/speech/visual → review bundle);
+  - `scripts/generation_cli.py` (one command per state transition).
 
 **Verified on this PC (Sep 26):** `npm install` and `tsc --noEmit` pass.
 `Proof-TitleCard` and `Proof-ArchiveVideo` render correctly. The grain tiles
@@ -236,6 +249,14 @@ were missing from the package, so they are now regenerated by
    - Register overlay-category and variant recipes. Each one must get a
      contact sheet that someone looks at
      (`project/scripts/transition_contact_sheet.mjs`).
+0a. **Make editorial proposals renderable and pick providers.**
+   - Render the MOTION, TRANSITION and J/L proposals: native audio in
+     `render_ffmpeg.py`, and TRANSITION recipes via the Remotion
+     `TransitionStack`.
+   - The owner chooses image, music, SFX and voice generators, and
+     optionally a reasoning provider.
+   - A vision model for shot scale, faces, gaze and action.
+   - Source separation for drums and vocals, plus downbeat tracking.
 1. **Finish the Internet Archive asset end-to-end.** This was the gate the
    owner set before Pack 4. The owner's rule was: "don't move to Pack 4 until
    this IA asset goes all the way through". This PC has normal network

@@ -51,6 +51,7 @@ def analyze(video: Path, out_dir: Path, with_speech: bool = True, threshold: flo
         "gradual_kinds": {k: kinds.count(k) for k in ("light", "dark", "dissolve")},
         "flash_frames_per_minute": round(len(flashes) / duration * 60, 2),
         "dips_to_black": len(dips),
+        "transition_vocabulary": shots.transition_vocabulary(hard, gradual, kinds, flashes, dips),
     }
     editing["pacing"] = band(editing["shot_duration_sec"]["median"], PACING, "very_slow")
 

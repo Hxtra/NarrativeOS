@@ -1,6 +1,5 @@
 import json, subprocess, sys
 from pathlib import Path
-import pytest
 from test_perception_rhythm import click_audio, base_timeline
 ROOT = Path(__file__).parents[1]
 
@@ -34,7 +33,7 @@ def test_cli_measures_to_review_proposal_without_touching_approved_input(tmp_pat
     review = json.loads((out / 'rhythm_review.json').read_text())
     assert review['status'] == 'review_required' and isinstance(review['warnings'], list)
     manifest = (out / 'manifest.json').read_text()
-    assert 'JEV' not in manifest and 'no AI model is invoked' in manifest
+    assert 'JEV' not in manifest and 'Deterministic Director unless --director-provider' in manifest
     snapshot = (out / 'timeline.proposed.json').read_bytes()
     assert subprocess.run(cmd, capture_output=True).returncode != 0
     assert (out / 'timeline.proposed.json').read_bytes() == snapshot

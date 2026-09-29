@@ -9,9 +9,11 @@ def visual_map(path: Path, asset_id: str, timeline_start: float = 0) -> dict:
     from style_intel import shots, visual
     from style_intel.media import probe, sha256
     meta = probe(path)
-    _, raw = shots.frame_track(path)
+    frames, raw = shots.frame_track(path)
     hard = shots.merge_cuts(raw, meta["duration_sec"])
     gradual = shots.gradual_transitions(path, meta["fps"] or 30.0, hard)
+    kinds = shots.classify_gradual(frames, gradual)
+    flashes, dips = shots.flashes_and_dips(frames)
     cuts = sorted(hard + gradual)
     intervals = shots.shots_from_cuts(cuts, meta["duration_sec"])
     measured = []
@@ -27,12 +29,15 @@ def visual_map(path: Path, asset_id: str, timeline_start: float = 0) -> dict:
                                       "sample_times_sec": [mid - dt / 2, mid + dt / 2] if motion else [], "cut_method": "ffmpeg.scdet + histogram_window"}})
     return {"status": "measured", "asset_id": asset_id, "source": {"file": path.name, "sha256": sha256(path)},
             "duration_sec": meta["duration_sec"], "timeline_start": timeline_start,
-            "cuts_sec": [t + timeline_start for t in cuts], "gradual_transitions_sec": [t + timeline_start for t in gradual], "shots": measured,
+            "cuts_sec": [t + timeline_start for t in cuts], "gradual_transitions_sec": [t + timeline_start for t in gradual],
+            "transition_vocabulary": shots.transition_vocabulary(hard, gradual, kinds, flashes, dips), "shots": measured,
             "not_measured": ["gaze", "faces", "action_identity", "emotion", "shot_scale", "directional_continuity"],
             "limitations": ["Hard cuts plus histogram-detected gradual transitions; at most 60 motion samples. Featureless frames remain unmeasured.", "Motion evidence does not establish rights, identity or narrative relevance."]}
 
 
-def speech_map(alignment: dict, narration: dict, duration: float) -> dict:
+def speech_map(alignment: dict, narration: dict, duration: float, config: dict | None = None) -> dict:
+    from editing_config import speech_config
+    cfg = speech_config(config)
     if alignment.get("status") != "passed" or not alignment.get("captions"):
         return {"status": "not_measured", "events": [], "reason": "No passed, nonempty alignment supplied."}
     events = []
@@ -56,7 +61,7 @@ def speech_map(alignment: dict, narration: dict, duration: float) -> dict:
                            "evidence": {"method": "supplied_alignment", "model": alignment.get("alignment_model"), "caption_index": index}})
     previous = 0.0
     for word in list(events) + [{"start": duration, "end": duration}]:
-        if word["start"] - previous >= 0.3:
+        if word["start"] - previous >= cfg["min_pause_sec"]:
             pause = {"event_id": f"S{len(events) + 1:05d}", "type": "SPEECH_PAUSE", "start": previous, "end": word["start"],
                      "preserve": True, "meaning_source": None, "reason": "Unclassified timing gap; preserve pending editorial review.",
                      "confidence": None, "evidence": {"method": "alignment_gap", "acoustic_silence_verified": False}}
@@ -66,7 +71,7 @@ def speech_map(alignment: dict, narration: dict, duration: float) -> dict:
                     pause.update(meaning_source=f"narration_plan:{segment['segment_id']}", reason=segment["reason"])
             events.append(pause)
         previous = word["end"]
-    trim_candidates(events)
+    trim_candidates(events, cfg["repeat_max_gap_sec"])
     return {"status": "measured", "events": sorted(events, key=lambda e: (e["start"], e["event_id"])),
             "not_measured": ["emotion", "breaths", "false_starts", "emphasis", "acoustic_silence", "discourse_fillers (like / you know)"]}
 
@@ -75,7 +80,7 @@ def speech_map(alignment: dict, narration: dict, duration: float) -> dict:
 FILLERS = {"um", "uh", "uhm", "umm", "erm", "er", "ah", "hmm", "mm"}
 
 
-def trim_candidates(events: list[dict]) -> None:
+def trim_candidates(events: list[dict], repeat_max_gap_sec: float) -> None:
     """Mark hesitation words and immediate word repeats as trim candidates. The editor decides; nothing is removed."""
     words = [e for e in events if e["type"] == "WORD"]
     norm = lambda w: "".join(c for c in w.get("text", "").lower() if c.isalnum() or c == "'")  # noqa: E731
@@ -85,7 +90,7 @@ def trim_candidates(events: list[dict]) -> None:
         kind = None
         if token in FILLERS:
             kind, reason = "SPEECH_FILLER", f"Hesitation sound '{token}'."
-        elif i and token and token == norm(words[i - 1]) and w["start"] - words[i - 1]["end"] < 0.5:
+        elif i and token and token == norm(words[i - 1]) and w["start"] - words[i - 1]["end"] < repeat_max_gap_sec:
             kind, reason = "SPEECH_REPEAT", f"'{token}' repeated immediately."
         if kind:
             found.append({"event_id": "", "type": kind, "start": w["start"], "end": w["end"], "action": "trim_candidate",
@@ -96,23 +101,26 @@ def trim_candidates(events: list[dict]) -> None:
         events.append(f)
 
 
-def rhythm_review(timeline: dict, music: dict, visual: list[dict]) -> dict:
+def rhythm_review(timeline: dict, music: dict, visual: list[dict], config: dict | None = None) -> dict:
     """Editor's-eye warnings about monotony and mechanical cutting. Warnings for review, never automatic changes."""
+    from editing_config import rhythm_review_config
+    cfg = rhythm_review_config(config)
     shots = timeline.get("shots", [])
     warnings = []
     durations = [float(s["end"]) - float(s["start"]) for s in shots]
-    for i in range(len(durations) - 4):
-        run = durations[i:i + 5]
-        mean = sum(run) / 5
-        if mean > 0 and (sum((d - mean) ** 2 for d in run) / 5) ** 0.5 / mean < 0.08:
-            warnings.append({"kind": "mechanical_shot_lengths", "shots": [s["shot_id"] for s in shots[i:i + 5]],
-                             "detail": f"5 shots in a row last ~{mean:.2f} s each; vary holds so the rhythm breathes."})
+    n = int(cfg["mechanical_run"])
+    for i in range(len(durations) - n + 1):
+        run = durations[i:i + n]
+        mean = sum(run) / n
+        if mean > 0 and (sum((d - mean) ** 2 for d in run) / n) ** 0.5 / mean < cfg["mechanical_cv"]:
+            warnings.append({"kind": "mechanical_shot_lengths", "shots": [s["shot_id"] for s in shots[i:i + n]],
+                             "detail": f"{n} shots in a row last ~{mean:.2f} s each; vary holds so the rhythm breathes."})
             break
     beats = [float(e["start"]) for e in music.get("events", []) if e["type"] == "BEAT"]
     boundaries = [float(s["start"]) for s in shots[1:]]
-    if beats and len(boundaries) >= 6:
-        on_beat = sum(1 for b in boundaries if min(abs(b - t) for t in beats) <= 0.07) / len(boundaries)
-        if on_beat >= 0.9:
+    if beats and len(boundaries) >= cfg["min_boundaries"]:
+        on_beat = sum(1 for b in boundaries if min(abs(b - t) for t in beats) <= cfg["on_beat_tolerance_sec"]) / len(boundaries)
+        if on_beat >= cfg["on_beat_warn_fraction"]:
             warnings.append({"kind": "every_cut_on_the_beat", "on_beat_fraction": round(on_beat, 2),
                              "detail": "Nearly every cut lands on a beat; consider holding through some beats or cutting between them."})
     # Camera-motion monotony: map each timeline shot to the measured source shot it plays from.
@@ -126,10 +134,10 @@ def rhythm_review(timeline: dict, music: dict, visual: list[dict]) -> dict:
     run_start = 0
     for i in range(1, len(classes) + 1):
         if i == len(classes) or classes[i] != classes[run_start] or classes[run_start] is None:
-            if classes[run_start] is not None and i - run_start >= 4:
+            if classes[run_start] is not None and i - run_start >= cfg["motion_run"]:
                 warnings.append({"kind": "repeated_camera_motion", "motion": classes[run_start],
                                  "shots": [s["shot_id"] for s in shots[run_start:i]],
                                  "detail": f"{i - run_start} shots in a row are '{classes[run_start]}'; a contrasting shot would add variety."})
             run_start = i
-    return {"schema_version": 1, "status": "review_required", "warnings": warnings,
+    return {"schema_version": 1, "status": "review_required", "config": cfg, "warnings": warnings,
             "not_measured": ["shot_scale (wide/medium/close)", "gaze and screen direction", "action matching"]}

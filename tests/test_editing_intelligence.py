@@ -1,6 +1,4 @@
 """Editor-instinct features: music shapes, accents, J/L-cuts, speech trims, rhythm review, styled generation."""
-import hashlib
-import json
 import sys
 import wave
 from copy import deepcopy
@@ -155,7 +153,7 @@ def bible():
 def test_happy_moment_prompt_keeps_the_videos_look():
     request = generation.plan_request({"request_id": "IMG1", "kind": "image", "visual_role": "conceptual",
                                        "purpose": "The family laughing at dinner before the disappearance",
-                                       "entity_ids": ["E1"], "location_id": "NYC_STREET"}, crime_style(), bible())
+                                       "entity_ids": ["E1"], "location_id": "NYC_STREET", "width": 1920, "height": 1080}, crime_style(), bible())
     prompt = generation.compose_prompt(request)
     for needed in ("laughing at dinner", "tense true-crime", "low-key", "desaturated teal", "grey coat", "brownstones", "35mm", "Avoid: bright cheerful colours"):
         assert needed in prompt
@@ -183,21 +181,24 @@ def test_generated_image_becomes_the_reference_for_the_next_one(tmp_path):
     providers = {"image": {"type": "command", "provider": "local-stub", "model": "stub-1", "rights_terms": "owner-run local model",
                            "work_dir": str(tmp_path / "gen"), "output_ext": ".png",
                            "command": [sys.executable, str(stub_generator(tmp_path)), "{prompt_file}", "{out}"]}}
-    need = {"request_id": "IMG1", "kind": "image", "visual_role": "conceptual", "purpose": "Night street where it happened", "location_id": "NYC_STREET"}
+    need = {"request_id": "IMG1", "kind": "image", "visual_role": "conceptual", "purpose": "Night street where it happened",
+            "location_id": "NYC_STREET", "width": 1920, "height": 1080}
     request = generation.plan_request(need, crime_style(), bible())
     quote = {"version": "v1", "request_hash": request["request_hash"], "provider": "local-stub", "model": "stub-1",
-             "amount": 0, "currency": "USD", "rights_terms": "owner-run local model"}
+             "amount": 0, "currency": "USD", "basis": "local_zero_cost", "rights_terms": "owner-run local model"}
     approval = {"quote_hash": fingerprint(quote), "cost_approved": True, "rights_approved": True}
-    result = generation.execute_request(request, quote, approval, generation.load_adapter(providers, "image"))
-    assert result["byte_verified"] is True and "Night street" in Path(result["path"] + ".prompt.txt").read_text()
+    job = generation.execute_request(request, quote, approval, generation.load_adapter(providers, "image"))
+    assert job["state"] == "GENERATED" and "Night street" in Path(job["output"]["path"] + ".prompt.txt").read_text()
 
-    with pytest.raises(ValueError, match="approved"):
-        generation.register_generated_reference(bible(), result, location_id="NYC_STREET")  # not reviewed yet
-    result["review"]["approved"] = True
-    locked = generation.register_generated_reference(bible(), result, location_id="NYC_STREET")
+    with pytest.raises(ValueError, match="REGISTERED"):
+        generation.register_generated_reference(bible(), job, location_id="NYC_STREET")  # not reviewed/registered yet
+    generation.review(job, "owner", approved=True)
+    generation.register(job)
+    locked = generation.register_generated_reference(bible(), job, location_id="NYC_STREET")
     assert bible()["locations"][0]["reference_images"] == []  # input untouched
 
     later = generation.plan_request({**need, "request_id": "IMG2", "purpose": "Same street, next morning"}, crime_style(), locked)
-    assert [r["sha256"] for r in later["reference_images"]] == [result["sha256"]]
-    assert later["continuity"]["generation_lock"]["first_reference_sha256"] == result["sha256"]
-    assert "Match the 1 attached reference image" in generation.compose_prompt(later)
+    assert [r["sha256"] for r in later["reference_images"]] == [job["output"]["sha256"]]
+    assert later["reference_images"][0]["role"] == "approved_reference"
+    assert later["continuity"]["style_lock"]["first_reference_sha256"] == job["output"]["sha256"]
+    assert "Match the 1 attached reference image" in later["prompt"]

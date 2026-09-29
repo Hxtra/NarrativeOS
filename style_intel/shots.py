@@ -165,3 +165,20 @@ def classify_gradual(frames: list[dict], gradual: list[float]) -> list[str]:
         else:
             kinds.append("dissolve")
     return kinds
+
+
+def transition_vocabulary(hard_cuts: list[float], gradual: list[float], kinds: list[str], flashes: list[float], dips: list[float]) -> dict:
+    """The transitions a video measurably uses, with times. Counts come straight from the detectors above;
+    nothing is added that they did not see (no whip, glitch or wipe detector exists, so none are reported)."""
+    by_kind = {"dissolve": [], "light": [], "dark": []}
+    for t, k in zip(gradual, kinds):
+        by_kind[k].append(t)
+    return {
+        "hard_cut": {"count": len(hard_cuts), "times_sec": list(hard_cuts)},
+        "dissolve": {"count": len(by_kind["dissolve"]), "times_sec": by_kind["dissolve"]},
+        "light_burn": {"count": len(by_kind["light"]), "times_sec": by_kind["light"]},
+        "dip_through_black": {"count": len(by_kind["dark"]), "times_sec": by_kind["dark"]},
+        "flash_frame": {"count": len(flashes), "times_sec": list(flashes)},
+        "black_frames": {"count": len(dips), "times_sec": list(dips)},
+        "not_detected": ["whip_pan", "glitch", "wipe", "zoom_transition", "match_cut"],
+    }

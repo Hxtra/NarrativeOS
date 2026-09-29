@@ -1,8 +1,6 @@
 """Style-consistent offline requests and fail-closed provider contracts."""
 import importlib.util
-import json
 import sys
-from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -55,7 +53,7 @@ def test_conceptual_image_routes_directly_with_locked_continuity_and_reference()
     assert importlib.util.find_spec("generation") is not None, "missing generation request adapter"
     from generation import plan_request
     from editorial_style import resolve_style
-    need = {"request_id": "IMG1", "kind": "image", "purpose": "Visualize an imagined crossroads", "visual_role": "conceptual", "entity_ids": ["E1"], "location_id": "L1"}
+    need = {"request_id": "IMG1", "kind": "image", "purpose": "Visualize an imagined crossroads", "visual_role": "conceptual", "entity_ids": ["E1"], "location_id": "L1", "width": 1920, "height": 1080}
     style = resolve_style(dark_profile())
     first = plan_request(need, style, continuity_fixture())
     again = plan_request({**need, "request_id": "IMG2", "purpose": "Return to the same crossroads"}, style, continuity_fixture())
@@ -79,7 +77,7 @@ def test_conceptual_image_routes_directly_with_locked_continuity_and_reference()
 def test_image_fallback_requires_sourcing_evidence_and_cannot_replace_facts(role, search, route):
     from generation import plan_request
     from editorial_style import resolve_style
-    need = {"request_id": "I", "kind": "image", "purpose": "Location", "visual_role": role, "stock_search": search}
+    need = {"request_id": "I", "kind": "image", "purpose": "Location", "visual_role": role, "stock_search": search, "width": 1920, "height": 1080}
     result = plan_request(need, resolve_style(dark_profile()), {})
     assert result["route"] == route
     assert result["status"] == "blocked"

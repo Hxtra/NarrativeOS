@@ -1,74 +1,55 @@
 #!/usr/bin/env python3
 """Derive transparent editorial strategy artifacts from a brief and channel profile."""
 from __future__ import annotations
-import argparse,json,re
+import argparse,json
 from pathlib import Path
 from copy import deepcopy
 
 
+# What a musical event may turn into. A beat is never automatically a CUT.
+EVENT_ACTIONS = {"CUT", "HOLD", "ANTICIPATE", "REVEAL", "EMPHASIZE", "MOTION", "TRANSITION", "J_CUT", "L_CUT"}
+
+# Energy change at a cut -> transition families, most preferred first. Only recipes the style allows are used,
+# and with a Style DNA those are the transitions the reference measurably used (style_intel.profile.choose_transitions).
+TRANSITION_FAMILIES = {
+    "IMPACT_CANDIDATE": ["flash_cut", "exposure_bump"],
+    "BREAKDOWN_CANDIDATE": ["dip_to_black", "crossfade_soft", "blur_dissolve"],
+    "SECTION_DOWN": ["dip_to_black", "crossfade_soft", "blur_dissolve"],
+    "SECTION_UP": ["light_leak_warm", "light_leak_cool", "leak_crossfade", "film_burn_passage", "crossfade_soft"],
+}
+
+
 def plan_edit(timeline: dict, perception: dict, style: dict, director: dict | None = None) -> dict:
-    """Conservative, local Director role. Events are proposals, never approvals."""
-    if director and (director.get("mode", "deterministic") != "deterministic" or director.get("model")):
-        raise ValueError("Only deterministic Director execution is implemented; no model is invoked")
+    """Rule-based, music-aware Director. Every event is a proposal; nothing here approves or overwrites a timeline.
+
+    director: None / {"mode": "deterministic"} (default), or
+              {"mode": "model_assisted", "provider": <model_provider config>} to add validated model proposals.
+    """
+    from editing_config import director_config
+    director = director or {"mode": "deterministic", "model": None}
+    mode = director.get("mode", "deterministic")
+    if mode not in {"deterministic", "model_assisted"} or (mode == "deterministic" and director.get("model")):
+        raise ValueError("Director mode must be 'deterministic' or 'model_assisted' (with a provider config)")
+    if mode == "model_assisted" and not director.get("provider"):
+        raise ValueError("model_assisted Director needs a reasoning provider config")
+    cfg = director_config(style.get("editing", {}))
     perception = deepcopy(perception)
     for kind in ("music", "speech"):
         if perception.get(kind, {}).get("status") in {"blocked", "pending", "not_measured", "silent"}:
             perception[kind]["events"] = []
-    policy = style.get("editing", {})
-    graph = {"schema_version": "1.1", "status": "review_required", "base_timeline": deepcopy(timeline),
-             "director": director or {"mode": "deterministic", "model": None}, "style": deepcopy(style), "events": []}
+    graph = {"schema_version": "1.2", "status": "review_required", "base_timeline": deepcopy(timeline),
+             "director": {"mode": mode, "model": None}, "style": deepcopy(style), "director_config": cfg, "events": []}
     shots = deepcopy(timeline.get("shots", []))
-    music = perception.get("music", {}).get("events", [])
+    music = [e for e in perception.get("music", {}).get("events", []) if e.get("confidence", 0) >= cfg["min_event_confidence"]]
     pauses = [e for e in perception.get("speech", {}).get("events", []) if e["type"] == "SPEECH_PAUSE" and e.get("preserve")]
-    if policy.get("rhythm_mode", "free") == "free":
-        # No snapping cuts to music, but accents and J/L-cuts are separate style choices.
-        _accents(graph, shots, music, pauses, policy)
-        _audio_overlaps(graph, shots, policy)
-        return graph
-    for left, right in zip(shots, shots[1:]):
-        boundary = float(right["start"])
-        window = policy.get("snap_window_sec", 0.2)
-        protected = [e for e in pauses if e["start"] < boundary + window and e["end"] > boundary - window]
-        if protected or left.get("editorial_intent") == "hold":
-            graph["events"].append({"event_id": f"ED{len(graph['events']) + 1:04d}", "type": "HOLD", "status": "proposed",
-                                    "purpose": "Preserve existing timing: explicit hold or protected speech pause.",
-                                    "timing": {"start": left["start"], "duration": left["end"] - left["start"]},
-                                    "affected_objects": [left["shot_id"]], "evidence_refs": [e["event_id"] for e in protected]})
-            continue
-        nearby = [e for e in music if e["type"] in {"IMPACT_CANDIDATE", "PHRASE_CANDIDATE", "ONSET", "BEAT"}
-                  and e.get("confidence", 0) >= 0.2 and abs(e["start"] - boundary) <= policy.get("snap_window_sec", 0.2)]
-        if not nearby:
-            continue
-        # A reveal wants the hit; an ordinary cut wants the phrase. Onsets and beats are fallbacks.
-        order = (["IMPACT_CANDIDATE", "PHRASE_CANDIDATE"] if right.get("editorial_intent") == "reveal" else ["PHRASE_CANDIDATE", "IMPACT_CANDIDATE"]) + ["ONSET", "BEAT"]
-        chosen = min(nearby, key=lambda e: (order.index(e["type"]), abs(e["start"] - boundary), -e["confidence"]))
-        at = float(chosen["start"])
-        if min(at - left["start"], right["end"] - at) < policy.get("min_shot_sec", 1):
-            continue
-        def fits(shot, duration):
-            if shot.get("media_type") == "image":
-                return True
-            interval = shot.get("usable_interval")
-            source = float(shot.get("source_start", 0))
-            return bool(interval and interval[0] <= source and source + duration <= interval[1])
-        if not fits(left, at - left["start"]) or not fits(right, right["end"] - at):
-            continue
-        left["end"] = right["start"] = at
-        kind = "REVEAL" if right.get("editorial_intent") == "reveal" else "CUT"
-        event = {"event_id": f"ED{len(graph['events']) + 1:04d}", "type": kind, "status": "proposed",
-                 "purpose": "Align existing narrative boundary to nearby measured musical evidence; listening review required.",
-                 "timing": {"start": at, "duration": right["end"] - at},
-                 "affected_objects": [left["shot_id"], right["shot_id"]], "evidence_refs": [chosen["event_id"]],
-                 "boundary": {"left_shot_id": left["shot_id"], "right_shot_id": right["shot_id"], "from": boundary, "to": at}}
-        graph["events"].append(event)
-        anticipation = min(policy.get("anticipation_sec", 0), at - left["start"])
-        if kind == "REVEAL" and anticipation > 0:
-            graph["events"].append({"event_id": f"ED{len(graph['events']) + 1:04d}", "type": "ANTICIPATE", "status": "proposed",
-                                    "purpose": "Prepare reveal; timing marker only, no invented camera movement.",
-                                    "timing": {"start": at - anticipation, "duration": anticipation},
-                                    "affected_objects": [left["shot_id"]], "evidence_refs": [chosen["event_id"]]})
-    _accents(graph, shots, music, pauses, policy)
-    _audio_overlaps(graph, shots, policy)
+    if cfg["rhythm_mode"] == "phrase_aware":
+        _snap_boundaries(graph, shots, music, pauses, cfg)
+    _transitions(graph, shots, music, cfg)
+    _motions(graph, shots, music, cfg)
+    _accents(graph, shots, music, pauses, cfg)
+    _audio_overlaps(graph, shots, cfg)
+    if mode == "model_assisted":
+        _model_proposals(graph, director["provider"], perception)
     return graph
 
 
@@ -76,27 +57,115 @@ def _next_id(graph: dict) -> str:
     return f"ED{len(graph['events']) + 1:04d}"
 
 
-def _accents(graph: dict, shots: list[dict], music: list[dict], pauses: list[dict], policy: dict) -> None:
-    """A beat does not always mean CUT: an impact inside a held shot can be emphasized instead."""
-    if policy.get("accent_action") != "emphasize":
+def _snap_boundaries(graph: dict, shots: list[dict], music: list[dict], pauses: list[dict], cfg: dict) -> None:
+    """Move existing cuts onto nearby musical events, unless a hold or a meaningful pause protects them."""
+    window = cfg["snap_window_sec"]
+    for left, right in zip(shots, shots[1:]):
+        boundary = float(right["start"])
+        protected = [e for e in pauses if e["start"] < boundary + window and e["end"] > boundary - window]
+        if protected or left.get("editorial_intent") == "hold":
+            graph["events"].append({"event_id": _next_id(graph), "type": "HOLD", "status": "proposed",
+                                    "purpose": "Preserve existing timing: explicit hold or protected speech pause.",
+                                    "timing": {"start": left["start"], "duration": left["end"] - left["start"]},
+                                    "affected_objects": [left["shot_id"]], "evidence_refs": [e["event_id"] for e in protected]})
+            continue
+        nearby = [e for e in music if e["type"] in {"IMPACT_CANDIDATE", "PHRASE_CANDIDATE", "ONSET", "BEAT"}
+                  and abs(e["start"] - boundary) <= window]
+        if not nearby:
+            continue
+        # A reveal wants the hit; an ordinary cut wants the phrase. Onsets and beats are fallbacks.
+        order = (["IMPACT_CANDIDATE", "PHRASE_CANDIDATE"] if right.get("editorial_intent") == "reveal" else ["PHRASE_CANDIDATE", "IMPACT_CANDIDATE"]) + ["ONSET", "BEAT"]
+        chosen = min(nearby, key=lambda e: (order.index(e["type"]), abs(e["start"] - boundary), -e["confidence"]))
+        at = float(chosen["start"])
+        if min(at - left["start"], right["end"] - at) < cfg["min_shot_sec"]:
+            continue
+        if not _fits(left, at - left["start"]) or not _fits(right, right["end"] - at):
+            continue
+        left["end"] = right["start"] = at
+        kind = "REVEAL" if right.get("editorial_intent") == "reveal" else "CUT"
+        graph["events"].append({"event_id": _next_id(graph), "type": kind, "status": "proposed",
+                                "purpose": "Align existing narrative boundary to nearby measured musical evidence; listening review required.",
+                                "timing": {"start": at, "duration": right["end"] - at},
+                                "affected_objects": [left["shot_id"], right["shot_id"]], "evidence_refs": [chosen["event_id"]],
+                                "boundary": {"left_shot_id": left["shot_id"], "right_shot_id": right["shot_id"], "from": boundary, "to": at}})
+        anticipation = min(cfg["anticipation_sec"], at - left["start"])
+        if kind == "REVEAL" and anticipation > 0:
+            graph["events"].append({"event_id": _next_id(graph), "type": "ANTICIPATE", "status": "proposed",
+                                    "purpose": "Prepare reveal; timing marker only, no invented camera movement.",
+                                    "timing": {"start": at - anticipation, "duration": anticipation},
+                                    "affected_objects": [left["shot_id"]], "evidence_refs": [chosen["event_id"]]})
+
+
+def _fits(shot: dict, duration: float) -> bool:
+    if shot.get("media_type") == "image":
+        return True
+    interval = shot.get("usable_interval")
+    source = float(shot.get("source_start", 0))
+    return bool(interval and interval[0] <= source and source + duration <= interval[1])
+
+
+def _transitions(graph: dict, shots: list[dict], music: list[dict], cfg: dict) -> None:
+    """An energy change at a cut earns a transition, chosen only from the style's allowed (measured) recipes."""
+    if cfg["transition_policy"] != "energy":
         return
-    edge = policy.get("min_shot_sec", 1) / 2
-    for hit in (e for e in music if e["type"] == "IMPACT_CANDIDATE" and e.get("confidence", 0) >= 0.2):
+    allowed = set(cfg["allowed_transitions"]) - {"hard_cut"}
+    if not allowed:
+        return
+    for left, right in zip(shots, shots[1:]):
+        boundary = float(right["start"])
+        near = [e for e in music if abs(e["start"] - boundary) <= cfg["transition_window_sec"]
+                and e["type"] in {"IMPACT_CANDIDATE", "BREAKDOWN_CANDIDATE", "SECTION_CANDIDATE"}]
+        for hit in sorted(near, key=lambda e: -e["confidence"]):
+            family = hit["type"]
+            if family == "SECTION_CANDIDATE":
+                family = "SECTION_UP" if hit["evidence"].get("delta_db", 0) > 0 else "SECTION_DOWN"
+            recipe = next((r for r in TRANSITION_FAMILIES[family] if r in allowed), None)
+            if recipe is None:
+                continue
+            graph["events"].append({"event_id": _next_id(graph), "type": "TRANSITION", "status": "proposed",
+                                    "purpose": f"Energy change ({family.lower()}) at the cut; transition from the style's measured vocabulary.",
+                                    "timing": {"start": boundary, "duration": cfg["transition_marker_sec"]},
+                                    "affected_objects": [left["shot_id"], right["shot_id"]], "evidence_refs": [hit["event_id"]],
+                                    "transition": {"left_shot_id": left["shot_id"], "right_shot_id": right["shot_id"], "recipe": recipe}})
+            break
+
+
+def _motions(graph: dict, shots: list[dict], music: list[dict], cfg: dict) -> None:
+    """A musical build inside a shot can drive camera motion (a push-in) instead of a cut."""
+    if cfg["build_motion"] != "push_in":
+        return
+    for build in (e for e in music if e["type"] == "BUILD_CANDIDATE"):
+        b0, b1 = float(build["start"]), float(build["evidence"].get("end_sec", build["start"]))
+        for shot in shots:
+            start, end = max(b0, float(shot["start"])), min(b1, float(shot["end"]))
+            if end - start >= cfg["motion_min_sec"]:
+                graph["events"].append({"event_id": _next_id(graph), "type": "MOTION", "status": "proposed",
+                                        "purpose": "Musical build inside the shot: slow push-in rising with it, instead of cutting.",
+                                        "timing": {"start": start, "duration": end - start},
+                                        "affected_objects": [shot["shot_id"]], "evidence_refs": [build["event_id"]],
+                                        "motion": {"kind": "push_in", "scale_from": 1.0, "scale_to": cfg["push_in_scale"]}})
+
+
+def _accents(graph: dict, shots: list[dict], music: list[dict], pauses: list[dict], cfg: dict) -> None:
+    """A beat does not always mean CUT: an impact inside a held shot can be emphasized instead."""
+    if cfg["accent_action"] != "emphasize":
+        return
+    edge = cfg["min_shot_sec"] / 2
+    for hit in (e for e in music if e["type"] == "IMPACT_CANDIDATE"):
         t = float(hit["start"])
         shot = next((s for s in shots if float(s["start"]) + edge <= t <= float(s["end"]) - edge), None)
         if shot is None or any(p["start"] <= t <= p["end"] for p in pauses):
             continue
         graph["events"].append({"event_id": _next_id(graph), "type": "EMPHASIZE", "status": "proposed",
                                 "purpose": "Musical impact inside a held shot: emphasize (punch-in, flash or text) instead of cutting; listening review required.",
-                                "timing": {"start": t, "duration": min(0.5, float(shot["end"]) - t)},
+                                "timing": {"start": t, "duration": min(cfg["emphasize_sec"], float(shot["end"]) - t)},
                                 "affected_objects": [shot["shot_id"]], "evidence_refs": [hit["event_id"]]})
 
 
-def _audio_overlaps(graph: dict, shots: list[dict], policy: dict) -> None:
+def _audio_overlaps(graph: dict, shots: list[dict], cfg: dict) -> None:
     """J/L-cuts only where the style asks for them and both shots provably have sound to overlap."""
-    overlap = policy.get("audio_overlap") or {}
-    mode, offset = overlap.get("mode"), float(overlap.get("offset_sec", 0))
-    if mode not in {"j_cut", "l_cut"} or offset <= 0:
+    mode, offset = cfg["audio_overlap"]["mode"], float(cfg["audio_overlap"]["offset_sec"])
+    if mode not in {"j_cut", "l_cut"} or not 0 < offset <= cfg["max_audio_overlap_sec"]:
         return
     for left, right in zip(shots, shots[1:]):
         if not (left.get("has_native_audio") and right.get("has_native_audio")):
@@ -120,6 +189,28 @@ def _audio_overlaps(graph: dict, shots: list[dict], policy: dict) -> None:
                                 "timing": {"start": at, "duration": offset},
                                 "affected_objects": [left["shot_id"], right["shot_id"]],
                                 "audio_overlap": {"left_shot_id": left["shot_id"], "right_shot_id": right["shot_id"], "offset_sec": offset}})
+
+
+def _model_proposals(graph: dict, provider_config: dict, perception: dict) -> None:
+    """Ask the configured reasoning model for extra proposals; keep only those that pass the same validator."""
+    from event_graph import validate
+    from model_provider import load_reasoning_provider
+    identity, call = load_reasoning_provider(provider_config)
+    graph["director"]["model"] = identity
+    reply = call("propose_edit_events", {
+        "allowed_event_types": sorted(EVENT_ACTIONS), "base_timeline": graph["base_timeline"],
+        "music_events": perception.get("music", {}).get("events", []), "speech_events": perception.get("speech", {}).get("events", []),
+        "style": graph["style"], "existing_events": graph["events"],
+        "rules": "Every event needs type, purpose, timing {start, duration}, affected_objects; boundary/transition/audio_overlap payloads as in existing_events."})
+    graph["rejected_model_events"] = []
+    for proposed in reply.get("events", []):
+        candidate = {**deepcopy(proposed), "event_id": _next_id(graph), "status": "proposed", "source": {"kind": "model", **identity}}
+        errors = validate({**graph, "events": graph["events"] + [candidate]}) if isinstance(proposed, dict) else [{"error": "not an object"}]
+        if errors:
+            graph["rejected_model_events"].append({"event": proposed, "errors": errors})
+        else:
+            graph["events"].append(candidate)
+
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--project',type=Path,required=True); args=ap.parse_args(); p=args.project
