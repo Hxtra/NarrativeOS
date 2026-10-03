@@ -95,25 +95,25 @@ Check `listTransitions()` before writing any transition or effect code.
 - **Overlay layers** composite on top: `overlay` (a real footage clip from the VFX library), `flash`, `dip`, `film_burn` (procedural).
 - **SFX cues** (`whoosh`, `impact`, `shutter`, `glitch_tick`...) are semantic. They play only when `sfxSources` maps them to files, which is waiting on a sound library.
 - **`OverlayLayer`** is the one component for every footage overlay. It uses a Screen/Add/Overlay blend, stays muted, and applies the style tint. It is **peak-aligned**: the clip's brightest frame, measured at ingest, lands on the cut. This has been verified on real clips with `scripts/verify_peak_alignment.mjs`, including a 25 fps clip on the 30 fps timeline. `MediaReveal` uses it too; that refactor was verified pixel-identical in a same-session A/B.
-- Overlay layers select clips **by category and tone, never by filename**. They only use confirmed library clips. If none exists, they render their procedural `fallback`, so every recipe renders out of the box. When the requested tone is the opposite of the clip's (warm↔cool), the clip is hue-rotated 180°.
+- Overlay layers select clips **by category, preferred tone and preferred blend, never by filename** (`{category: 'scratches', blend: 'screen'}` picks scratches that read on dark pictures). A layer's own `blend` overrides the clip's (CRT static uses `normal` for a short burst). They only use confirmed library clips. If none exists, they render their procedural `fallback`, so every recipe renders out of the box. When the requested tone is the opposite of the clip's (warm↔cool), the clip is hue-rotated 180°.
 - **Grade the shots, not the stack.** Leaks, burns and RGB fringes sit above the grade, the same as in an editor.
 - Each recipe carries an editorial `meaning`, and each `StyleProfile.vfx.allowedTransitions` lists what that style may use. Most cuts should stay `hard_cut`.
 
-**30 recipes (all rendered and reviewed on contact sheets):**
+**40 recipes (all rendered and reviewed on contact sheets):**
 
 | intensity | recipes |
 |---|---|
 | clean | `hard_cut`, `crossfade_soft`, `dip_to_black` |
-| subtle | `dip_to_white`, `blur_dissolve`, `push_in_cut`, `exposure_bump`, `memory_fade`, `archive_flicker_cut`, `soft_wipe_left`, `soft_wipe_up` |
-| medium | `flash_cut`, `light_leak_warm`, `light_leak_cool`, `leak_crossfade`, `rgb_split_hit`, `stutter_cut`, `halftone_reveal` |
-| bold | `leak_flash_combo`, `film_burn_passage`, `film_burn_procedural`, `whip_zoom`, `whip_pan_left`, `whip_pan_right`, `whip_pan_up`, `impact_cut`, `shake_impact`, `glitch_cut`, `glitch_reveal`, `digital_tear` |
+| subtle | `dip_to_white`, `blur_dissolve`, `push_in_cut`, `exposure_bump`, `memory_fade`, `archive_flicker_cut`, `soft_wipe_left`, `soft_wipe_up`, `archive_scratch_cut`, `dust_drift_dissolve`, `snowfall_passage` |
+| medium | `flash_cut`, `light_leak_warm`, `light_leak_cool`, `leak_crossfade`, `rgb_split_hit`, `stutter_cut`, `halftone_reveal`, `lens_flare_sweep`, `particle_shimmer_reveal`, `projector_flicker_cut`, `film_damage_dip` |
+| bold | `leak_flash_combo`, `film_burn_passage`, `film_burn_procedural`, `whip_zoom`, `whip_pan_left`, `whip_pan_right`, `whip_pan_up`, `impact_cut`, `shake_impact`, `glitch_cut`, `glitch_reveal`, `digital_tear`, `glitch_overlay_cut`, `vhs_static_cut`, `leak_whip` |
 
 **QA:**
 - `node scripts/transition_contact_sheet.mjs [--style id] [--only substr]` writes 8 frames per recipe to `out/contact-sheets/`. Look at them; a typecheck is not enough.
 - `node scripts/verify_peak_alignment.mjs --recipe light_leak_warm --asset <id>` checks where the clip's brightest frame lands relative to the cut.
 
 **Growing to 100+:**
-- Ingest more clips; overlay recipes pick them up automatically, by category.
+- Ingest more clips; overlay recipes pick them up automatically, by category. Library categories: light_leak, film_burn, flash, lens_flare, dust, grain, scratches, glitch, smoke, bokeh, particles, texture, graphic_elements, weather, flicker, crt.
 - Register variants: new layer stacks, parameters, or directions.
 - Each new recipe needs a contact sheet that someone has looked at.
 

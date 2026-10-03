@@ -12,8 +12,8 @@
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "original_filename": {"type": "string"},
     "library_path": {"type": "string", "description": "Path relative to the library root, forward slashes."},
-    "category": {"enum": ["light_leak", "film_burn", "flash", "lens_flare", "dust", "grain", "scratches", "glitch", "smoke", "bokeh", "particles", "texture", "graphic_elements", "unclassified"]},
-    "category_status": {"enum": ["suggested", "confirmed"], "description": "suggested = heuristic guess from luma/chroma analysis; confirmed = a person or Claude looked at the contact sheet. Recipes only resolve confirmed assets."},
+    "category": {"enum": ["light_leak", "film_burn", "flash", "lens_flare", "dust", "grain", "scratches", "glitch", "smoke", "bokeh", "particles", "texture", "graphic_elements", "weather", "flicker", "crt", "unclassified"]},
+    "category_status": {"enum": ["suggested", "confirmed", "rejected"], "description": "suggested = heuristic or source-label guess; confirmed = a person or Claude looked at the contact sheet; rejected = not usable as an overlay (kept on record, never resolved by recipes). Recipes only resolve confirmed assets."},
     "tone": {"enum": ["warm", "cool", "neutral", "mono"]},
     "technical": {
       "type": "object",
@@ -46,7 +46,8 @@
         "bright_frame_fraction": {"type": "number"},
         "chroma_u_mean": {"type": "number"},
         "chroma_v_mean": {"type": "number"},
-        "recommended_blend": {"enum": ["screen", "add", "overlay", "multiply", "normal"]}
+        "recommended_blend": {"enum": ["screen", "add", "overlay", "multiply", "normal"]},
+        "peak_search_margin_frames": {"type": "integer", "minimum": 0, "description": "The peak is searched this many frames away from each clip edge, so a peak-aligned overlay has footage on both sides of the cut."}
       }
     },
     "rights": {
@@ -57,10 +58,31 @@
         "license": {"type": ["string", "null"]},
         "rights_status": {"enum": ["unknown", "verified", "restricted"]},
         "redistributable": {"type": "boolean"},
-        "notes": {"type": "string"}
+        "notes": {"type": "string"},
+        "provider": {"type": ["string", "null"]},
+        "asset_url": {"type": ["string", "null"]},
+        "license_url": {"type": ["string", "null"]},
+        "commercial_use": {"type": ["boolean", "null"]},
+        "attribution_required": {"type": ["boolean", "null"]},
+        "attribution_text": {"type": ["string", "null"]},
+        "share_alike": {"type": ["boolean", "null"], "description": "CC BY-SA and similar: adaptations must carry the same licence."},
+        "redistribution_terms": {"type": ["string", "null"]},
+        "provenance_checksum_verified": {"type": "boolean", "description": "The file's sha256 matched the source record's checksum."}
       }
     },
     "contact_sheet": {"type": ["string", "null"]},
-    "ingested_at": {"type": "string"}
+    "ingested_at": {"type": "string"},
+    "rejection_reason": {"type": "string"},
+    "source_metadata": {
+      "type": "object",
+      "description": "The downloader's own record for this file (id, category label, title), matched by checksum.",
+      "properties": {"id": {"type": "string"}, "category": {"type": "string"}, "name": {"type": "string"}, "metadata_file": {"type": "string"}}
+    },
+    "blend_override": {
+      "type": "object",
+      "description": "A reviewer changed the blend mode after looking at the clip; the analysis value is kept for the record.",
+      "required": ["from", "to"],
+      "properties": {"from": {"type": "string"}, "to": {"type": "string"}, "reason": {"type": "string"}}
+    }
   }
 }

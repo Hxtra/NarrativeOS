@@ -3,6 +3,7 @@
 // not new code. Timings assume 30fps.
 import {registerTransition, type TransitionRecipe} from './transitionRegistry';
 import type {VfxLayer} from './TransitionStack';
+import type {VfxBlend} from './catalog';
 
 const r = (recipe: TransitionRecipe) => registerTransition(recipe);
 
@@ -58,3 +59,20 @@ r({id: 'archive_flicker_cut', label: 'Archive flicker cut', meaning: 'Old projec
 r({id: 'halftone_reveal', label: 'Halftone reveal', meaning: 'Stylised history: printed image resolving into living colour.', intensity: 'medium', window: {before: 20, after: 20}, spec: {cut: {type: 'halftone', frames: 30, cellPx: 22}, layers: []}});
 r({id: 'soft_wipe_left', label: 'Soft wipe left', meaning: 'Clean graphic change of topic; broadcast/explainer feel.', intensity: 'subtle', window: {before: 16, after: 16}, spec: {cut: {type: 'soft_wipe', frames: 22, direction: 'left'}, layers: []}});
 r({id: 'soft_wipe_up', label: 'Soft wipe up', meaning: 'Rising to a new section; restrained graphic transition.', intensity: 'subtle', window: {before: 16, after: 16}, spec: {cut: {type: 'soft_wipe', frames: 22, direction: 'up'}, layers: []}});
+
+// --- Overlay footage from the owner's VFX library (added 2026-10-03) -------------------------------
+// Each selects a confirmed library category; the fallback renders when no such clip is linked.
+const greyFlash = (opacity = 0.35): VfxLayer => ({kind: 'flash', color: '#8a8a8a', opacity, attack: 3, release: 5});
+const overlay = (category: 'glitch' | 'crt' | 'lens_flare' | 'scratches' | 'dust' | 'particles' | 'weather' | 'flicker', opacity: number, attack: number, release: number, fallback?: VfxLayer, blend?: VfxBlend): VfxLayer =>
+	({kind: 'overlay', select: {category}, opacity, attack, release, fallback, ...(blend ? {blend} : {})});
+
+r({id: 'glitch_overlay_cut', label: 'Glitch footage cut', meaning: 'Digital disruption carried by real glitch footage: hacked feeds, corrupted data, tech failure.', intensity: 'bold', window: {before: 8, after: 12}, spec: {cut: {type: 'hard'}, layers: [overlay('glitch', 1, 4, 7, whiteFlash(0.3, 1, 3)), {kind: 'rgb_split', px: 10, attack: 4, release: 6}], sfx: [{cue: 'glitch_tick', at: -3}]}});
+r({id: 'vhs_static_cut', label: 'VHS static cut', meaning: 'Analog signal breakup: tape, broadcast and surveillance eras, a feed cutting out.', intensity: 'bold', window: {before: 8, after: 10}, spec: {cut: {type: 'hard'}, layers: [overlay('crt', 0.8, 3, 4, greyFlash(), 'normal'), {kind: 'stutter', holdFrames: 3, attack: 5, release: 4}, {kind: 'flicker', amount: 1, attack: 5, release: 6}], sfx: [{cue: 'glitch_tick'}]}});
+r({id: 'lens_flare_sweep', label: 'Lens flare sweep', meaning: 'Light sweeping across the lens: travel, nature, scale, a hopeful turn.', intensity: 'medium', window: {before: 16, after: 20}, spec: {cut: {type: 'hard'}, layers: [overlay('lens_flare', 0.9, 14, 18, leak('cool', 0.7)), {kind: 'flash', color: '#fff4e0', opacity: 0.25, attack: 4, release: 8, blend: 'screen'}]}});
+r({id: 'archive_scratch_cut', label: 'Archive scratch cut', meaning: 'Entering damaged archival film: the past, rough and physical.', intensity: 'subtle', window: {before: 10, after: 18}, spec: {cut: {type: 'hard'}, layers: [{kind: 'overlay', select: {category: 'scratches', blend: 'screen'}, opacity: 1, attack: 8, release: 16}, {kind: 'flicker', amount: 0.8, attack: 6, release: 14}, {kind: 'desaturate', amount: 1, attack: 0, release: 16, side: 'in'}]}});
+r({id: 'dust_drift_dissolve', label: 'Dust drift dissolve', meaning: 'Quiet time passing, dust in projector light; contemplative and restrained.', intensity: 'subtle', window: {before: 20, after: 22}, spec: {cut: {type: 'crossfade', frames: 22}, layers: [overlay('dust', 0.75, 18, 20)]}});
+r({id: 'particle_shimmer_reveal', label: 'Particle shimmer reveal', meaning: 'Wonder, memory or a discovery glittering into view; use sparingly.', intensity: 'medium', window: {before: 16, after: 22}, spec: {cut: {type: 'crossfade', frames: 16}, layers: [overlay('particles', 0.9, 14, 20), {kind: 'flash', color: '#ffd9a8', opacity: 0.3, attack: 6, release: 10, blend: 'screen'}]}});
+r({id: 'snowfall_passage', label: 'Snowfall passage', meaning: 'Winter, cold and stillness; only for stories that are actually set in snow.', intensity: 'subtle', window: {before: 24, after: 24}, spec: {cut: {type: 'crossfade', frames: 24}, layers: [overlay('weather', 0.8, 20, 24)]}});
+r({id: 'projector_flicker_cut', label: 'Projector flicker cut', meaning: 'An old projector changing reels: archival chapter break.', intensity: 'medium', window: {before: 12, after: 14}, spec: {cut: {type: 'hard'}, layers: [{kind: 'dip', color: '#000', attack: 2, release: 2}, overlay('flicker', 0.6, 8, 10, whiteFlash(0.4, 2, 4), 'screen'), {kind: 'flicker', amount: 1, attack: 10, release: 12}]}});
+r({id: 'leak_whip', label: 'Leak whip', meaning: 'Energetic warm move between places: travel montage, momentum with warmth.', intensity: 'bold', window: {before: 8, after: 12}, spec: {cut: {type: 'hard'}, layers: [{kind: 'whip_pan', direction: 'right', blurPx: 40, attack: 7, release: 9}, leak('warm', 0.7, 8, 12)], sfx: [{cue: 'whoosh', at: -5}]}});
+r({id: 'film_damage_dip', label: 'Film damage dip', meaning: 'A worn reel fading out and back: archival time jump.', intensity: 'medium', window: {before: 18, after: 18}, spec: {cut: {type: 'hard'}, layers: [{kind: 'dip', color: '#000', attack: 14, release: 14, hold: 2}, overlay('scratches', 0.7, 16, 16)]}});
