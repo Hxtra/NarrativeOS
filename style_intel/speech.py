@@ -9,6 +9,19 @@ from .media import extract_audio
 MODEL_SIZE = "base"  # ~150 MB, downloaded on first use; fine on CPU
 
 
+def spans(path: Path) -> list[tuple[float, float]] | None:
+    """(start, end) of each speech segment, or None when faster-whisper is not installed. Times only, no text."""
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        return None
+    model = WhisperModel(MODEL_SIZE, device="cpu", compute_type="int8")
+    with tempfile.TemporaryDirectory() as td:
+        wav = extract_audio(path, Path(td) / "speech.wav", sr=16000)
+        segments, _ = model.transcribe(str(wav), vad_filter=True, word_timestamps=False)
+        return [(round(seg.start, 2), round(seg.end, 2)) for seg in segments]
+
+
 def analyze(path: Path, duration: float) -> dict:
     try:
         from faster_whisper import WhisperModel
