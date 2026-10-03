@@ -3,8 +3,13 @@
 Ingest downloaded overlay clips (light leaks, film burns, dust...) into the
 local NarrativeOS VFX library, which lives OUTSIDE the public repo.
 
-    python vfx_ingest.py ingest <folder-of-downloads> [--source-url URL --license TEXT --rights-status verified --notes TEXT]
-    python vfx_ingest.py confirm <asset-id> [--category light_leak]
+    python vfx_ingest.py ingest <folder-of-downloads> [--provenance <dir of per-file JSON records>]
+                                                       [--source-url URL --license TEXT --rights-status verified --notes TEXT]
+    python vfx_ingest.py reject <asset-id> --reason TEXT
+    python vfx_ingest.py purge-rejected     # delete rejected clips; re-ingest skips them
+    python vfx_ingest.py confirm <asset-id> [--category light_leak] [--blend multiply --reason TEXT]
+    python vfx_ingest.py reanalyze [asset-id ...]   # re-measure, keeping review decisions
+    python vfx_ingest.py credits [asset-id ...]     # attribution lines owed
     python vfx_ingest.py list
     python vfx_ingest.py catalog            # rebuild vfx_catalog.json from metadata/
 
@@ -83,7 +88,10 @@ def analyze(stats: list[dict[str, float]], fps: float | None, has_alpha: bool) -
     if not stats:
         raise ValueError("ffmpeg produced no per-frame statistics")
     yavg = [f["YAVG"] for f in stats]
-    peak = max(range(len(yavg)), key=lambda i: yavg[i])
+    # The peak is where the overlay is centred on a cut, so it needs footage on both sides:
+    # search away from the clip's edges (a lone white tail frame is not the clip's peak).
+    margin = min(round(fps / 2) if fps else 15, (len(yavg) - 1) // 4)
+    peak = max(range(margin, len(yavg) - margin), key=lambda i: yavg[i])
     lmin, lmax = min(yavg), max(yavg)
     background = statistics.median(f.get("YLOW", 0.0) for f in stats)
     bright = [y for y in yavg if lmax > 0 and y >= lmin + 0.6 * (lmax - lmin)]
@@ -105,6 +113,7 @@ def analyze(stats: list[dict[str, float]], fps: float | None, has_alpha: bool) -
     return {
         "frames_analyzed": len(stats),
         "peak_frame": peak,
+        "peak_search_margin_frames": margin,
         "peak_time_sec": round(peak / fps, 4) if fps else 0.0,
         "luma_mean": round(statistics.mean(yavg), 2),
         "luma_min": round(lmin, 2),
@@ -198,16 +207,54 @@ def rebuild_catalog(root: Path) -> Path:
     return out
 
 
-def ingest_file(root: Path, src: Path, known: dict[str, str], source_url: str | None, license_: str | None, rights_status: str = "unknown", notes: str | None = None) -> dict | None:
+# Downloaders' category labels -> library categories. Only a SUGGESTION: the contact sheet decides.
+SOURCE_CATEGORY_HINTS = {
+    "light_leaks": "light_leak", "glitches": "glitch", "snow": "weather", "rain": "weather", "textures": "texture",
+    "particles": "particles", "sparks": "particles", "film_dust": "dust", "lens_flares": "lens_flare",
+    "film_grain": "grain", "film_scratches": "scratches", "film_flicker": "flicker", "crt": "crt",
+}
+
+
+def load_provenance(folder: Path | None) -> dict[str, dict]:
+    """Per-file source records (one JSON per clip), keyed by their stated sha256 checksum."""
+    if folder is None:
+        return {}
+    records = {}
+    for path in sorted(Path(folder).glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict) and data.get("checksum"):
+            records[data["checksum"].lower()] = {**data, "_file": path.name}
+    return records
+
+
+def rights_from_provenance(rec: dict) -> dict:
+    """Rights block from a source record. 'verified' needs an explicit licence that allows commercial use."""
+    r, src = rec.get("rights", {}), rec.get("source", {})
+    license_ = r.get("license")
+    verified = bool(license_) and r.get("commercial_use") is True and r.get("status", "verified") == "verified"
+    return {
+        "source_url": src.get("source_url"), "license": license_, "rights_status": "verified" if verified else "unknown",
+        "redistributable": False,  # never re-shared as standalone files (Pixabay forbids it; the repo is public)
+        "provider": src.get("provider"), "asset_url": src.get("asset_url"), "license_url": r.get("license_url"),
+        "commercial_use": r.get("commercial_use"), "attribution_required": r.get("attribution_required"),
+        "attribution_text": r.get("attribution_text"), "share_alike": "-SA" in (license_ or "").upper(),
+        "redistribution_terms": r.get("redistribution"), "provenance_checksum_verified": True,
+        "notes": "Use only inside larger works; keep attribution where required.",
+    }
+
+
+def ingest_file(root: Path, src: Path, known: dict[str, str], source_url: str | None, license_: str | None, rights_status: str = "unknown",
+                notes: str | None = None, provenance: dict[str, dict] | None = None) -> dict | None:
     digest = sha256(src)
     if digest in known:
         print(f"skip  {src.name}: already in library as {known[digest]}")
         return None
+    source = (provenance or {}).get(digest)
     tech = probe(str(src))
     has_alpha = bool(tech.get("pix_fmt") and ALPHA_PIX_FMTS.search(tech["pix_fmt"]))
     a = analyze(frame_stats(src), tech.get("source_fps"), has_alpha)
     tone = tone_of(a)
-    category = suggest_category(a, tone, has_alpha)
+    category = SOURCE_CATEGORY_HINTS.get((source or {}).get("category"), None) or suggest_category(a, tone, has_alpha)
     asset_id = next_id(root, category, tone)
     rel = f"{category}/{asset_id}{src.suffix.lower()}"
     dest = root / rel
@@ -238,7 +285,7 @@ def ingest_file(root: Path, src: Path, known: dict[str, str], source_url: str | 
             "file_size_bytes": dest.stat().st_size,
         },
         "analysis": a,
-        "rights": {
+        "rights": rights_from_provenance(source) if source else {
             "source_url": source_url,
             "license": license_,
             "rights_status": rights_status,
@@ -248,6 +295,8 @@ def ingest_file(root: Path, src: Path, known: dict[str, str], source_url: str | 
         "contact_sheet": sheet,
         "ingested_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
+    if source:
+        record["source_metadata"] = {"id": source.get("id", ""), "category": source.get("category", ""), "name": source.get("name", ""), "metadata_file": source["_file"]}
     write_record(root, record)
     print(f"added {src.name} -> {asset_id}  (suggested {category}, {tone}, peak frame {a['peak_frame']}, blend {a['recommended_blend']})")
     return record
@@ -261,10 +310,15 @@ def cmd_ingest(args) -> int:
         print(f"no video files found under {inbox}", file=sys.stderr)
         return 1
     known = {r["sha256"]: r["id"] for r in load_records(root)}
+    known.update({sha: f"purged {e['id']} ({e['reason']})" for sha, e in load_purged(root).items()})
+    provenance = load_provenance(Path(args.provenance) if args.provenance else None)
+    if args.provenance and not provenance:
+        print(f"no provenance records with checksums found in {args.provenance}", file=sys.stderr)
+        return 1
     failed = 0
     for f in files:
         try:
-            rec = ingest_file(root, f, known, args.source_url, args.license, args.rights_status, args.notes)
+            rec = ingest_file(root, f, known, args.source_url, args.license, args.rights_status, args.notes, provenance)
             if rec:
                 known[rec["sha256"]] = rec["id"]
         except (subprocess.CalledProcessError, ValueError) as e:
@@ -300,10 +354,97 @@ def cmd_confirm(args) -> int:
             rec["contact_sheet"] = new_sheet
         meta.unlink()
         rec.update(id=new_id, library_path=new_rel, category=category)
+    if args.blend:
+        blends = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["properties"]["analysis"]["properties"]["recommended_blend"]["enum"]
+        if args.blend not in blends:
+            print(f"unknown blend {args.blend}; choose from {', '.join(blends)}", file=sys.stderr)
+            return 1
+        if args.blend != rec["analysis"]["recommended_blend"]:
+            rec["blend_override"] = {"from": rec["analysis"]["recommended_blend"], "to": args.blend, "reason": args.reason or "set in contact-sheet review"}
+            rec["analysis"]["recommended_blend"] = args.blend
     rec["category_status"] = "confirmed"
+    rec.pop("rejection_reason", None)
     write_record(root, rec)
     rebuild_catalog(root)
-    print(f"confirmed {rec['id']} as {category}")
+    print(f"confirmed {rec['id']} as {category}" + (f" (blend {args.blend})" if args.blend else ""))
+    return 0
+
+
+def cmd_reject(args) -> int:
+    """Keep the record (and the reason), but never let a recipe use this clip."""
+    root = library_root(args.library)
+    meta = root / "metadata" / f"{args.asset_id}.json"
+    if not meta.is_file() or not args.reason:
+        print("reject needs a known asset id and --reason", file=sys.stderr)
+        return 1
+    rec = json.loads(meta.read_text(encoding="utf-8"))
+    rec.update(category_status="rejected", rejection_reason=args.reason)
+    write_record(root, rec)
+    rebuild_catalog(root)
+    print(f"rejected {rec['id']}: {args.reason}")
+    return 0
+
+
+def cmd_credits(args) -> int:
+    """Attribution lines owed by the clips a video uses (or by every confirmed clip that needs one)."""
+    import re as _re
+    recs = [r for r in load_records(library_root(args.library)) if r["category_status"] == "confirmed"]
+    if args.ids:
+        wanted = set(args.ids)
+        recs = [r for r in recs if r["id"] in wanted]
+        missing = wanted - {r["id"] for r in recs}
+        if missing:
+            print(f"unknown or unconfirmed assets: {sorted(missing)}", file=sys.stderr)
+            return 1
+    for r in recs:
+        rights = r["rights"]
+        if rights.get("attribution_required"):
+            text = _re.sub(r"<[^>]+>", "", rights.get("attribution_text") or "").strip()
+            print(f"{r['id']}: {text} ({rights.get('license')}, {rights.get('source_url')})")
+    return 0
+
+
+def cmd_reanalyze(args) -> int:
+    """Re-measure clips after an analysis change. Review decisions (category, status, blend override) are kept."""
+    root = library_root(args.library)
+    recs = [r for r in load_records(root) if not args.ids or r["id"] in set(args.ids)]
+    for rec in recs:
+        old = rec["analysis"]
+        a = analyze(frame_stats(root / rec["library_path"]), rec["technical"].get("source_fps"), rec["technical"]["has_alpha"])
+        if rec.get("blend_override"):
+            a["recommended_blend"] = rec["blend_override"]["to"]
+        rec["analysis"] = a
+        write_record(root, rec)
+        if old.get("peak_frame") != a["peak_frame"]:
+            print(f"{rec['id']}: peak frame {old.get('peak_frame')} -> {a['peak_frame']}")
+    rebuild_catalog(root)
+    print(f"reanalyzed {len(recs)} clips")
+    return 0
+
+
+PURGED_FILE = "purged.json"
+
+
+def load_purged(root: Path) -> dict[str, dict]:
+    """sha256 -> {id, original_filename, reason} for clips deleted from the library; ingest skips them."""
+    path = root / PURGED_FILE
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def cmd_purge_rejected(args) -> int:
+    """Delete rejected clips (file, contact sheet, record). Their checksums are kept so re-ingest skips them."""
+    root = library_root(args.library)
+    purged = load_purged(root)
+    rejected = [r for r in load_records(root) if r["category_status"] == "rejected"]
+    for rec in rejected:
+        purged[rec["sha256"]] = {"id": rec["id"], "original_filename": rec["original_filename"], "reason": rec.get("rejection_reason", "")}
+        for rel in (rec["library_path"], rec.get("contact_sheet"), f"metadata/{rec['id']}.json"):
+            if rel and (root / rel).is_file():
+                (root / rel).unlink()
+        print(f"deleted {rec['id']}: {rec.get('rejection_reason', '')}")
+    (root / PURGED_FILE).write_text(json.dumps(purged, indent=2) + "\n", encoding="utf-8")
+    rebuild_catalog(root)
+    print(f"purged {len(rejected)} rejected clips")
     return 0
 
 
@@ -330,14 +471,30 @@ def main() -> int:
     p.add_argument("--rights-status", choices=["unknown", "verified", "restricted"], default="unknown",
                    help="verified = the recorded licence permits use in the owner's productions")
     p.add_argument("--notes")
+    p.add_argument("--provenance", help="folder of per-file source records (JSON with a sha256 'checksum'); matched by checksum, never by filename")
     p.set_defaults(func=cmd_ingest)
+    p = sub.add_parser("reject")
+    p.add_argument("asset_id")
+    p.add_argument("--reason", required=True)
+    p.set_defaults(func=cmd_reject)
     p = sub.add_parser("confirm")
     p.add_argument("asset_id")
     p.add_argument("--category")
+    p.add_argument("--blend", help="override the analysis blend after looking at the clip (screen, add, overlay, multiply, normal)")
+    p.add_argument("--reason", help="why the blend was overridden")
     p.set_defaults(func=cmd_confirm)
+    p = sub.add_parser("credits", help="print attribution lines owed (all confirmed clips, or the given ids)")
+    p.add_argument("ids", nargs="*")
+    p.set_defaults(func=cmd_credits)
+    sub.add_parser("purge-rejected", help="delete rejected clips; their checksums are kept so re-ingest skips them").set_defaults(func=cmd_purge_rejected)
+    p = sub.add_parser("reanalyze", help="re-measure clips (all, or the given ids), keeping review decisions")
+    p.add_argument("ids", nargs="*")
+    p.set_defaults(func=cmd_reanalyze)
     sub.add_parser("list").set_defaults(func=cmd_list)
     sub.add_parser("catalog").set_defaults(func=cmd_catalog)
     args = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # attribution text has dashes and accents; Windows consoles default to cp1252
     return args.func(args)
 
 

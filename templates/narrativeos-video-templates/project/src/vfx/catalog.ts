@@ -16,6 +16,9 @@ export type VfxCategory =
 	| 'particles'
 	| 'texture'
 	| 'graphic_elements'
+	| 'weather'
+	| 'flicker'
+	| 'crt'
 	| 'unclassified';
 
 export type VfxTone = 'warm' | 'cool' | 'neutral' | 'mono';
@@ -25,7 +28,7 @@ export interface VfxAsset {
 	id: string;
 	library_path: string;
 	category: VfxCategory;
-	category_status: 'suggested' | 'confirmed';
+	category_status: 'suggested' | 'confirmed' | 'rejected';
 	tone: VfxTone;
 	technical: {duration_sec: number | null; source_fps: number | null; has_alpha: boolean};
 	analysis: {peak_time_sec: number; recommended_blend: VfxBlend};
@@ -42,6 +45,8 @@ export interface VfxSelector {
 	category: VfxCategory;
 	/** Preferred tone; falls back to any tone in the category. */
 	tone?: VfxTone;
+	/** Preferred blend, e.g. 'screen' for clips that read on dark pictures too; falls back like tone. */
+	blend?: VfxBlend;
 	/** Pin one exact asset (e.g. an editor's deliberate pick). */
 	assetId?: string;
 }
@@ -86,8 +91,10 @@ export function resolveOverlay(catalog: VfxCatalog | null | undefined, sel: VfxS
 	const confirmed = catalog.assets.filter((a) => a.category_status === 'confirmed');
 	if (sel.assetId) return confirmed.find((a) => a.id === sel.assetId) ?? null;
 	const inCategory = confirmed.filter((a) => a.category === sel.category);
-	const toned = sel.tone ? inCategory.filter((a) => a.tone === sel.tone) : [];
-	const pool = toned.length ? toned : inCategory;
+	const blended = sel.blend ? inCategory.filter((a) => a.analysis.recommended_blend === sel.blend) : [];
+	const byBlend = blended.length ? blended : inCategory;
+	const toned = sel.tone ? byBlend.filter((a) => a.tone === sel.tone) : [];
+	const pool = toned.length ? toned : byBlend;
 	if (!pool.length) return null;
 	return pool[Math.floor(random(`vfx-${seed}`) * pool.length)];
 }
