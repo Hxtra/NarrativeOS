@@ -1,4 +1,4 @@
-"""CLI: python -m style_intel analyze <video> --out <dir> | profile <style_dna.json> --id <style_id>"""
+"""CLI: python -m style_intel analyze <video> --out <dir> | profile <style_dna.json> --id <style_id> | breakdown <video> --out <dir>"""
 from __future__ import annotations
 
 import argparse
@@ -6,6 +6,7 @@ import json
 import sys
 from pathlib import Path
 
+from . import breakdown as breakdown_mod
 from . import dna as dna_mod
 from . import profile as profile_mod
 
@@ -48,7 +49,23 @@ def main() -> int:
     p.add_argument("dna", type=Path)
     p.add_argument("--id", required=True)
     p.add_argument("--label")
+    b = sub.add_parser("breakdown", help="timestamped list of every transition, effect and synced sound, with evidence and recipes")
+    b.add_argument("video", type=Path)
+    b.add_argument("--out", type=Path, required=True)
+    b.add_argument("--cut-threshold", type=float, default=10.0)
+    b.add_argument("--no-strips", action="store_true", help="skip the per-moment review strips")
+    b.add_argument("--no-speech", action="store_true", help="skip the Whisper pass that flags sounds overlapping speech")
     args = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    if args.cmd == "breakdown":
+        if not args.video.is_file():
+            print(f"no such file: {args.video}", file=sys.stderr)
+            return 1
+        result = breakdown_mod.analyze(args.video.resolve(), args.out, cut_threshold=args.cut_threshold, strips=not args.no_strips, with_speech=not args.no_speech)
+        print(breakdown_mod.report(result))
+        return 0
 
     if args.cmd == "analyze":
         if not args.video.is_file():
