@@ -43,9 +43,9 @@ from .profile import known_transitions
 BREAKDOWN_DEFAULTS = {
     "analysis_long_side": 640,        # frames are measured at this size (long side), so vertical video costs the same
     "motion_long_side": 320,          # global motion, sharpness, holds and glitch bands use this size
-    "rgb_split_min_px": 1.5,          # red-vs-blue channel offset (~4.5 px on a 1080p frame); lenses stay well under 1
-    "rgb_split_min_response": 0.05,   # phase-correlation peak strength; lower = no reliable shift
-    "rgb_split_min_texture": 6.0,     # channel std; flat frames have no edges to align
+    "rgb_split_min_px": 1.5,          # median red-to-blue edge displacement on the motion frame (9 px on a 1080p frame);
+                                      # clean footage measured 0.1-0.7, real RGB-split montage frames 3.8-8.1
+    "rgb_split_min_coherence": 0.5,   # median displacement vector (or radial part) / median magnitude: a split has a direction
     "glitch_bands": 8,
     "glitch_min_spread_px": 6.0,      # band-to-band horizontal displacement spread (motion frame)
     "glitch_min_band_response": 0.08,
@@ -76,21 +76,29 @@ BREAKDOWN_DEFAULTS = {
     "hold_min_motion_before": 2.0,    # the frames before must move, or it is just a still shot
     "hold_min_repeats": 2,            # 1 repeat is pulldown (24p in 30p); 2+ is a deliberate hold
     "moment_merge_sec": 0.3,          # events closer than this are one moment
-    "sound_before_sec": 0.5,          # a moment's sound is the loudest peak in this window
+    "sound_before_sec": 0.5,          # a moment's sound is the strongest foreground peak in this window
     "sound_after_sec": 0.35,
+    "sound_hop": 256,                 # ~11.6 ms at 22.05 kHz
+    "sound_mel_bands": 64,
+    "sound_background_sec": 3.0,      # each band's background = its rolling median over this long
+    "sound_min_excess_db": 6.0,       # mean dB a sound must stick out of the bed, across all bands (a mix's median is ~1.5)
+    "sound_band_excess_db": 6.0,      # a band counts as excited above this
+    "sound_top_band_hz": 4000.0,
+    "sound_top_min_excess_db": 9.0,   # ... or the bands above sound_top_band_hz alone must stick out this far
+    "sound_only_min_excess_db": 8.0,  # a sound with no visual event becomes its own moment above this (title SFX, hits)
     "click_max_ms": 120.0,
-    "impact_max_attack_ms": 50.0,     # the 512-sample RMS window alone smears an instant attack over ~25 ms
-    "impact_min_low_ratio": 0.25,     # energy below 150 Hz at the peak
-    "impact_min_decay_ms": 150.0,
+    "click_min_breadth": 0.3,         # share of bands excited: clicks and hits are broadband, notes are not
+    "impact_max_attack_ms": 50.0,     # the frame hop and smoothing alone smear an instant attack over ~35 ms
+    "impact_min_decay_ms": 150.0,     # how long the sub-200 Hz excess rings on after the peak
     "whoosh_min_attack_ms": 80.0,
-    "whoosh_min_band_flatness": 0.2,  # flatness inside the occupied band: noise ~0.5, tones and chords far lower
-    "whoosh_min_bandwidth_hz": 1000.0,
+    "whoosh_min_breadth": 0.3,
     "whoosh_active_ms": (200.0, 2500.0),
+    "riser_band_hz": 2000.0,          # risers and noise sweeps are measured on energy above this
     "riser_window_sec": 2.5,
     "riser_min_rise_db": 8.0,
     "riser_min_r2": 0.6,
     "riser_min_sec": 1.0,             # the climb itself must last this long
-    "sound_min_prominence_db": 10.0,  # a moment's sound must stand this far above the floor and the level just before
+    "riser_min_above_floor_db": 10.0,
     "max_inferred_support": 0.75,     # inferred labels never claim more support than this
 }
 
@@ -100,7 +108,7 @@ MEASUREMENTS = {
     "flash_frame": {"status": "MEASURED", "method": "luma jump >= 60 that falls back within 4 frames"},
     "dip_to_black": {"status": "MEASURED", "method": ">= 2 frames near black"},
     "frame_hold": {"status": "MEASURED", "method": "consecutive identical frames right after motion"},
-    "rgb_split": {"status": "MEASURED", "method": "phase correlation of the red channel against the blue channel"},
+    "rgb_split": {"status": "MEASURED", "method": "dense optical flow from the red channel's edges to the blue channel's (uniform, radial or warped splits)"},
     "glitch_tear": {"status": "INFERRED", "method": "horizontal bands displaced by different amounts against the previous frame"},
     "whip_pan": {"status": "INFERRED", "method": "one-axis motion blur (gradient anisotropy) with a sharpness collapse; direction from global motion"},
     "zoom": {"status": "MEASURED", "method": "scale of a similarity transform fitted to ORB matches between consecutive frames"},
@@ -108,8 +116,8 @@ MEASUREMENTS = {
     "halftone": {"status": "INFERRED", "method": "a 2-D lattice in the whitened image spectrum (two directions plus their sum or difference) made of separate dots"},
     "light_leak": {"status": "INFERRED", "method": "brightness rise with a colour shift over several frames"},
     "exposure_bloom": {"status": "INFERRED", "method": "brightness rise without a colour shift, longer than a flash frame"},
-    "sound_onset": {"status": "MEASURED", "method": "loudest RMS peak near each moment standing >= 10 dB above the floor and the level before; onset = where it rose within 20 dB of that peak"},
-    "sound_class": {"status": "INFERRED", "method": "envelope and spectrum rules: click, impact, whoosh, hit, riser (see evidence)"},
+    "sound_onset": {"status": "MEASURED", "method": "strongest foreground peak near each moment: mel bands compared with their own rolling median, so effects over a compressed music bed still show; onset = where it rose above 20 % of that peak"},
+    "sound_class": {"status": "INFERRED", "method": "rules on the foreground's envelope and spread: click, impact, whoosh, hit; riser = straight-line climb of energy above 2 kHz"},
     "speech_overlap": {"status": "INFERRED", "method": "faster-whisper speech segments (times only); a sound inside one may be the voice, not an effect"},
     "typography": {"status": "NOT_MEASURED", "reason": "no OCR or text detector yet"},
     "speed_ramp": {"status": "NOT_MEASURED", "reason": "needs optical-flow speed tracking within a shot"},
@@ -171,6 +179,31 @@ class _FrameMeter:
         self.orb = cv2.ORB_create(800)
         self.prev = None  # (gray_small_float, keypoints, descriptors)
 
+    @staticmethod
+    def _edges(channel: np.ndarray) -> np.ndarray:
+        c = cv2.GaussianBlur(channel.astype(np.float32), (0, 0), 1.0)
+        g = cv2.magnitude(cv2.Sobel(c, cv2.CV_32F, 1, 0), cv2.Sobel(c, cv2.CV_32F, 0, 1))
+        return cv2.normalize(g, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+
+    def channel_misregistration(self, rgb_small: np.ndarray) -> dict:
+        """How far the blue channel's edges sit from the red channel's: dense optical flow between their edge maps.
+
+        Edge maps, not raw channels, so a red object on a green field is not a 'shift'. Flow, not a single
+        translation, so radial (lens-style) and warped splits are measured too. Median over the strongest edges."""
+        er, eb = self._edges(rgb_small[..., 0]), self._edges(rgb_small[..., 2])
+        flow = cv2.calcOpticalFlowFarneback(er, eb, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+        g = np.maximum(er, eb)
+        mask = g >= max(8, int(np.percentile(g, 80)))
+        if mask.sum() < 50:
+            return {"rgb_mag": 0.0, "rgb_dx": 0.0, "rgb_dy": 0.0, "rgb_radial": 0.0}
+        fx, fy = flow[..., 0][mask], flow[..., 1][mask]
+        h, w = er.shape
+        yy, xx = np.mgrid[0:h, 0:w]
+        rx, ry = (xx - w / 2)[mask], (yy - h / 2)[mask]
+        radial = (fx * rx + fy * ry) / (np.hypot(rx, ry) + 1e-6)
+        return {"rgb_mag": float(np.median(np.hypot(fx, fy))), "rgb_dx": float(np.median(fx)), "rgb_dy": float(np.median(fy)),
+                "rgb_radial": float(np.median(radial))}
+
     def measure(self, rgb: np.ndarray) -> dict:
         cfg = self.cfg
         f = rgb.astype(np.float32)
@@ -183,12 +216,6 @@ class _FrameMeter:
             "y_left": float(gray[:, : w // 2].mean()), "y_right": float(gray[:, w // 2 :].mean()),
             "y_top": float(gray[: h // 2].mean()), "y_bottom": float(gray[h // 2 :].mean()),
         }
-        # RGB split: where is the red channel relative to the blue one?
-        if r.std() >= cfg["rgb_split_min_texture"] and b.std() >= cfg["rgb_split_min_texture"]:
-            (dx, dy), resp = cv2.phaseCorrelate(b, r, self.win)
-            out.update(rgb_dx=float(dx), rgb_dy=float(dy), rgb_resp=float(resp))
-        else:
-            out.update(rgb_dx=0.0, rgb_dy=0.0, rgb_resp=0.0)
         # Halftone: an isolated peak in the whitened spectrum.
         spec = np.abs(np.fft.fftshift(np.fft.fft2((gray.astype(np.float32) - gray.mean()) * self.win)))
         radial = np.bincount(self.rbin.ravel(), spec.ravel()) / np.maximum(np.bincount(self.rbin.ravel()), 1)
@@ -220,6 +247,7 @@ class _FrameMeter:
             out["halftone_dot_ratio"] = float(dots / max(cells, 1.0))
 
         small = cv2.resize(gray, self.motion_size, interpolation=cv2.INTER_AREA)
+        out.update(self.channel_misregistration(cv2.resize(rgb, self.motion_size, interpolation=cv2.INTER_AREA)))
         sf = small.astype(np.float32)
         lap = cv2.Laplacian(sf, cv2.CV_32F)
         gx = cv2.Sobel(sf, cv2.CV_32F, 1, 0)
@@ -312,14 +340,18 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
                        "peak": T(peak if peak is not None else a), "frames": b - a + 1, "evidence": evidence})
 
     # RGB split
-    off = np.hypot(col("rgb_dx"), col("rgb_dy"))
-    resp = col("rgb_resp")
-    for a, b in _runs((off >= cfg["rgb_split_min_px"]) & (resp >= cfg["rgb_split_min_response"])):
+    off = col("rgb_mag")
+    for a, b in _runs(off >= cfg["rgb_split_min_px"]):
         p = a + int(np.argmax(off[a : b + 1]))
-        scale = 1920 / cfg["analysis_long_side"]  # "at_1920": on a 1080p frame (long side 1920), either orientation
-        add("rgb_split", a, b, {"max_offset_px_at_1920": round(float(off[p]) * scale, 1),
-                                "dx_px_at_1920": round(frames[p]["rgb_dx"] * scale, 1), "dy_px_at_1920": round(frames[p]["rgb_dy"] * scale, 1),
-                                "phase_response": round(float(resp[p]), 3), "threshold_px_at_1920": round(cfg["rgb_split_min_px"] * scale, 1)}, p)
+        scale = 1920 / cfg["motion_long_side"]  # "at_1920": on a 1080p frame (long side 1920), either orientation
+        mag, dx, dy, rad = float(off[p]), frames[p]["rgb_dx"], frames[p]["rgb_dy"], frames[p]["rgb_radial"]
+        coherent = max(float(np.hypot(dx, dy)), abs(rad)) / max(mag, 1e-6)
+        if coherent < cfg["rgb_split_min_coherence"]:
+            continue  # edges displaced every which way: flow noise on blur or flare, not an offset channel
+        pattern = "uniform" if np.hypot(dx, dy) >= 0.7 * mag else ("radial" if abs(rad) >= 0.5 * mag else "mixed")
+        add("rgb_split", a, b, {"max_offset_px_at_1920": round(mag * scale, 1), "dx_px_at_1920": round(dx * scale, 1),
+                                "dy_px_at_1920": round(dy * scale, 1), "pattern": pattern,
+                                "threshold_px_at_1920": round(cfg["rgb_split_min_px"] * scale, 1)}, p)
 
     # Sharpness relative to the shot's own median (a soft shot is not a blur effect).
     sharp = col("sharp")
@@ -443,95 +475,100 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
 
 
 # --------------------------------------------------------------------------------------------- audio
+# Sound effects in an edit sit ON TOP of music that is often compressed flat, so overall loudness barely
+# moves when a whoosh or a glitch hits. Each mel band is therefore compared with its own recent background
+# (a rolling median): what sticks out of the bed is the foreground, and that is what is found and classified.
 def audio_events(path: Path, cfg: dict) -> dict:
     import librosa
+    from scipy.ndimage import median_filter
 
     with tempfile.TemporaryDirectory() as td:
         wav = extract_audio(path, Path(td) / "a.wav", sr=22050)
         y, sr = librosa.load(str(wav), sr=22050, mono=True)
     if len(y) == 0 or float(np.sqrt(np.mean(y ** 2))) < 1e-4:
-        return {"status": "silent", "y": None}
-    hop = 128
-    env = librosa.feature.rms(y=y, frame_length=512, hop_length=hop)[0]
-    env_db = 20 * np.log10(env + 1e-9)
-    return {"status": "measured", "y": y, "sr": sr, "env_db": env_db, "env_t": np.arange(len(env)) * hop / sr,
-            "floor_db": float(np.percentile(env_db, 10))}
+        return {"status": "silent"}
+    hop = cfg["sound_hop"]
+    mel = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024, hop_length=hop, n_mels=cfg["sound_mel_bands"], fmin=40, fmax=sr / 2)
+    db = librosa.power_to_db(mel, ref=np.max)
+    background = median_filter(db, size=(1, max(3, int(cfg["sound_background_sec"] * sr / hop))), mode="nearest")
+    excess = db - background
+    freqs = librosa.mel_frequencies(n_mels=cfg["sound_mel_bands"], fmin=40, fmax=sr / 2)
+    clipped = np.clip(excess, 0, 24)
+    # Mean dB a frame sticks out of the bed, over all bands or over the top bands alone (music leaves the top
+    # nearly empty, so clicks and glitches show there first), whichever is stronger.
+    top = clipped[freqs >= cfg["sound_top_band_hz"]].mean(axis=0) * cfg["sound_min_excess_db"] / cfg["sound_top_min_excess_db"]
+    score = np.convolve(np.maximum(clipped.mean(axis=0), top), np.ones(3) / 3, mode="same")
+    high = db[freqs >= cfg["riser_band_hz"]].mean(axis=0)
+    return {"status": "measured", "hop_sec": hop / sr, "excess": excess, "score": score, "freqs": freqs, "high_db": high,
+            "high_floor_db": float(np.percentile(high, 10)), "score_median": float(np.median(score))}
 
 
-def classify_sound(y: np.ndarray, sr: int, t: float, cfg: dict) -> dict:
-    """Envelope and spectrum of the sound at an onset, and the rule-based label they give."""
-    import librosa
+def classify_sound(audio: dict, p: int, cfg: dict) -> dict:
+    """Label the foreground sound peaking at frame p.
 
-    hop = 128
-    a0 = max(0, int((t - 0.4) * sr))
-    seg = y[a0 : int((t + 1.6) * sr)]
-    if len(seg) < 2048:
-        return {"class": "unclassified", "features": {}}
-    env = librosa.feature.rms(y=seg, frame_length=512, hop_length=hop)[0]
-    tt = np.arange(len(env)) * hop / sr + a0 / sr
-    look = (tt >= t - 0.05) & (tt <= t + 0.4)
-    if not look.any():
-        return {"class": "unclassified", "features": {}}
-    p = int(np.flatnonzero(look)[np.argmax(env[look])])
+    Its envelope is measured on the bands it actually excites (a low boom lives in a few bottom bands;
+    averaged over all of them its tail would vanish), and its spread over its whole active span."""
+    hop_ms = audio["hop_sec"] * 1000
+    ex_all = np.clip(audio["excess"], 0, 24)
+    bands = ex_all[:, max(0, p - 2) : p + 3].mean(axis=1) >= cfg["sound_band_excess_db"]
+    if not bands.any():
+        bands[:] = True
+    env = ex_all[bands].mean(axis=0)
     peak = float(env[p])
-    floor = 0.1 * peak  # -20 dB
-    s = p
-    while s > 0 and env[s - 1] >= floor:
-        s -= 1
-    e = p
-    while e < len(env) - 1 and env[e + 1] >= floor:
-        e += 1
-    ms = hop / sr * 1000
-    attack, decay = (p - s) * ms, (e - p) * ms
-    active = seg[s * hop : (e + 1) * hop + 512]
-    pk = seg[max(0, p * hop - int(0.03 * sr)) : p * hop + int(0.2 * sr)]
-    spec = np.abs(np.fft.rfft(pk * np.hanning(len(pk)))) ** 2 if len(pk) > 64 else np.ones(2)
-    freqs = np.fft.rfftfreq(len(pk), 1 / sr) if len(pk) > 64 else np.array([0.0, 1.0])
-    low_ratio = float(spec[freqs < 150].sum() / max(spec.sum(), 1e-12))
-    flat, bandwidth = 0.0, 0.0
-    if len(active) >= 512:
-        pw = np.abs(np.fft.rfft(active * np.hanning(len(active)))) ** 2
-        fa = np.fft.rfftfreq(len(active), 1 / sr)
-        cum = np.cumsum(pw) / max(pw.sum(), 1e-12)
-        lo_i, hi_i = int(np.searchsorted(cum, 0.05)), int(np.searchsorted(cum, 0.95))
-        band = pw[lo_i : hi_i + 1] + 1e-20
-        flat = float(np.exp(np.mean(np.log(band))) / np.mean(band))
-        bandwidth = float(fa[min(hi_i, len(fa) - 1)] - fa[lo_i])
-    cent = float(np.mean(librosa.feature.spectral_centroid(y=pk, sr=sr, n_fft=512, hop_length=hop))) if len(pk) >= 512 else 0.0
+    start, end = p, p
+    while start > 0 and env[start - 1] >= 0.2 * peak:
+        start -= 1
+    while end < len(env) - 1 and env[end + 1] >= 0.2 * peak:
+        end += 1
+    attack, decay = (p - start) * hop_ms, (end - p) * hop_ms
+    ex = ex_all[:, start : end + 1].sum(axis=1)
+    total = max(float(ex.sum()), 1e-6)
+    freqs = audio["freqs"]
+    low_share = float(ex[freqs < 200].sum() / total)
+    high_share = float(ex[freqs >= 4000].sum() / total)
+    breadth = float(bands.mean())
+    # The low end on its own: an impact is a fast start whose bass rings on after any broadband crack.
+    low_env = ex_all[freqs < 200].mean(axis=0) if (freqs < 200).any() else np.zeros_like(env)
+    win = low_env[max(0, p - 3) : p + 6]
+    lp = max(0, p - 3) + int(np.argmax(win)) if len(win) else p
+    low_peak, le = float(low_env[lp]), lp
+    while le < len(low_env) - 1 and low_env[le + 1] >= 0.2 * low_peak:
+        le += 1
+    low_decay = (le - lp) * hop_ms if low_peak >= cfg["sound_band_excess_db"] else 0.0
     f = {"attack_ms": round(attack, 1), "decay_ms": round(decay, 1), "active_ms": round(attack + decay, 1),
-         "low_band_ratio": round(low_ratio, 3), "band_flatness": round(flat, 3), "bandwidth_hz": round(bandwidth), "centroid_hz": round(cent)}
+         "breadth": round(breadth, 2), "low_share": round(low_share, 2), "high_share": round(high_share, 2),
+         "low_peak_excess_db": round(low_peak, 1), "low_decay_ms": round(low_decay, 1)}
     lo, hi = cfg["whoosh_active_ms"]
-    if attack + decay <= cfg["click_max_ms"]:
-        label = "click"  # a glitch tick, shutter or click: the envelope cannot tell them apart
-    elif attack <= cfg["impact_max_attack_ms"] and low_ratio >= cfg["impact_min_low_ratio"] and decay >= cfg["impact_min_decay_ms"]:
+    if attack <= cfg["impact_max_attack_ms"] and low_decay >= cfg["impact_min_decay_ms"]:
         label = "impact"
-    elif (attack >= cfg["whoosh_min_attack_ms"] and flat >= cfg["whoosh_min_band_flatness"]
-          and bandwidth >= cfg["whoosh_min_bandwidth_hz"] and lo <= attack + decay <= hi):
+    elif attack + decay <= cfg["click_max_ms"] and breadth >= cfg["click_min_breadth"]:
+        label = "click"  # a glitch tick, shutter or click: the shape cannot tell them apart
+    elif attack >= cfg["whoosh_min_attack_ms"] and breadth >= cfg["whoosh_min_breadth"] and lo <= attack + decay <= hi:
         label = "whoosh"
-    elif attack <= cfg["impact_max_attack_ms"]:
+    elif attack <= cfg["impact_max_attack_ms"] and breadth >= cfg["click_min_breadth"]:
         label = "hit"
     else:
         label = "unclassified"
-    return {"class": label, "features": f}
+    return {"class": label, "features": f, "start": start}
 
 
-def riser_before(y: np.ndarray, sr: int, t: float, cfg: dict, floor_db: float) -> dict | None:
-    """A sustained loudness climb into t (a riser or swell), from 0.1 s RMS steps.
+def riser_before(audio: dict, t: float, cfg: dict) -> dict | None:
+    """A sustained climb of high-band energy (>= riser_band_hz) into t: risers and noise sweeps live up there.
 
-    Only the stretch that is audibly above the floor right up to t is fitted: a sound that simply
-    starts out of silence is one big step, not a riser."""
-    w = cfg["riser_window_sec"]
-    a = int(max(0.0, t - w) * sr)
-    seg = y[a : int(t * sr)]
-    step = int(0.1 * sr)
-    if len(seg) < 10 * step:
+    Only the stretch from the quietest point before t is fitted: a louder tail before it (an impact
+    decaying) or a sound simply starting out of silence is not a climb."""
+    hop = audio["hop_sec"]
+    step = max(1, int(round(0.1 / hop)))
+    a, b = max(0, int((t - cfg["riser_window_sec"]) / hop)), int(t / hop)
+    curve = audio["high_db"][a:b]
+    if len(curve) < 10 * step:
         return None
-    db = np.array([20 * np.log10(np.sqrt(np.mean(seg[i : i + step] ** 2)) + 1e-9) for i in range(0, len(seg) - step + 1, step)])
+    db = np.array([curve[i : i + step].mean() for i in range(0, len(curve) - step + 1, step)])
     k = len(db)
-    while k > 0 and db[k - 1] >= floor_db + cfg["sound_min_prominence_db"]:
+    while k > 0 and db[k - 1] >= audio["high_floor_db"] + cfg["riser_min_above_floor_db"]:
         k -= 1
     db = db[k:]
-    if len(db) >= 3:  # start at the quietest point: a louder tail before it (an impact decaying) is not part of the climb
+    if len(db) >= 3:
         smooth = np.convolve(db, np.ones(3) / 3, mode="same")
         db = db[int(np.argmin(smooth[:-1])) :]
     if len(db) * 0.1 < cfg["riser_min_sec"]:
@@ -542,7 +579,8 @@ def riser_before(y: np.ndarray, sr: int, t: float, cfg: dict, floor_db: float) -
     r2 = 1 - float(np.sum((db - fit) ** 2) / max(np.sum((db - db.mean()) ** 2), 1e-9))
     rise = float(fit[-1] - fit[0])
     if rise >= cfg["riser_min_rise_db"] and r2 >= cfg["riser_min_r2"]:
-        return {"rise_db": round(rise, 1), "slope_db_per_sec": round(float(slope), 1), "r2": round(r2, 2), "duration_sec": round(len(db) * 0.1, 1)}
+        return {"rise_db": round(rise, 1), "slope_db_per_sec": round(float(slope), 1), "r2": round(r2, 2), "duration_sec": round(len(db) * 0.1, 1),
+                "band_hz": f">= {cfg['riser_band_hz']:.0f}"}
     return None
 
 
@@ -567,7 +605,8 @@ def group_moments(events: list[dict], merge_sec: float) -> list[dict]:
     moments: list[dict] = []
     for e in sorted(events, key=lambda e: e["start"]):
         reach = e["end"] if e["end"] - e["start"] <= 1.0 else e["start"]
-        if moments and e["start"] <= moments[-1]["_reach"] + merge_sec:
+        second_cut = e["type"] == "hard_cut" and moments and any(x["type"] == "hard_cut" for x in moments[-1]["events"])
+        if moments and e["start"] <= moments[-1]["_reach"] + merge_sec and not second_cut:  # a fast montage is one moment per cut
             m = moments[-1]
             m["events"].append(e)
             m["end"] = max(m["end"], e["end"])
@@ -654,28 +693,56 @@ def suggest(moment: dict, recipes: set[str], fps: float) -> dict:
 def attach_sound(moment: dict, audio: dict, cfg: dict) -> dict:
     if audio.get("status") != "measured":
         return {"status": audio.get("status", "not_measured")}
-    t = moment["time"]
-    env, et, floor = audio["env_db"], audio["env_t"], audio["floor_db"]
-    out: dict = {"status": "measured", "riser_into_moment": riser_before(audio["y"], audio["sr"], t, cfg, floor)}
-    win = np.flatnonzero((et >= t - cfg["sound_before_sec"]) & (et <= t + cfg["sound_after_sec"]))
-    pre = env[(et >= t - cfg["sound_before_sec"] - 0.5) & (et < t - cfg["sound_before_sec"])]
-    if not len(win):
+    t, hop, score = moment["time"], audio["hop_sec"], audio["score"]
+    out: dict = {"status": "measured", "riser_into_moment": riser_before(audio, t, cfg)}
+    a, b = max(0, int((t - cfg["sound_before_sec"]) / hop)), min(len(score), int((t + cfg["sound_after_sec"]) / hop) + 1)
+    if b <= a:
         out.update(onset=None, note="no audio at this moment")
         return out
-    p = int(win[np.argmax(env[win])])
-    prominence = float(env[p] - max(floor, float(np.median(pre)) if len(pre) else floor))
-    if prominence < cfg["sound_min_prominence_db"]:
-        out.update(onset=None, note=f"no distinct sound (loudest peak {prominence:.1f} dB above what came before)")
+    p = a + int(np.argmax(score[a:b]))
+    peak = float(score[p])
+    if peak < cfg["sound_min_excess_db"]:
+        out.update(onset=None, note=f"nothing stands out of the bed (peak {peak:.1f} dB over the band background)")
         return out
-    s0 = p
-    while s0 > 0 and env[s0 - 1] >= env[p] - 20:
-        s0 -= 1
-    c = classify_sound(audio["y"], audio["sr"], float(et[p]) - 0.02, cfg)
-    out.update(onset={"time": round(float(et[s0]), 3), "peak_time": round(float(et[p]), 3), "basis": "MEASURED",
-                      "offset_from_moment_sec": round(float(et[s0]) - t, 3), "peak_dbfs": round(float(env[p]), 1), "prominence_db": round(prominence, 1)},
+    c = classify_sound(audio, p, cfg)
+    start = c["start"]
+    out.update(onset={"time": round(start * hop, 3), "peak_time": round(p * hop, 3), "basis": "MEASURED",
+                      "offset_from_moment_sec": round(start * hop - t, 3), "excess_db": round(peak, 1)},
                sound_class={"label": c["class"], "basis": "INFERRED", "features": c["features"],
-                            "support": round(min(cfg["max_inferred_support"], prominence / 40), 2)})
+                            "support": round(min(cfg["max_inferred_support"], peak / 24), 2)})
     return out
+
+
+def add_sound_only_moments(moments: list[dict], audio: dict, speech: list | None, cfg: dict) -> list[dict]:
+    """Strong foreground sounds with no visual event nearby (SFX on a text animation, a hit on a held shot)."""
+    if audio.get("status") != "measured":
+        return moments
+    hop, score = audio["hop_sec"], audio["score"]
+    taken = [(m["time"] - cfg["sound_before_sec"], m["time"] + cfg["sound_after_sec"]) for m in moments]
+    peaks = [i for i in range(1, len(score) - 1) if score[i] >= cfg["sound_only_min_excess_db"] and score[i] >= score[i - 1] and score[i] > score[i + 1]]
+    chosen: list[int] = []
+    for i in sorted(peaks, key=lambda i: -score[i]):
+        t = i * hop
+        if any(a <= t <= b for a, b in taken) or any(abs(t - j * hop) < 0.3 for j in chosen):
+            continue
+        if speech and any(a - 0.1 <= t <= b + 0.1 for a, b in speech):
+            continue  # sibilants and plosives live in the same bands; a voice is not an effect
+        chosen.append(i)
+    extra = []
+    for i in chosen:
+        m = {"start": round(i * hop, 3), "end": round(i * hop, 3), "time": round(i * hop, 3), "events": [], "sound_only": True,
+             "suggestion": {"recipe": None, "why": "a sound with no visual event: place it on the matching text or graphic animation", "cut": "none", "layers": []},
+             "review": "UNREVIEWED"}
+        m["sound"] = attach_sound(m, audio, cfg)
+        extra.append(m)
+    merged = sorted(moments + extra, key=lambda m: m["time"])
+    ids = {m["id"]: f"M{k:03d}" for k, m in enumerate(merged, 1) if "id" in m}
+    for k, m in enumerate(merged, 1):
+        m["id"] = f"M{k:03d}"
+        note = m["sound"].get("note", "")
+        if note.startswith("same sound as "):
+            m["sound"]["note"] = "same sound as " + ids.get(note[len("same sound as "):], note[len("same sound as "):])
+    return merged
 
 
 def review_strip(path: Path, moment: dict, fps: float, dest: Path) -> None:
@@ -715,6 +782,20 @@ def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshol
         if onset and speech is not None:
             onset["during_speech"] = any(a - 0.1 <= onset["peak_time"] <= b + 0.1 for a, b in speech)
         m["review"] = "UNREVIEWED"
+    # One sound belongs to one moment: the one nearest its peak. The others point at it.
+    # Overlapping windows can catch slightly different peaks of one sound, so a sound is keyed by where it starts.
+    owner: dict[float, dict] = {}
+    for m in moments:
+        o = m["sound"].get("onset")
+        if o and (o["time"] not in owner or abs(m["time"] - o["peak_time"]) < abs(owner[o["time"]]["time"] - owner[o["time"]]["sound"]["onset"]["peak_time"])):
+            owner[o["time"]] = m
+    for m in moments:
+        o = m["sound"].get("onset")
+        if o and owner[o["time"]] is not m:
+            m["sound"] = {"status": "measured", "onset": None, "riser_into_moment": m["sound"].get("riser_into_moment"),
+                          "note": f"same sound as {owner[o['time']]['id']}"}
+    moments = add_sound_only_moments(moments, audio, speech, cfg)
+    for m in moments:
         if strips:
             review_strip(video, m, fps, out_dir / "strips" / f"{m['id']}.jpg")
             m["strip"] = f"strips/{m['id']}.jpg"
@@ -749,7 +830,7 @@ def report(result: dict) -> str:
              "Every row comes from a detector. **MEASURED** = read from pixels or samples; **INFERRED** = a named effect recognised from those measurements by a stated rule. Look at each row's strip before trusting an INFERRED label.", "",
              "| time | what was detected | recreate in NarrativeOS | sound |", "|---|---|---|---|"]
     for m in result["moments"]:
-        what = []
+        what = [] if m["events"] else ["no visual event (sound only; check the strip for text or graphics)"]
         for e in m["events"]:
             ev = ", ".join(f"{k} {v}" for k, v in e["evidence"].items() if v is not None and k not in ("scdet_threshold", "threshold", "threshold_px_at_1920", "threshold_px_at_320", "window_sec"))
             what.append(f"{e['type'].replace('_', ' ')} ({e['basis']}{'; ' + ev if ev else ''})")
@@ -763,7 +844,7 @@ def report(result: dict) -> str:
             sound = snd.get("status", "")
         elif snd.get("onset"):
             o, c = snd["onset"], snd["sound_class"]
-            sound = f"{c['label']} (INFERRED) starting {_ts(o['time'])} ({o['offset_from_moment_sec']:+.2f} s), {o['prominence_db']} dB above what came before"
+            sound = f"{c['label']} (INFERRED) starting {_ts(o['time'])} ({o['offset_from_moment_sec']:+.2f} s), {o['excess_db']} dB out of the bed"
             if o.get("during_speech"):
                 sound += "; **during speech: may be the voice, not an effect**"
         else:

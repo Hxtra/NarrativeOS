@@ -27,6 +27,7 @@ HALFTONE = (7.0, 7.6)
 LEAK = (8.5, 9.3)       # warm light from the left, peak at 8.9; riser climbing into it
 HOLD = (10.0, 10.17)    # frame 300 held for 5 more frames while the shot pans
 ZOOM = (11.0, 11.2)     # 6 frames at +5 %/frame, then a cut
+SOUND_ONLY = 1.0       # a click with nothing on screen
 EFFECT_WINDOWS = [RGB_SPLIT, WHIP, GLITCH, HALFTONE, LEAK, HOLD, ZOOM]
 
 
@@ -93,8 +94,12 @@ def frames() -> list[np.ndarray]:
 def audio() -> np.ndarray:
     rng = np.random.default_rng(7)
     n = int(DURATION * SR)
-    y = rng.normal(0, 0.0005, n)  # a near-silent floor
     at = lambda t: int(t * SR)  # noqa: E731
+    # A steady chord bed under everything, like the music an edit's effects sit on: sounds must be found OUT of it.
+    tt_all = np.arange(n) / SR
+    y = 0.08 * sum(np.sin(2 * np.pi * f * tt_all) for f in (220.0, 277.2, 329.6, 440.0)) / 4 + rng.normal(0, 0.0005, n)
+    # click with no visual event: a sound-only moment
+    y[at(SOUND_ONLY) : at(SOUND_ONLY) + 110] += rng.normal(0, 0.5, 110)
     # click: 5 ms broadband burst
     y[at(3.0) : at(3.0) + 110] += rng.normal(0, 0.5, 110)
     # whoosh: band-passed noise swelling over 0.7 s, peaking at 4.0
@@ -217,6 +222,8 @@ def test_sounds_are_found_and_classified_by_their_shape(result):
     assert sound(GLITCH[0])["sound_class"]["label"] == "impact"
     assert sound(LEAK[0] + 0.3)["riser_into_moment"]["rise_db"] >= 8
     assert sound(CUT_1)["onset"] is None  # no sound was placed on the first cut
+    only = [m for m in res["moments"] if m.get("sound_only")]
+    assert len(only) == 1 and abs(only[0]["time"] - SOUND_ONLY) < 0.1 and only[0]["sound"]["sound_class"]["label"] == "click"
     for m in res["moments"]:
         if m["sound"].get("onset"):
             assert m["sound"]["onset"]["basis"] == "MEASURED" and m["sound"]["sound_class"]["basis"] == "INFERRED"
