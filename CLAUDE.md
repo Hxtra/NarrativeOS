@@ -175,8 +175,9 @@ audio policy preserve/mute/duck/replace, watermark-state guard) and
     (`ingest --provenance`): 38 Pixabay, 5 CC BY 3.0.
   - Four CC BY light leaks need on-screen credit (`vfx_ingest.py credits`).
   - 13 clips were rejected with reasons: green/blue screen, live-action
-    footage, full-frame backgrounds and inserts. They stay on record and are
-    never used. The full table is in `vfx-library/README.md`.
+    footage, full-frame backgrounds and inserts. They were then deleted by
+    the owner's decision (`purge-rejected`); `purged.json` keeps their
+    checksums so re-ingest skips them. The table is in `vfx-library/README.md`.
   - The peak search now keeps 0.5 s from clip edges. A white tail frame had
     made one glitch clip's overlay end exactly on the cut.
 - **Not yet ingested:** the History Time Travel particle PNG sequences (need

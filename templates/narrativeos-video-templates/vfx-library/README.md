@@ -34,6 +34,7 @@ python tools/vfx_ingest.py list
 python tools/vfx_ingest.py confirm vfx_dust_mono_001 --category graphic_elements
 python tools/vfx_ingest.py confirm vfx_scratches_mono_001 --blend multiply --reason "white film gate"
 python tools/vfx_ingest.py reject vfx_weather_cool_001 --reason "green screen; needs keying"
+python tools/vfx_ingest.py purge-rejected   # delete rejected clips; re-ingest skips their checksums
 
 # 3. Before release, print the on-screen credits the clips you used require.
 python tools/vfx_ingest.py credits vfx_light_leak_cool_001 vfx_dust_mono_002
@@ -117,7 +118,7 @@ The library now holds **35 confirmed clips** (these 30 plus the 5 above):
 
 **Credits owed (CC BY 3.0):** `light_leak_cool_001`, `light_leak_neutral_001`, `light_leak_warm_003` and `light_leak_warm_004` (Wikimedia "Light Leaks … FREE FOOTAGE"). Run `credits` for the exact lines.
 
-**Rejected (kept on record, never resolved by recipes):**
+**Rejected, then deleted from the library on 2026-10-03** (`purge-rejected`). Their checksums and reasons are kept in `purged.json`, so re-ingesting the same folder skips them. The originals are still in the owner's download zip:
 
 | reason | ids |
 |---|---|

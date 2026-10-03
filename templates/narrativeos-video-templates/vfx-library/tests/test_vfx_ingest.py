@@ -169,3 +169,17 @@ def test_reanalyze_keeps_review_decisions(tmp_path):
     after = records(lib)["synthetic_leak_warm.mp4"]
     assert after["category_status"] == "confirmed" and after["analysis"]["recommended_blend"] == "add"
     assert abs(after["analysis"]["peak_frame"] - 45) <= 1
+
+
+def test_purge_deletes_rejected_clips_and_reingest_skips_them(tmp_path):
+    inbox, lib = tmp_path / "in", tmp_path / "lib"
+    make(inbox)
+    subprocess.run(INGEST + ["--library", str(lib), "ingest", str(inbox)], check=True)
+    rec = records(lib)["synthetic_flash.mp4"]
+    subprocess.run(INGEST + ["--library", str(lib), "reject", rec["id"], "--reason", "test"], check=True)
+    subprocess.run(INGEST + ["--library", str(lib), "purge-rejected"], check=True)
+    assert "synthetic_flash.mp4" not in records(lib)
+    assert not (lib / rec["library_path"]).exists() and not (lib / "metadata" / f"{rec['id']}.json").exists()
+    assert json.loads((lib / "purged.json").read_text())[rec["sha256"]]["reason"] == "test"
+    subprocess.run(INGEST + ["--library", str(lib), "ingest", str(inbox)], check=True)
+    assert "synthetic_flash.mp4" not in records(lib)

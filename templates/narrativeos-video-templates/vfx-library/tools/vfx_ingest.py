@@ -6,6 +6,7 @@ local NarrativeOS VFX library, which lives OUTSIDE the public repo.
     python vfx_ingest.py ingest <folder-of-downloads> [--provenance <dir of per-file JSON records>]
                                                        [--source-url URL --license TEXT --rights-status verified --notes TEXT]
     python vfx_ingest.py reject <asset-id> --reason TEXT
+    python vfx_ingest.py purge-rejected     # delete rejected clips; re-ingest skips them
     python vfx_ingest.py confirm <asset-id> [--category light_leak] [--blend multiply --reason TEXT]
     python vfx_ingest.py reanalyze [asset-id ...]   # re-measure, keeping review decisions
     python vfx_ingest.py credits [asset-id ...]     # attribution lines owed
@@ -309,6 +310,7 @@ def cmd_ingest(args) -> int:
         print(f"no video files found under {inbox}", file=sys.stderr)
         return 1
     known = {r["sha256"]: r["id"] for r in load_records(root)}
+    known.update({sha: f"purged {e['id']} ({e['reason']})" for sha, e in load_purged(root).items()})
     provenance = load_provenance(Path(args.provenance) if args.provenance else None)
     if args.provenance and not provenance:
         print(f"no provenance records with checksums found in {args.provenance}", file=sys.stderr)
@@ -420,6 +422,32 @@ def cmd_reanalyze(args) -> int:
     return 0
 
 
+PURGED_FILE = "purged.json"
+
+
+def load_purged(root: Path) -> dict[str, dict]:
+    """sha256 -> {id, original_filename, reason} for clips deleted from the library; ingest skips them."""
+    path = root / PURGED_FILE
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def cmd_purge_rejected(args) -> int:
+    """Delete rejected clips (file, contact sheet, record). Their checksums are kept so re-ingest skips them."""
+    root = library_root(args.library)
+    purged = load_purged(root)
+    rejected = [r for r in load_records(root) if r["category_status"] == "rejected"]
+    for rec in rejected:
+        purged[rec["sha256"]] = {"id": rec["id"], "original_filename": rec["original_filename"], "reason": rec.get("rejection_reason", "")}
+        for rel in (rec["library_path"], rec.get("contact_sheet"), f"metadata/{rec['id']}.json"):
+            if rel and (root / rel).is_file():
+                (root / rel).unlink()
+        print(f"deleted {rec['id']}: {rec.get('rejection_reason', '')}")
+    (root / PURGED_FILE).write_text(json.dumps(purged, indent=2) + "\n", encoding="utf-8")
+    rebuild_catalog(root)
+    print(f"purged {len(rejected)} rejected clips")
+    return 0
+
+
 def cmd_list(args) -> int:
     for r in load_records(library_root(args.library)):
         a = r["analysis"]
@@ -458,6 +486,7 @@ def main() -> int:
     p = sub.add_parser("credits", help="print attribution lines owed (all confirmed clips, or the given ids)")
     p.add_argument("ids", nargs="*")
     p.set_defaults(func=cmd_credits)
+    sub.add_parser("purge-rejected", help="delete rejected clips; their checksums are kept so re-ingest skips them").set_defaults(func=cmd_purge_rejected)
     p = sub.add_parser("reanalyze", help="re-measure clips (all, or the given ids), keeping review decisions")
     p.add_argument("ids", nargs="*")
     p.set_defaults(func=cmd_reanalyze)
