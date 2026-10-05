@@ -68,7 +68,7 @@ profile never enables them on its own. Cut rate alone is not evidence.
 ## Effect breakdown: every transition, effect and synced sound, with timestamps
 
 ```bash
-python -m style_intel breakdown reference.mp4 --out analysis/ref1_breakdown [--no-speech] [--no-strips]
+python -m style_intel breakdown reference.mp4 --out analysis/ref1_breakdown [--text] [--no-speech] [--no-strips]
 ```
 
 This answers the request usually handed to a multimodal model: "list every transition, effect and sound in this video with timestamps, and tell me how to recreate it". A Manus run of exactly that request later audited itself. Only metadata and cut points had been measured; every effect name, sound name and most timestamps were a model's unverifiable interpretation. Here every row comes from a detector that leaves numbers behind.
@@ -95,9 +95,12 @@ Every moment starts as `review: UNREVIEWED`.
 | sound at a moment | onset and peak MEASURED, class INFERRED | Effects sit on music that is often compressed flat; on the reference video overall loudness never moved more than a few dB. Each mel band is compared with its **own rolling 3 s median**, and what sticks out of the bed is the foreground. Detection: ≥ 6 dB across all bands, or ≥ 9 dB in the bands above 4 kHz (music leaves the top nearly empty). The class comes from the foreground: **click** (≤ 120 ms, broadband), **impact** (fast attack whose sub-200 Hz excess rings ≥ 150 ms), **whoosh** (slow attack, ≥ 30 % of bands, 0.2–2.5 s), **hit**, or unclassified. A **riser** is a ≥ 8 dB straight-line climb of energy above 2 kHz lasting ≥ 1 s into the moment. |
 | sound-only moment | as above | A strong foreground sound (≥ 8 dB) with no visual event, e.g. SFX on a text animation. Sounds overlapping speech are skipped. |
 | speech overlap | INFERRED | faster-whisper segment times (no text kept). A sound inside speech is flagged "may be the voice". |
+| on-screen text: what, where, size, colour, case | MEASURED | `typography.py`. RapidOCR runs locally (PaddleOCR models on onnxruntime): detection at 4 fps on native-resolution frames, recognition only when a box changes. Boxes are linked into one track per line (containment keeps a growing type-on title as one line); fragments OCR lost for a while are merged by text and position; start and end are bisected to the frame. Colour is the median of the text pixels on a settled frame. Text only in the first frames is labelled the export's **cover frame**. |
+| text in / out animation | appearance MEASURED, kind INFERRED | From the first and last second of each line: **type-on / type-off** (character count grows across readings that are *prefixes* of the line), **slide** (the box at the first legible frame vs. the settled box; a box clipped at the frame edge is measured by its free edge), **scale**, **tracking** (width per character at a steady height), **fade** (the text's edge energy rising over ≥ 3 frames), else **cut**. Readings that are *suffixes* mean the line entered from the side, so it is not typing. |
+| effects on the text | INFERRED | RGB split inside the text box at least 2× the whole frame's, or band tearing while the box as a whole holds still. Anything coinciding with a cut or a frame-wide effect is the frame's, not the text's. |
 
 **NOT_MEASURED, never guessed:**
-- typography (no OCR yet);
+- font family (size, weight, colour, case and spacing are measured; the typeface is not identified);
 - speed ramps;
 - what made a sound ("bird", "water", "shutter");
 - music vs. SFX (no source separation);
@@ -130,7 +133,9 @@ Every threshold is in `breakdown.BREAKDOWN_DEFAULTS`.
 **Limits:**
 - Effects not listed above are not detected, including masks and wipes, shape transitions, displacement other than horizontal bands, and camera shake.
 - In a music bed or under narration, the strongest foreground near a cut may be a note or a word: check the speech flag and listen. Many real-mix sounds stay `unclassified` because they match no shape rule; that is reported as-is, not guessed.
-- Text animation is not detected (no OCR), so its sound effects appear as sound-only moments.
+- On-screen text is **opt-in** (`--text`) because it is the slowest stage: about 4–6 s of analysis per second of video on this CPU (the 52 s reference took 225 s; `timing_sec` in the output). It needs RapidOCR (see `requirements.txt`); without `--text` or without RapidOCR, typography is reported NOT_MEASURED.
+- Very fast text pops shorter than one sample (0.25 s) can be missed. Spaced-out letters (wide tracking) may be read as separate fragments until they close up.
+- The breakdown stores the recognised on-screen text (it is needed to say what a title reads). `analyze` / Style DNA still stores none.
 - An effect laid over a cut into a very different shot can be hidden by the cut's own change.
 
 ## Tests
