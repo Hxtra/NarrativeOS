@@ -3,6 +3,14 @@ opencv-python-headless
 librosa
 soundfile
 faster-whisper  # optional: speech pace; the analyzer reports "not_measured" without it
+# optional: on-screen text in `breakdown` (reported NOT_MEASURED without it). rapidocr declares
+# opencv-python, which clashes with opencv-python-headless above, so install it without deps:
+#   pip install --no-deps rapidocr && pip install onnxruntime pyclipper shapely omegaconf colorlog
+onnxruntime
+pyclipper
+shapely
+omegaconf
+colorlog
 jsonschema      # tests / validation
 pytest
 # Also required on PATH: ffmpeg and ffprobe

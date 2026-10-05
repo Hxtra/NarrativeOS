@@ -35,6 +35,7 @@ import numpy as np
 
 from . import shots as shots_mod
 from . import speech as speech_mod
+from . import typography as typo_mod
 from .media import extract_audio, frame_at, probe, sha256
 from .profile import known_transitions
 
@@ -119,7 +120,11 @@ MEASUREMENTS = {
     "sound_onset": {"status": "MEASURED", "method": "strongest foreground peak near each moment: mel bands compared with their own rolling median, so effects over a compressed music bed still show; onset = where it rose above 20 % of that peak"},
     "sound_class": {"status": "INFERRED", "method": "rules on the foreground's envelope and spread: click, impact, whoosh, hit; riser = straight-line climb of energy above 2 kHz"},
     "speech_overlap": {"status": "INFERRED", "method": "faster-whisper speech segments (times only); a sound inside one may be the voice, not an effect"},
-    "typography": {"status": "NOT_MEASURED", "reason": "no OCR or text detector yet"},
+    "typography": {"status": "MEASURED", "method": "RapidOCR text detection and recognition on sampled frames, tracked over time; start and end refined to the frame"},
+    "text_in": {"status": "MEASURED", "method": "first frame a text line is detected; its animation (type-on, fade, slide, scale, tracking, cut) is INFERRED from per-frame signals"},
+    "text_out": {"status": "MEASURED", "method": "first frame a text line is gone; its animation is INFERRED like text_in"},
+    "text_effect": {"status": "INFERRED", "method": "red/blue split or band tearing measured inside the text box"},
+    "font_family": {"status": "NOT_MEASURED", "reason": "no font identification; size, weight (stroke/height), colour, case and spacing are measured"},
     "speed_ramp": {"status": "NOT_MEASURED", "reason": "needs optical-flow speed tracking within a shot"},
     "sound_identity": {"status": "NOT_MEASURED", "reason": "no sound-event classifier: 'bird', 'water' or 'shutter' cannot be told apart from 'click' or 'noise'"},
     "music_vs_sfx": {"status": "NOT_MEASURED", "reason": "no source separation; onsets in a music bed can be notes, not effects"},
@@ -155,6 +160,32 @@ def _runs(mask: np.ndarray, max_gap: int = 1) -> list[tuple[int, int]]:
     return [(a, b) for a, b in out]
 
 
+def _edges(channel: np.ndarray) -> np.ndarray:
+    c = cv2.GaussianBlur(channel.astype(np.float32), (0, 0), 1.0)
+    g = cv2.magnitude(cv2.Sobel(c, cv2.CV_32F, 1, 0), cv2.Sobel(c, cv2.CV_32F, 0, 1))
+    return cv2.normalize(g, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+
+
+def channel_misregistration(rgb_small: np.ndarray) -> dict:
+    """How far the blue channel's edges sit from the red channel's: dense optical flow between their edge maps.
+
+    Edge maps, not raw channels, so a red object on a green field is not a 'shift'. Flow, not a single
+    translation, so radial (lens-style) and warped splits are measured too. Median over the strongest edges."""
+    er, eb = _edges(rgb_small[..., 0]), _edges(rgb_small[..., 2])
+    flow = cv2.calcOpticalFlowFarneback(er, eb, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    g = np.maximum(er, eb)
+    mask = g >= max(8, int(np.percentile(g, 80)))
+    if mask.sum() < 50:
+        return {"rgb_mag": 0.0, "rgb_dx": 0.0, "rgb_dy": 0.0, "rgb_radial": 0.0}
+    fx, fy = flow[..., 0][mask], flow[..., 1][mask]
+    h, w = er.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    rx, ry = (xx - w / 2)[mask], (yy - h / 2)[mask]
+    radial = (fx * rx + fy * ry) / (np.hypot(rx, ry) + 1e-6)
+    return {"rgb_mag": float(np.median(np.hypot(fx, fy))), "rgb_dx": float(np.median(fx)), "rgb_dy": float(np.median(fy)),
+            "rgb_radial": float(np.median(radial))}
+
+
 class _FrameMeter:
     """Per-frame measurements, streamed so long videos never sit in memory."""
 
@@ -178,31 +209,6 @@ class _FrameMeter:
         self.angle = np.degrees(np.arctan2(fy, fx)) % 180
         self.orb = cv2.ORB_create(800)
         self.prev = None  # (gray_small_float, keypoints, descriptors)
-
-    @staticmethod
-    def _edges(channel: np.ndarray) -> np.ndarray:
-        c = cv2.GaussianBlur(channel.astype(np.float32), (0, 0), 1.0)
-        g = cv2.magnitude(cv2.Sobel(c, cv2.CV_32F, 1, 0), cv2.Sobel(c, cv2.CV_32F, 0, 1))
-        return cv2.normalize(g, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
-
-    def channel_misregistration(self, rgb_small: np.ndarray) -> dict:
-        """How far the blue channel's edges sit from the red channel's: dense optical flow between their edge maps.
-
-        Edge maps, not raw channels, so a red object on a green field is not a 'shift'. Flow, not a single
-        translation, so radial (lens-style) and warped splits are measured too. Median over the strongest edges."""
-        er, eb = self._edges(rgb_small[..., 0]), self._edges(rgb_small[..., 2])
-        flow = cv2.calcOpticalFlowFarneback(er, eb, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-        g = np.maximum(er, eb)
-        mask = g >= max(8, int(np.percentile(g, 80)))
-        if mask.sum() < 50:
-            return {"rgb_mag": 0.0, "rgb_dx": 0.0, "rgb_dy": 0.0, "rgb_radial": 0.0}
-        fx, fy = flow[..., 0][mask], flow[..., 1][mask]
-        h, w = er.shape
-        yy, xx = np.mgrid[0:h, 0:w]
-        rx, ry = (xx - w / 2)[mask], (yy - h / 2)[mask]
-        radial = (fx * rx + fy * ry) / (np.hypot(rx, ry) + 1e-6)
-        return {"rgb_mag": float(np.median(np.hypot(fx, fy))), "rgb_dx": float(np.median(fx)), "rgb_dy": float(np.median(fy)),
-                "rgb_radial": float(np.median(radial))}
 
     def measure(self, rgb: np.ndarray) -> dict:
         cfg = self.cfg
@@ -247,7 +253,7 @@ class _FrameMeter:
             out["halftone_dot_ratio"] = float(dots / max(cells, 1.0))
 
         small = cv2.resize(gray, self.motion_size, interpolation=cv2.INTER_AREA)
-        out.update(self.channel_misregistration(cv2.resize(rgb, self.motion_size, interpolation=cv2.INTER_AREA)))
+        out.update(channel_misregistration(cv2.resize(rgb, self.motion_size, interpolation=cv2.INTER_AREA)))
         sf = small.astype(np.float32)
         lap = cv2.Laplacian(sf, cv2.CV_32F)
         gx = cv2.Sobel(sf, cv2.CV_32F, 1, 0)
@@ -684,6 +690,9 @@ def suggest(moment: dict, recipes: set[str], fps: float) -> dict:
     if recipe is None:
         recipe, why = {"dissolve": ("crossfade_soft", "a plain dissolve"), "light": ("film_burn_passage", "a change through bright light"),
                        "dark": ("dip_to_black", "a change through black")}.get(gradual, ("hard_cut", "a clean cut") if cut == "hard" else (None, None))
+    if recipe is None and any(k.startswith("text_") for k in by):
+        lines = sorted({e["evidence"]["line"] for e in moment["events"] if e["type"].startswith("text_")})
+        recipe, why = None, f"a text animation: see On-screen text ({', '.join(lines)})"
     if recipe and recipe not in recipes:
         why = f"{why} (closest recipe '{recipe}' is not registered)"
         recipe = None
@@ -758,8 +767,35 @@ def review_strip(path: Path, moment: dict, fps: float, dest: Path) -> None:
         cv2.imwrite(str(dest), cv2.cvtColor(np.hstack([t[:h] for t in tiles]), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 85])
 
 
+def text_events(typo: dict, duration: float, frame_events: list[dict] | None = None, fps: float = 30.0) -> list[dict]:
+    """Text lines as moment events: in, out, and effects that hit them.
+
+    An effect measured in a text box that coincides with a cut or a frame-wide effect is the frame's, not the text's."""
+    frame_wide = [e for e in (frame_events or []) if e["type"] in ("hard_cut", "rgb_split", "glitch_tear", "flash_frame", "whip_pan", "zoom", "blur")]
+    ev = []
+    if typo.get("status") != "MEASURED":
+        return ev
+    for ln in typo["lines"]:
+        if ln.get("cover_frame"):
+            continue  # the export's thumbnail frame, not part of the edit
+        label = {"line": ln["id"], "text": ln["text"]}
+        if ln["start"] > 0.05:
+            ev.append({"type": "text_in", "basis": "MEASURED", "start": ln["start"], "end": ln["start"], "peak": ln["start"], "frames": 0,
+                       "evidence": {**label, "animation": "+".join(ln["in"]["kinds"])}})
+        if ln["end"] < duration - 0.05:
+            ev.append({"type": "text_out", "basis": "MEASURED", "start": ln["end"], "end": ln["end"], "peak": ln["end"], "frames": 0,
+                       "evidence": {**label, "animation": "+".join(ln["out"]["kinds"])}})
+        for fx in ln["effects"]:
+            if any(e["start"] - 1.5 / fps <= fx["end"] and fx["start"] <= e["end"] + 1.5 / fps for e in frame_wide):
+                fx["frame_wide"] = True
+                continue
+            ev.append({"type": "text_effect", "basis": "INFERRED", "start": fx["start"], "end": fx["end"], "peak": fx["peak"], "frames": fx["frames"],
+                       "evidence": {**label, "effect": fx["type"], **fx["evidence"]}})
+    return ev
+
+
 def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshold: float = 10.0, strips: bool = True,
-            with_speech: bool = True) -> dict:
+            with_speech: bool = True, with_text: bool = True) -> dict:
     cfg = {**BREAKDOWN_DEFAULTS, **(config or {})}
     src = probe(video)
     fps = src["fps"] or 30.0
@@ -768,7 +804,8 @@ def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshol
     transitions, cuts = _transition_events(video, fps, src["duration_sec"], cut_threshold)
     frames = measure_frames(video, src, cfg)
     effects = visual_events(frames, fps, cuts, cfg, fit_long_side(src, cfg["motion_long_side"]))
-    moments = group_moments(transitions + effects, cfg["moment_merge_sec"])
+    typo = typo_mod.analyze(video, src) if with_text else {"status": "NOT_MEASURED", "reason": "skipped (--no-text)"}
+    moments = group_moments(transitions + effects + text_events(typo, src["duration_sec"], transitions + effects, fps), cfg["moment_merge_sec"])
     audio = audio_events(video, cfg) if src["has_audio"] else {"status": "no_audio_track"}
     speech = speech_mod.spans(video) if with_speech and audio.get("status") == "measured" else None
     recipes = known_transitions()
@@ -803,9 +840,12 @@ def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshol
         "schema_version": 1,
         "source": {"file": video.name, "sha256": sha256(video), **src},
         "config": {k: list(v) if isinstance(v, tuple) else v for k, v in cfg.items()},
-        "measurements": MEASUREMENTS,
-        "not_measured": [k for k, v in MEASUREMENTS.items() if v["status"] == "NOT_MEASURED"],
+        "measurements": {**MEASUREMENTS, **({} if typo.get("status") == "MEASURED" else
+                                            {"typography": {"status": "NOT_MEASURED", "reason": typo.get("reason", "not run")}})},
+        "not_measured": [k for k, v in MEASUREMENTS.items() if v["status"] == "NOT_MEASURED" and not (k == "typography")]
+                        + (["typography"] if typo.get("status") != "MEASURED" else []),
         "frames_measured": len(frames),
+        "typography": typo,
         "speech_check": "not_run" if speech is None else {"segments": len(speech), "speech_sec": round(sum(b - a for a, b in speech), 1)},
         "moments": moments,
         "limitations": [
@@ -821,6 +861,53 @@ def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshol
 
 def _ts(t: float) -> str:
     return f"{int(t // 60):02d}:{t % 60:05.2f}"
+
+
+def _anim(a: dict) -> str:
+    ev = a.get("evidence", {})
+    bits = []
+    if "chars_per_sec" in ev:
+        bits.append(f"{ev['chars_per_sec']} chars/s")
+    if "slide_direction" in ev:
+        bits.append(f"moving {ev['slide_direction']} {ev['slide_frac']:.0%} of the frame")
+    if "edge_scale" in ev:
+        bits.append(f"{ev['edge_scale']:.0%} of final size at the edge")
+    if "tracking_from" in ev:
+        bits.append(f"letter spacing {ev['tracking_from']:.0%} of final")
+    if "energy_ramp_frames" in ev and "fade" in a["kinds"]:
+        bits.append(f"over {ev['energy_ramp_frames']} frames")
+    return "+".join(a["kinds"]) + (f" ({', '.join(bits)})" if bits else "")
+
+
+def text_report(typo: dict) -> list[str]:
+    if typo.get("status") != "MEASURED":
+        return ["", "## On-screen text", "", f"Not measured: {typo.get('reason', 'not run')}"]
+    by_id = {ln["id"]: ln for ln in typo["lines"]}
+    cover = [ln for ln in typo["lines"] if ln.get("cover_frame")]
+    out = ["", "## On-screen text", "",
+           "Text, position, size and colour are **MEASURED** by OCR. Animations and effects are **INFERRED** from per-frame signals inside the text box. The font family is not identified.", "",
+           "| time | text (block) | where, size, colour | in | out | effects on the text | template |", "|---|---|---|---|---|---|---|"]
+    if cover:
+        out.insert(-2, f"The first {cover[0]['end']:.2f} s is a cover (thumbnail) frame reading: {' / '.join(c['text'] for c in cover)}. It is not part of the edit.")
+        out.insert(-2, "")
+    for b in typo["blocks"]:
+        for i, lid in enumerate(b["lines"]):
+            ln = by_id[lid]
+            fx = "; ".join(f"{f['type'].replace('_', ' ')} at {_ts(f['peak'])}" for f in ln["effects"] if not f.get("frame_wide")) or "none"
+            tmpl = ""
+            if i == 0:
+                t = b["template"]
+                tmpl = (", ".join(f"`{c}`" for c in t["candidates"]) + f": {t['why']}") if t["candidates"] else t["why"]
+            style = f"{ln['region'].replace('_', ' ')}, {ln['height_frac']:.1%} of frame height, {ln.get('colour', '?')}"
+            if ln.get("uppercase"):
+                style += ", uppercase"
+            if ln["width_per_char_to_height"] >= 1.0:
+                style += ", wide letter spacing"
+            if ln.get("stroke_to_height") is not None:
+                style += f", stroke {ln['stroke_to_height']:.0%} of height"
+            name = f"{ln['text']}" + (f" ({b['id']})" if len(b["lines"]) > 1 else "")
+            out.append(f"| {_ts(ln['start'])}–{_ts(ln['end'])} | {name} | {style} | {_anim(ln['in'])} | {_anim(ln['out'])} | {fx} | {tmpl} |")
+    return out
 
 
 def report(result: dict) -> str:
@@ -853,6 +940,7 @@ def report(result: dict) -> str:
             sound += f"; riser into it (+{snd['riser_into_moment']['rise_db']} dB)"
         span = _ts(m["time"]) if m["end"] - m["start"] < 0.1 else f"{_ts(m['start'])}–{_ts(m['end'])}"
         lines.append(f"| {span} | {'<br>'.join(what)} | {rec} | {sound} |")
+    lines += text_report(result.get("typography") or {})
     lines += ["", "## Not measured", *[f"- **{k}**: {result['measurements'][k]['reason']}" for k in result["not_measured"]],
               "", "## Equivalent techniques (reference, not findings)",
               *[f"- **{k.replace('_', ' ')}**: {v[1]}" for k, v in TECHNIQUE.items()],

@@ -246,7 +246,7 @@ def test_outputs_are_reviewable_and_honest(result):
     assert (out / "breakdown.json").is_file() and "| time |" in (out / "breakdown.md").read_text(encoding="utf-8")
     for m in res["moments"]:
         assert m["review"] == "UNREVIEWED" and (out / m["strip"]).is_file()
-    assert {"typography", "speed_ramp", "sound_identity", "music_vs_sfx"} <= set(res["not_measured"])
+    assert {"font_family", "speed_ramp", "sound_identity", "music_vs_sfx"} <= set(res["not_measured"])
 
 
 def test_periodic_texture_is_not_a_glitch_or_halftone(tmp_path):
