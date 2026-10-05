@@ -68,7 +68,7 @@ profile never enables them on its own. Cut rate alone is not evidence.
 ## Effect breakdown: every transition, effect and synced sound, with timestamps
 
 ```bash
-python -m style_intel breakdown reference.mp4 --out analysis/ref1_breakdown [--no-speech] [--no-strips]
+python -m style_intel breakdown reference.mp4 --out analysis/ref1_breakdown [--text] [--no-speech] [--no-strips]
 ```
 
 This answers the request usually handed to a multimodal model: "list every transition, effect and sound in this video with timestamps, and tell me how to recreate it". A Manus run of exactly that request later audited itself. Only metadata and cut points had been measured; every effect name, sound name and most timestamps were a model's unverifiable interpretation. Here every row comes from a detector that leaves numbers behind.
@@ -133,7 +133,7 @@ Every threshold is in `breakdown.BREAKDOWN_DEFAULTS`.
 **Limits:**
 - Effects not listed above are not detected, including masks and wipes, shape transitions, displacement other than horizontal bands, and camera shake.
 - In a music bed or under narration, the strongest foreground near a cut may be a note or a word: check the speech flag and listen. Many real-mix sounds stay `unclassified` because they match no shape rule; that is reported as-is, not guessed.
-- On-screen text needs RapidOCR (see `requirements.txt`; without it typography is NOT_MEASURED). It is the slowest stage: about 4–6 s of analysis per second of video on this CPU (the 52 s reference took 225 s; `timing_sec` in the output). `--no-text` skips it.
+- On-screen text is **opt-in** (`--text`) because it is the slowest stage: about 4–6 s of analysis per second of video on this CPU (the 52 s reference took 225 s; `timing_sec` in the output). It needs RapidOCR (see `requirements.txt`); without `--text` or without RapidOCR, typography is reported NOT_MEASURED.
 - Very fast text pops shorter than one sample (0.25 s) can be missed. Spaced-out letters (wide tracking) may be read as separate fragments until they close up.
 - The breakdown stores the recognised on-screen text (it is needed to say what a title reads). `analyze` / Style DNA still stores none.
 - An effect laid over a cut into a very different shot can be hidden by the cut's own change.

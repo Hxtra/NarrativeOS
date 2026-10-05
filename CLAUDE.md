@@ -224,7 +224,7 @@ measured; everything else was a model's guess.
   CapCut template, 52 s). It found the cuts, both RGB-split montages, the
   halftone, the leaks, the dissolves and the sound effects. That run is what
   drove band-excess sound detection and flow-based RGB split.
-- **On-screen text (Oct 5, branch `breakdown-typography`):**
+- **On-screen text (Oct 5, PR #9; opt-in with `--text` because it is slow):**
   `style_intel/typography.py` runs RapidOCR locally (PaddleOCR models on
   onnxruntime).
   - Each line of text gets its timing, position, size, colour and case

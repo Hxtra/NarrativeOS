@@ -795,7 +795,7 @@ def text_events(typo: dict, duration: float, frame_events: list[dict] | None = N
 
 
 def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshold: float = 10.0, strips: bool = True,
-            with_speech: bool = True, with_text: bool = True) -> dict:
+            with_speech: bool = True, with_text: bool = False) -> dict:
     cfg = {**BREAKDOWN_DEFAULTS, **(config or {})}
     src = probe(video)
     fps = src["fps"] or 30.0
@@ -804,7 +804,7 @@ def analyze(video: Path, out_dir: Path, config: dict | None = None, cut_threshol
     transitions, cuts = _transition_events(video, fps, src["duration_sec"], cut_threshold)
     frames = measure_frames(video, src, cfg)
     effects = visual_events(frames, fps, cuts, cfg, fit_long_side(src, cfg["motion_long_side"]))
-    typo = typo_mod.analyze(video, src) if with_text else {"status": "NOT_MEASURED", "reason": "skipped (--no-text)"}
+    typo = typo_mod.analyze(video, src) if with_text else {"status": "NOT_MEASURED", "reason": "not run (opt in with --text; it is the slow stage)"}
     moments = group_moments(transitions + effects + text_events(typo, src["duration_sec"], transitions + effects, fps), cfg["moment_merge_sec"])
     audio = audio_events(video, cfg) if src["has_audio"] else {"status": "no_audio_track"}
     speech = speech_mod.spans(video) if with_speech and audio.get("status") == "measured" else None

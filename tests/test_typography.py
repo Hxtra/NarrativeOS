@@ -156,7 +156,7 @@ def test_effects_on_the_text_not_the_frame(typo):
 
 def test_breakdown_reports_text_moments(typo, tmp_path):
     _, video = typo
-    res = breakdown.analyze(video, tmp_path / "out", strips=False, with_speech=False)
+    res = breakdown.analyze(video, tmp_path / "out", strips=False, with_speech=False, with_text=True)
     ins = [e for m in res["moments"] for e in m["events"] if e["type"] == "text_in"]
     assert any(typography.similar(e["evidence"]["text"], SLIDE[0]) >= 0.8 and "slide" in e["evidence"]["animation"] for e in ins)
     assert "typography" not in res["not_measured"] and "font_family" in res["not_measured"]

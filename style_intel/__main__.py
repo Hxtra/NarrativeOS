@@ -55,7 +55,7 @@ def main() -> int:
     b.add_argument("--cut-threshold", type=float, default=10.0)
     b.add_argument("--no-strips", action="store_true", help="skip the per-moment review strips")
     b.add_argument("--no-speech", action="store_true", help="skip the Whisper pass that flags sounds overlapping speech")
-    b.add_argument("--no-text", action="store_true", help="skip the OCR pass for on-screen text and its animations")
+    b.add_argument("--text", action="store_true", help="also read on-screen text and its animations (OCR; slow: ~4-6 s per second of video)")
     args = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -64,7 +64,7 @@ def main() -> int:
         if not args.video.is_file():
             print(f"no such file: {args.video}", file=sys.stderr)
             return 1
-        result = breakdown_mod.analyze(args.video.resolve(), args.out, cut_threshold=args.cut_threshold, strips=not args.no_strips, with_speech=not args.no_speech, with_text=not args.no_text)
+        result = breakdown_mod.analyze(args.video.resolve(), args.out, cut_threshold=args.cut_threshold, strips=not args.no_strips, with_speech=not args.no_speech, with_text=args.text)
         print(breakdown_mod.report(result))
         return 0
 
