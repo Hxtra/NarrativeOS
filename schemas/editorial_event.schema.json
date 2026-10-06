@@ -13,7 +13,7 @@
         "required": ["event_id", "type", "purpose", "timing", "affected_objects"],
         "properties": {
           "event_id": {"type": "string"},
-          "type": {"enum": ["REVEAL", "EMPHASIZE", "CUT", "HOLD", "ANTICIPATE", "J_CUT", "L_CUT"]},
+          "type": {"enum": ["REVEAL", "EMPHASIZE", "CUT", "HOLD", "ANTICIPATE", "J_CUT", "L_CUT", "MOTION", "TRANSITION", "NO_OP"]},
           "status": {"enum": ["proposed", "approved", "compiled", "blocked"]},
           "purpose": {"type": "string"},
           "beat_id": {"type": "string"},

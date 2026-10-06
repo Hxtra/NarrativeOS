@@ -44,7 +44,7 @@ Use `director_brain.py` for intent detection, director strategy, emotional arcs,
 
 Use `research_workspace.py` to initialize persistent research memory and `detect_contradictions.py` to flag conflicting source claims. NotebookLM, native RAG, and other research systems are provider adapters; unified evidence remains the source of truth.
 
-Use `timeline_ir.py` for renderer-independent editorial structure. Use `cost_router.py` before expensive operations. Use `creative_memory.py` for A/B edit metadata and explicit user taste preferences.
+Use `timeline_ir.py` for renderer-independent editorial structure. Use `cost_router.py` before expensive operations. Use `channel.py` for versioned channel profiles (pinned per project), `creative_memory.py` for accepted/rejected/corrected decisions with reasons (rules only by explicit promote), `controller.py --graph/--pause/--revise` for the visible production graph, and `publish_package.py` + `repetition_guard.py` + `publish_youtube.py` (dry run) before release. See `references/channel-operations.md`.
 
 Run the integration milestone with:
 

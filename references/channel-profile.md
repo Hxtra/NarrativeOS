@@ -1,5 +1,7 @@
 # Channel Profile Pattern
 
+Implemented by `scripts/channel.py` (schema: `schemas/channel_profile.schema.json`); see `references/channel-operations.md`.
+
 Treat a channel master prompt as a versioned production constitution, not a renderer prompt. Keep these fields configurable:
 
 ```json
