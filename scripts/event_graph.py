@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse, json
 from pathlib import Path
 from copy import deepcopy
-ALLOWED={"REVEAL","EMPHASIZE","CUT","HOLD","ANTICIPATE","J_CUT","L_CUT","MOTION","TRANSITION"}
+ALLOWED={"REVEAL","EMPHASIZE","CUT","HOLD","ANTICIPATE","J_CUT","L_CUT","MOTION","TRANSITION","NO_OP"}
 MOTION_KINDS={"push_in","pull_out"}
 
 
@@ -117,7 +117,8 @@ def compile_graph(graph:dict)->dict:
                     shot["native_audio_execution"] = "ir_only_renderer_pending"
             else:
                 marker = {"event_id": e["event_id"], "type": e["type"], "start": e["timing"]["start"],
-                          "end": e["timing"]["start"] + e["timing"]["duration"], "purpose": e["purpose"], "execution": "review_marker_only"}
+                          "end": e["timing"]["start"] + e["timing"]["duration"], "purpose": e["purpose"],
+                          "execution": "deliberate_no_op" if e["type"] == "NO_OP" else "review_marker_only"}
                 for payload in ("motion", "transition", "source"):
                     if payload in e:
                         marker[payload] = deepcopy(e[payload])

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/channel_profile.schema.json",
+  "title": "NarrativeOS channel profile (one immutable version)",
+  "type": "object",
+  "required": ["schema_version", "channel_id", "profile_version", "identity", "narrative", "voice", "visual", "editing", "audio", "captions", "packaging", "publishing", "qa", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "channel_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+    "profile_version": {"type": "integer", "minimum": 1},
+    "parent_version": {"type": ["integer", "null"]},
+    "change_reason": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string"},
+    "profile_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "required": ["name", "niche", "language", "production_profile"],
+      "properties": {
+        "name": {"type": "string"},
+        "niche": {"type": "string"},
+        "audience_promise": {"type": "string", "description": "What a viewer can count on from every video."},
+        "language": {"type": "string"},
+        "production_profile": {"type": "string", "description": "documentary, news, gaming, podcast_clip, travel, short_form ... (general-purpose engine)"},
+        "cadence": {"type": "object", "properties": {"videos_per_week": {"type": ["number", "null"], "minimum": 0}}}
+      }
+    },
+    "narrative": {"type": "object", "properties": {
+      "hook_seconds": {"type": ["number", "null"], "minimum": 0},
+      "pattern_interrupt_interval_sec": {"type": ["number", "null"], "minimum": 0},
+      "voice_rules": {"type": "array", "items": {"type": "string"}},
+      "structure": {"type": "string"}}},
+    "voice": {"type": "object", "description": "Provider-agnostic: no vendor is assumed.", "properties": {
+      "provider": {"type": ["string", "null"]}, "voice_id": {"type": ["string", "null"]}, "style": {"type": "string"},
+      "words_per_minute": {"type": ["number", "null"], "minimum": 0}}},
+    "visual": {"type": "object", "properties": {
+      "style_profile": {"type": "string"}, "aspect_ratio": {"enum": ["16:9", "9:16", "1:1", "4:5"]},
+      "visual_grammar": {"type": "array", "items": {"type": "string"}}, "forbidden": {"type": "array", "items": {"type": "string"}}}},
+    "editing": {"type": "object", "properties": {
+      "allowed_transitions": {"type": "array", "items": {"type": "string"}},
+      "target_shot_sec": {"type": ["number", "null"], "minimum": 0},
+      "vfx_density": {"enum": [null, "minimal", "subtle", "medium", "bold"]}}},
+    "audio": {"type": "object", "properties": {
+      "music_policy": {"type": "string"}, "ducking_db": {"type": "number", "maximum": 0}, "beat_sync": {"type": "boolean"}}},
+    "captions": {"type": "object", "properties": {"style": {"type": "string"}, "safe_area": {"type": "boolean"}}},
+    "packaging": {"type": "object", "properties": {
+      "title_max_chars": {"type": "integer", "minimum": 10, "maximum": 100},
+      "title_rules": {"type": "array", "items": {"type": "string"}},
+      "thumbnail_rules": {"type": "array", "items": {"type": "string"}},
+      "description_template": {"type": "string"}}},
+    "publishing": {"type": "object", "properties": {
+      "platform": {"enum": ["youtube", "none"]},
+      "default_privacy": {"enum": ["private", "unlisted", "public"]},
+      "synthetic_media_disclosure": {"enum": ["from_provenance", "always", "never_without_review"]}}},
+    "qa": {"type": "object", "properties": {
+      "required_checks": {"type": "array", "items": {"type": "string"}},
+      "repetition_max_similarity": {"type": "number", "minimum": 0, "maximum": 1}}},
+    "rules": {
+      "type": "array",
+      "description": "Channel rules, only ever created by an explicit promote from several consistent creative-memory decisions.",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "stage", "source_decisions", "promoted_at"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^R[0-9]{3,}$"},
+          "text": {"type": "string", "minLength": 1},
+          "stage": {"type": "string"},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "source_decisions": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+          "promoted_at": {"type": "string"}
+        }
+      }
+    },
+    "status": {"type": "string"},
+    "pinned_at": {"type": "string"},
+    "pin": {"type": "object"}
+  }
+}

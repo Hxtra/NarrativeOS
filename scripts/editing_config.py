@@ -22,6 +22,10 @@ DIRECTOR_DEFAULTS = {
     "allowed_transitions": ["hard_cut"],  # recipe ids; from a Style DNA (measured) or the profile
     "audio_overlap": {"mode": "none", "offset_sec": 0.0},  # J/L-cuts: mode none | j_cut | l_cut
     "max_audio_overlap_sec": 2.0,
+    # Restraint is a decision too: a strong musical event nothing acted on is recorded as NO_OP, with why.
+    "explain_no_ops": True,
+    "no_op_event_types": ["IMPACT_CANDIDATE", "SECTION_CANDIDATE", "BREAKDOWN_CANDIDATE"],
+    "no_op_min_confidence": 0.4,
 }
 
 SPEECH_DEFAULTS = {

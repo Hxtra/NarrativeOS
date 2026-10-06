@@ -64,7 +64,10 @@ def test_reveal_prefers_the_impact_over_a_closer_onset():
 def test_impact_inside_a_shot_is_emphasized_not_cut():
     hit = {"event_id": "M1", "type": "IMPACT_CANDIDATE", "start": 6.5, "confidence": 0.6}
     off = plan_edit(timeline(), music(hit), {"editing": {}})
-    assert off["events"] == []  # accents are opt-in per style
+    # Accents are opt-in per style, and the restraint is explicit: a NO_OP that says why nothing happened.
+    assert [e["type"] for e in off["events"]] == ["NO_OP"]
+    assert "accent_action is none" in off["events"][0]["purpose"] and off["events"][0]["evidence_refs"] == ["M1"]
+    assert validate(off) == [] and compile_graph(off)["markers"][0]["execution"] == "deliberate_no_op"
     graph = plan_edit(timeline(), music(hit), {"editing": {"accent_action": "emphasize"}})
     assert [(e["type"], e["affected_objects"], e["timing"]["start"]) for e in graph["events"]] == [("EMPHASIZE", ["SHOT_2"], 6.5)]
     assert validate(graph) == []
@@ -73,7 +76,8 @@ def test_impact_inside_a_shot_is_emphasized_not_cut():
     assert compiled["markers"][0]["type"] == "EMPHASIZE"
     pause = {"event_id": "S1", "type": "SPEECH_PAUSE", "start": 6.0, "end": 7.0, "preserve": True}
     quiet = plan_edit(timeline(), {**music(hit), "speech": {"events": [pause]}}, {"editing": {"accent_action": "emphasize"}})
-    assert quiet["events"] == []  # never punch through a meaningful pause
+    # Never punch through a meaningful pause, and say that was the reason.
+    assert [e["type"] for e in quiet["events"]] == ["NO_OP"] and "protected speech pause" in quiet["events"][0]["purpose"]
 
 
 # --- J/L-cuts ---------------------------------------------------------------------------

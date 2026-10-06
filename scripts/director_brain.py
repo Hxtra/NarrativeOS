@@ -7,7 +7,7 @@ from copy import deepcopy
 
 
 # What a musical event may turn into. A beat is never automatically a CUT.
-EVENT_ACTIONS = {"CUT", "HOLD", "ANTICIPATE", "REVEAL", "EMPHASIZE", "MOTION", "TRANSITION", "J_CUT", "L_CUT"}
+EVENT_ACTIONS = {"CUT", "HOLD", "ANTICIPATE", "REVEAL", "EMPHASIZE", "MOTION", "TRANSITION", "J_CUT", "L_CUT", "NO_OP"}
 
 # Energy change at a cut -> transition families, most preferred first. Only recipes the style allows are used,
 # and with a Style DNA those are the transitions the reference measurably used (style_intel.profile.choose_transitions).
@@ -48,6 +48,7 @@ def plan_edit(timeline: dict, perception: dict, style: dict, director: dict | No
     _motions(graph, shots, music, cfg)
     _accents(graph, shots, music, pauses, cfg)
     _audio_overlaps(graph, shots, cfg)
+    _no_ops(graph, shots, music, pauses, cfg)
     if mode == "model_assisted":
         _model_proposals(graph, director["provider"], perception)
     return graph
@@ -160,6 +161,40 @@ def _accents(graph: dict, shots: list[dict], music: list[dict], pauses: list[dic
                                 "purpose": "Musical impact inside a held shot: emphasize (punch-in, flash or text) instead of cutting; listening review required.",
                                 "timing": {"start": t, "duration": min(cfg["emphasize_sec"], float(shot["end"]) - t)},
                                 "affected_objects": [shot["shot_id"]], "evidence_refs": [hit["event_id"]]})
+
+
+def _no_ops(graph: dict, shots: list[dict], music: list[dict], pauses: list[dict], cfg: dict) -> None:
+    """A strong musical event that no rule acted on is recorded as NO_OP with the reasons, so restraint is
+    visible and reviewable instead of silent. The reasons come from the actual settings, never invented."""
+    if not cfg["explain_no_ops"] or not shots:
+        return
+    used = {ref for e in graph["events"] for ref in e.get("evidence_refs", [])}
+    boundaries = [float(s["start"]) for s in shots[1:]]
+    for ev in music:
+        if ev["type"] not in cfg["no_op_event_types"] or ev["event_id"] in used or ev.get("confidence", 0) < cfg["no_op_min_confidence"]:
+            continue
+        t = float(ev["start"])
+        shot = next((s for s in shots if float(s["start"]) <= t < float(s["end"])), shots[-1])
+        near_cut = any(abs(t - b) <= cfg["snap_window_sec"] for b in boundaries)
+        why = []
+        if any(p["start"] <= t <= p["end"] for p in pauses):
+            why.append("it falls in a protected speech pause")
+        if near_cut and cfg["rhythm_mode"] == "free":
+            why.append("rhythm_mode is free: existing cuts are not moved onto music")
+        if near_cut and cfg["transition_policy"] == "none" and ev["type"] != "IMPACT_CANDIDATE":
+            why.append("transition_policy is none: energy changes at cuts are not marked")
+        if not near_cut:
+            why.append(f"no cut within {cfg['snap_window_sec']} s, and a cut is not invented where the story has none")
+            if ev["type"] == "IMPACT_CANDIDATE" and cfg["accent_action"] == "none":
+                why.append("accent_action is none: impacts inside a shot are not emphasized")
+            if ev["type"] != "IMPACT_CANDIDATE" and cfg["build_motion"] == "none":
+                why.append("build_motion is none: energy changes inside a shot do not drive camera motion")
+        if not why:
+            why.append("no rule's conditions were met (see director_config)")
+        graph["events"].append({"event_id": _next_id(graph), "type": "NO_OP", "status": "proposed",
+                                "purpose": "Considered and deliberately not acted on: " + "; ".join(why) + ".",
+                                "timing": {"start": t, "duration": 0.1}, "affected_objects": [shot["shot_id"]],
+                                "evidence_refs": [ev["event_id"]], "considered": {"music_event": ev["type"], "reasons": why}})
 
 
 def _audio_overlaps(graph: dict, shots: list[dict], cfg: dict) -> None:
