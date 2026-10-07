@@ -19,7 +19,8 @@ const GROUPS = [
   ["QA", ["EDITORIAL_ANALYSIS", "EDITORIAL_REPAIR", "COST_REVIEW", "VARIANT_BUILD", "THUMBNAIL", "PREVIEW_RENDER", "TECHNICAL_QA", "EDITORIAL_QA", "TARGETED_REVISION"]],
   ["Publish", ["FINAL_RENDER", "DELIVERY_REVIEW", "PUBLISH", "COMPLETE"]],
 ];
-const LANE_H = { video: 66, overlay: 34, caption: 34, audio: 48 };
+const LANE_H = { video: 66, overlay: 34, caption: 34, audio: 48 };   // comfortable heights
+const LANE_MIN = { video: 44, overlay: 26, caption: 26, audio: 34 };  // still readable when space is short
 const ICONS = {
   check: '<svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   warn: '<svg viewBox="0 0 16 16"><path d="M8 3.5v5.5M8 12v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
@@ -457,18 +458,37 @@ function niceStep(z) { for (const s of [0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 
 function fitZoom() {
   const tot = total(), w = $("lanes").clientWidth;
   if (!tot || !w) return;
-  S.zoom = Math.max(4, Math.min(220, (w - 30) / tot));
+  S.zoom = Math.max(4, Math.min(220, (w - 40) / tot));
   $("zoom").value = String(Math.round(S.zoom));
   S.fit = false;
 }
-function laneH(t) { return LANE_H[t.kind] || 40; }
+function laneH(t) {
+  const full = LANE_H[t.kind] || 40, min = LANE_MIN[t.kind] || 26;
+  return Math.round(min + (full - min) * (S.laneK ?? 1));
+}
+// The timeline panel takes the height its tracks need (up to 45% of the window), unless the user dragged it;
+// when that is not enough, lanes shrink toward their minimum so every track stays in view without scrolling.
+function fitTimelineHeight() {
+  const ts = tracks();
+  const chrome = ($("timeline").querySelector(".tl-bar").offsetHeight || 45) + 30 + 14;  // bar + ruler + scrollbar/borders
+  const full = ts.reduce((a, t) => a + (LANE_H[t.kind] || 40), 0), min = ts.reduce((a, t) => a + (LANE_MIN[t.kind] || 26), 0);
+  let tlH;
+  if (S.userTl) tlH = $("timeline").getBoundingClientRect().height;
+  else {
+    tlH = Math.max(170, Math.min(chrome + full, Math.round(window.innerHeight * 0.45)));
+    document.documentElement.style.setProperty("--tl-h", `${tlH}px`);
+  }
+  const avail = tlH - chrome;
+  S.laneK = full <= avail ? 1 : full > min ? Math.max(0, (avail - min) / (full - min)) : 1;
+}
 function renderTimeline() {
   const d = S.data, inner = $("inner"), heads = $("heads");
   const vs = (d.versions || []);
   $("tlSource").textContent = d.timeline ? `${d.timeline_source}${vs.length ? ` · ${vs[vs.length - 1].replace(".json", "")}` : ""}` : "no timeline";
   if (!d.timeline) { put(inner, h("div", { class: "tl-empty" }, "No timeline yet.")); put(heads); return; }
+  fitTimelineHeight();
   const z = S.zoom, tot = Math.max(total(), 1);
-  inner.style.width = `${tot * z + 80}px`;
+  inner.style.width = `${tot * z + 30}px`;
   inner.classList.toggle("has-ghost", !!S.ghost);
   $("ghostLegend").hidden = !S.ghost;
   // ruler
@@ -1089,10 +1109,16 @@ function wire() {
     e.preventDefault();
     const y0 = e.clientY, h0 = $("timeline").getBoundingClientRect().height;
     const mv = (ev) => { const v = Math.max(170, Math.min(window.innerHeight * 0.66, h0 + (y0 - ev.clientY))); document.documentElement.style.setProperty("--tl-h", `${v}px`); };
-    const up = () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); try { localStorage.setItem("nos_tl_h", getComputedStyle(document.documentElement).getPropertyValue("--tl-h")); } catch (_) { /* unavailable */ } };
+    const up = () => {
+      window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up);
+      S.userTl = true; renderTimeline();
+      try { localStorage.setItem("nos_tl_h", getComputedStyle(document.documentElement).getPropertyValue("--tl-h")); } catch (_) { /* unavailable */ }
+    };
     window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up);
   };
-  try { const v = localStorage.getItem("nos_tl_h"); if (v) document.documentElement.style.setProperty("--tl-h", v); } catch (_) { /* unavailable */ }
+  rz.ondblclick = () => { S.userTl = false; try { localStorage.removeItem("nos_tl_h"); } catch (_) { /* unavailable */ } renderTimeline(); };
+  rz.title = "Drag to resize · double-click to fit the tracks";
+  try { const v = localStorage.getItem("nos_tl_h"); if (v) { document.documentElement.style.setProperty("--tl-h", v); S.userTl = true; } } catch (_) { /* unavailable */ }
   document.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); $("palette").hidden ? openPalette() : closePalette(); return; }
