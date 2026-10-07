@@ -265,6 +265,26 @@ owner's Hermes research).** See `references/timeline-compiler.md`.
 - `render_ffmpeg.py` now wraps it, so nothing is stitched anymore. Remotion
   TransitionStack recipes are listed as `unrendered`, not faked.
 
+**NarrativeOS Studio (Oct 7, branch `studio`, stacked on `multitrack-compiler`).**
+The owner asked for a live screen so the system "does not feel dead", where
+they can type corrections ("change this part"). It must not reduce what
+NarrativeOS can do. It is a layer on top, and the gates are unchanged.
+- **Run:** `python timeline-editor/run_studio.py --projects <dir>`. It is
+  vanilla JS in `timeline-editor/studio/`, plus `timeline-editor/server/studio.py`.
+- **Live view:** pipeline graph, multi-track timeline with thumbnails, preview
+  player, shots/assets/versions, inspector and activity feed. It polls with an
+  etag.
+- **Corrections:** `scripts/edit_patch.py` turns plain words into typed
+  operations: duration, pace over a range, remove, transition, gain, motion,
+  text, replace, move, add.
+  - Rules first; the reasoning provider (task `propose_edit_patch`) is a
+    fallback only.
+  - The user sees the diff and validation before Apply.
+  - Apply writes `timeline_v3.json` plus `timeline_versions/vNNN.json`, then
+    re-renders the preview with live progress. Undo is available.
+- **Never written:** approved timelines.
+- **Tests:** `tests/test_edit_patch.py` and `timeline-editor/tests/test_studio.py`.
+
 **Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
 completed on branch `editorial-intelligence-completion`).** Exact status
 tables are in `references/perception-and-rhythm.md` and

@@ -687,6 +687,25 @@ async def timeline_websocket(websocket: WebSocket, project_id: str):
         await unregister_connection(project_id, websocket)
 
 
+# ---------------------------------------------------------------------------
+# NarrativeOS Studio: the live editor UI and its typed-patch assistant (server/studio.py, studio/)
+# ---------------------------------------------------------------------------
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fastapi.responses import RedirectResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+from studio import router as studio_router  # noqa: E402
+
+app.include_router(studio_router)
+STUDIO_UI = Path(__file__).resolve().parents[1] / "studio"
+if STUDIO_UI.is_dir():
+    app.mount("/studio", StaticFiles(directory=str(STUDIO_UI), html=True), name="studio")
+
+
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    return RedirectResponse("/studio/")
+
+
 if __name__ == "__main__":
     import uvicorn
 

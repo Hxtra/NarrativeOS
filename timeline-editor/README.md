@@ -17,6 +17,47 @@ The API enforces `state.json.current_stage == "EDITORIAL_QA"` for writes.
 The component's `editingEnabled` prop controls the UI affordance, but is not
 the security boundary.
 
+## NarrativeOS Studio (live editor UI)
+
+`studio/` (static HTML/CSS/JS, no build step) and `server/studio.py` (mounted at
+`/api/studio`) add a live window onto a project, plus an assistant you can
+type corrections to. It is a layer on top of the pipeline. It removes nothing
+and bypasses no gate.
+
+```bash
+python timeline-editor/run_studio.py --projects <folder of projects> [--port 8420] [--no-browser]
+# opens http://127.0.0.1:8420/studio/
+```
+
+- **Live view.** Shows the production graph (`controller.graph_data`), the
+  multi-track timeline (`timeline_v3.json`, or one converted in memory from
+  `timeline.json`), thumbnails, assets, evidence links, the render state and
+  the event log. It polls every 1.5 s with an etag, so a running pipeline
+  shows up as it happens.
+- **Change this part.** Click a clip, or drag on the ruler to select a
+  stretch, then type into the AI Assistant tab, e.g. "make this faster", "dip
+  to black here", "music down 6 dB", `change the caption to "…"`.
+  - The request becomes a typed edit patch (`scripts/edit_patch.py`): rules
+    first, then an optional reasoning provider (`studio_provider.json` in the
+    project, or `NARRATIVEOS_REASONING_PROVIDER`; command type only).
+  - The assistant shows the diff and the compiler's validation. Nothing
+    changes until you press Apply.
+  - A patch that does not validate is shown but cannot be applied. A patch
+    proposed before another edit landed is refused (409), not merged.
+- **Apply** writes a new version (`timeline_versions/vNNN.json`, where `v001`
+  is the starting point) and `timeline_v3.json`, then logs the event. If the
+  project is pinned to a channel, it also records the correction in creative
+  memory. It then re-renders `renders/preview.mp4` in the background, with live
+  FFmpeg progress.
+- **Undo** restores the previous version. The undone file is kept as
+  `vNNN.undone.json`, and version numbers are never reused.
+- **Never written:** the approved `timeline.json` and `timeline_ir.json`.
+  The controller's gates still decide what ships.
+
+Tests: `timeline-editor/tests/test_studio.py` covers the payload, thumbnails,
+propose/apply/render/undo, validation refusal, stale-patch refusal and
+unclear requests. Real FFmpeg renders run on synthetic clips.
+
 ## What was actually verified before this was written
 
 Both known NarrativeOS project shapes were inspected by running the real

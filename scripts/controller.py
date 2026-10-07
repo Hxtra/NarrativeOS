@@ -251,7 +251,15 @@ def revise(project, stage, reason):
 
 
 def graph(project):
-    """Every stage as a node: status, artifacts with hashes, evidence, revisions, what it feeds."""
+    """Write production_graph.json and print the counts."""
+    out = graph_data(project)
+    save_json(project / "production_graph.json", out)
+    print(json.dumps({"counts": out["counts"], "paused": out["paused"], "stale": sorted(n["stage"] for n in out["nodes"] if n["status"] == "stale")}, indent=2))
+    return 0
+
+
+def graph_data(project):
+    """Every stage as a node: status, artifacts with hashes, evidence, revisions, what it feeds. Read-only."""
     state = load_json(project / "state.json", {})
     completed = state.get("completed_stages", [])
     records = state.get("stage_records", {})
@@ -275,11 +283,8 @@ def graph(project):
                       "stale": stale.get(stage), "blocking": [f for f in findings if f.get("stage") == stage],
                       "revisions": [r for r in state.get("revisions", []) if r["stage"] == stage],
                       "inputs_from": direct_in, "feeds": direct_out})
-    out = {"schema_version": 1, "generated_at": now(), "paused": state.get("paused"), "current_stage": state.get("current_stage"),
-           "counts": {k: sum(n["status"] == k for n in nodes) for k in ("passed", "stale", "blocked", "current", "pending")}, "nodes": nodes}
-    save_json(project / "production_graph.json", out)
-    print(json.dumps({"counts": out["counts"], "paused": out["paused"], "stale": sorted(stale)}, indent=2))
-    return 0
+    return {"schema_version": 1, "generated_at": now(), "paused": state.get("paused"), "current_stage": state.get("current_stage"),
+            "counts": {k: sum(n["status"] == k for n in nodes) for k in ("passed", "stale", "blocked", "current", "pending")}, "nodes": nodes}
 
 
 def direct_in_of(stage):
