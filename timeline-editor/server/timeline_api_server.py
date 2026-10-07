@@ -696,6 +696,15 @@ from fastapi.staticfiles import StaticFiles  # noqa: E402
 from studio import router as studio_router  # noqa: E402
 
 app.include_router(studio_router)
+
+
+@app.middleware("http")
+async def _studio_no_cache(request, call_next):
+    """The Studio UI is three small files: always revalidate them, so an update is never hidden by a stale cache."""
+    response = await call_next(request)
+    if request.url.path.startswith("/studio"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 STUDIO_UI = Path(__file__).resolve().parents[1] / "studio"
 if STUDIO_UI.is_dir():
     app.mount("/studio", StaticFiles(directory=str(STUDIO_UI), html=True), name="studio")

@@ -134,6 +134,7 @@ async function load() {
   if (!S.pid) return;
   try {
     const d = await api(`/api/studio/${enc(S.pid)}`);
+    if (S.data && Math.abs(((S.data.validation || {}).duration || 0) - ((d.validation || {}).duration || 0)) > 1e-3) S.fit = true;  // the edit changed length: refit
     S.data = d; S.etag = d.etag;
     setLive(true);
     if (S.fit) fitZoom();
@@ -738,7 +739,7 @@ function stepEl(s, seen) {
         lines.map((l) => h("div", { class: String(l).startsWith("⚠") ? "w" : String(l).startsWith("✕") ? "x" : "" }, l))) : null,
       s.progress != null ? h("div", { class: "prog" }, h("i", { style: `width:${s.progress * 100}%` })) : null,
       s.stats ? h("div", { class: "stats" }, s.stats) : null,
-      s.watch ? h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => watchChange(s.watch) }, icon("play"), "Watch the change") : null),
+      s.watch != null ? h("button", { class: "btn sm", style: "margin-top:8px", onclick: () => watchChange(s.watch) }, icon("play"), "Watch the change") : null),
     h("span", { class: "ms" }, s.ms != null ? (s.ms >= 1000 ? `${(s.ms / 1000).toFixed(1)} s` : `${Math.round(s.ms)} ms`) : ""));
 }
 function renderSteps(m) {
@@ -924,8 +925,15 @@ function finishRun(m, ev, before, sha) {
   if (ev.patch) {
     const main = new Set(mainItems().map((x) => x.id));
     const edited = (ev.diff.edited || []).map((e) => e.id), removed = ev.diff.removed || [];
-    const touched = [...edited, ...removed];
-    const ats = touched.flatMap((id) => [before[id] && before[id][0], ev.after[id] && ev.after[id][0]]).filter((x) => x != null);
+    // Where each change is first visible: a moved start, else a moved end (a trim), else the item itself.
+    const firstChange = (id) => {
+      const b = before[id], a = ev.after[id];
+      if (!b || !a) return (b || a || [null])[0];
+      if (Math.abs(a[0] - b[0]) > 1e-3) return Math.min(a[0], b[0]);
+      if (Math.abs(a[1] - b[1]) > 1e-3) return Math.min(a[1], b[1]);
+      return a[0];
+    };
+    const ats = [...edited, ...removed].map(firstChange).filter((x) => x != null);
     m.proposal = {
       patch_id: ev.patch.patch_id, basis: ev.patch.basis, parent: sha, can_apply: ev.can_apply, explain: ev.explain, summary: ev.summary,
       warnings: ev.warnings, errors: ev.errors, diff: ev.diff, after: ev.after, duration_before: ev.duration_before, duration_after: ev.duration_after,
@@ -1021,7 +1029,9 @@ function buildPalette() {
     { label: "Fit the whole edit", icon: "fit", run: () => { S.fit = true; fitZoom(); renderTimeline(); } },
     ...mainItems().map((it, i) => ({ label: `Go to shot ${i + 1} · ${it.id} · ${itemName(mainTrack(), it)}`, icon: "jump", run: () => select({ item_id: it.id }, true) })),
   ];
-  cmds.filter((c) => !ql || c.label.toLowerCase().includes(ql)).forEach((c) => items.push({ g: "Commands", ...c }));
+  const hits = cmds.filter((c) => !ql || c.label.toLowerCase().includes(ql)).map((c) => ({ g: "Commands", ...c }));
+  // A query that names a command ("shot 4", "render") means that command; anything else is a request for the Director.
+  if (q && hits.length) items.unshift(...hits); else items.push(...hits);
   PAL.items = items; PAL.on = 0;
   let g = null;
   put($("palList"), items.map((it, i) => {
