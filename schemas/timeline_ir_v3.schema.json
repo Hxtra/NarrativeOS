@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/timeline_ir_v3.schema.json",
+  "title": "NarrativeOS multi-track timeline (IR 3.0)",
+  "description": "Structural contract. Semantic rules (source ranges inside probed assets, transition overlaps, approved assets, allowed paths, caption overlaps) are enforced by scripts/compile_timeline.py validate().",
+  "type": "object",
+  "required": ["ir_version", "canvas", "tracks"],
+  "properties": {
+    "ir_version": {"const": "3.0"},
+    "duration": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "canvas": {
+      "type": "object",
+      "required": ["width", "height", "fps"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 2, "multipleOf": 2},
+        "height": {"type": "integer", "minimum": 2, "multipleOf": 2},
+        "fps": {"type": "number", "exclusiveMinimum": 0, "maximum": 120},
+        "sample_rate": {"enum": [44100, 48000]}
+      }
+    },
+    "assets": {
+      "type": "array",
+      "description": "Project-produced media the timeline declares itself (e.g. narration). Library media comes from assets.json / approved_assets.json.",
+      "items": {"type": "object", "required": ["asset_id", "local_path", "status"],
+                "properties": {"asset_id": {"type": "string"}, "local_path": {"type": "string"},
+                               "status": {"enum": ["approved", "simulation_approved", "pending", "rejected"]}}}
+    },
+    "tracks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "items"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["video", "overlay", "audio", "caption"]},
+          "role": {"enum": ["narration", "music", "sfx", "ambience", "dialogue"]},
+          "duck_under": {"type": "string"},
+          "duck": {"type": "object", "properties": {"threshold": {"type": "number"}, "ratio": {"type": "number"},
+                                                     "attack_ms": {"type": "number"}, "release_ms": {"type": "number"}}},
+          "style": {"type": "object"},
+          "items": {"type": "array", "items": {"$ref": "#/$defs/item"}}
+        }
+      }
+    },
+    "mix": {"type": "object", "properties": {"loudnorm": {"type": ["object", "null"]}}},
+    "compile": {"type": "object", "description": "Converter notes, e.g. transitions it could not render natively (`unrendered`)."}
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["id", "timeline_in", "timeline_out"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "asset_id": {"type": "string"},
+        "timeline_in": {"type": "number", "minimum": 0},
+        "timeline_out": {"type": "number", "exclusiveMinimum": 0},
+        "source_in": {"type": "number", "minimum": 0},
+        "fit": {"enum": ["cover", "contain"]},
+        "motion": {"type": "object", "properties": {"kind": {"enum": ["none", "push_in", "pull_out"]},
+                                                     "scale_from": {"type": "number", "minimum": 1, "maximum": 2},
+                                                     "scale_to": {"type": "number", "minimum": 1, "maximum": 2}}},
+        "transition_in": {"type": "object", "required": ["type"],
+                          "properties": {"type": {"enum": ["cut", "crossfade", "dip_black", "dip_white"]},
+                                         "duration": {"type": "number", "minimum": 0}}},
+        "audio": {"type": "object", "properties": {"native": {"type": "boolean"}, "gain_db": {"type": "number"},
+                                                    "native_in": {"type": "number", "minimum": 0}, "native_out": {"type": "number"}}},
+        "blend": {"enum": ["normal", "screen", "add", "multiply"]},
+        "opacity": {"type": "number", "minimum": 0, "maximum": 1},
+        "gain_db": {"type": "number", "minimum": -60, "maximum": 20},
+        "fade_in": {"type": "number", "minimum": 0},
+        "fade_out": {"type": "number", "minimum": 0},
+        "text": {"type": "string"}
+      }
+    }
+  }
+}
