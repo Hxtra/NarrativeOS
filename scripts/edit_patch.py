@@ -84,7 +84,7 @@ def _shift_after(ir: dict, t_point: float, delta: float, skip: set[str], warning
         if t is mt:
             continue
         for it in t.get("items", []):
-            if it["id"] in skip:
+            if it["id"] in skip or it.get("follow") == "main":  # spans the main track; the compiler re-fits it
                 continue
             a, b = float(it["timeline_in"]), float(it["timeline_out"])
             if a >= t_point - EPS:

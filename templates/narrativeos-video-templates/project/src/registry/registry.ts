@@ -6,6 +6,8 @@ export interface TemplateDefinition<P> {
 	label: string;
 	/** Pack this belongs to, matching the brief: 'core' | 'speaker' | 'archive' | 'evidence' | 'transition' | 'typography' | 'audio' */
 	pack: string;
+	/** Frame shapes the layout is designed for (default ['16:9']). The compiler refuses other canvases. */
+	aspects?: string[];
 	durationInFrames: (params: P, fps: number) => number;
 	component: React.FC<{style: StyleProfile; params: P}>;
 	defaultParams: P;

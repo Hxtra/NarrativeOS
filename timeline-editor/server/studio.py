@@ -177,7 +177,8 @@ def studio(pid: str):
     return {
         "project_id": pid, "name": proj.get("title") or proj.get("project_id") or pid,
         "channel": (profile.get("pin") or {}) | {"name": (profile.get("identity") or {}).get("name")} if profile.get("pin") else None,
-        "pipeline": _pipeline(p), "timeline": ir, "timeline_source": source, "versions": _versions(p),
+        # Shown as the compiler will render it: caption words placed from their source, spans fitted to the picture.
+        "pipeline": _pipeline(p), "timeline": ct.resolve_dynamic(ir) if ir else None, "timeline_source": source, "versions": _versions(p),
         "timeline_sha256": ep.timeline_sha(ir) if ir else None,
         "validation": {"errors": check["errors"], "warnings": check["warnings"], "duration": check["duration"]},
         "assets": _assets(p, ir), "evidence": ev,
