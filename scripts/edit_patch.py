@@ -248,6 +248,7 @@ def apply_op(ir: dict, op: dict, warnings: list[str]) -> set[str]:
         _, it = find(ir, op["item_id"])
         it["asset_id"] = op["asset_id"]
         it["source_in"] = float(op.get("source_in", 0))
+        it.pop("reframe", None)  # camera keys belong to the old footage
         return {it["id"]}
     if kind == "move":
         t, it = find(ir, op["item_id"])

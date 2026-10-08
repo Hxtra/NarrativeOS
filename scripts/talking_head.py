@@ -314,6 +314,75 @@ def find_moments(words: list[dict], lines: list[list[dict]]) -> list[dict]:
     return sorted(moments, key=lambda m: (m["start"], m["type"]))
 
 
+# ----------------------------------------------------------------------------------------------- frame awareness
+def vision_ready() -> tuple[bool, str]:
+    try:
+        import mediapipe  # noqa: F401
+        import vision_models
+    except ImportError as e:
+        return False, f"mediapipe is not installed ({e})"
+    missing = [k for k, v in vision_models.status().items() if v["status"] != "ready"]
+    return (False, f"vision models missing: {', '.join(missing)} (python scripts/vision_models.py fetch)") if missing else (True, "")
+
+
+def frame_plan(project: Path, metas: dict, items: list[dict], cap_words: list[dict], moments: list[dict], W: int, H: int) -> dict:
+    """Subject-aware framing, caption placement and fingertip anchors from what the pictures show (MEASURED by the
+    vision models; the camera path and placements are deterministic rules over those measurements)."""
+    import compile_timeline as ct
+    import frame_awareness as fa
+    cache = project / "analysis" / "vision"
+    analyses, plan = {}, {"status": "MEASURED", "reframed": [], "captions_position": "lower", "anchors": [], "faces": {}}
+    for aid, meta in metas.items():
+        analyses[aid] = fa.analyze(meta["path"], 0.0, meta["duration"], cache)
+        sw, sh, _ = fa.probe_size(meta["path"])
+        meta["aspect"] = sw / sh
+        plan["faces"][aid] = f"{sum(1 for x in analyses[aid]['samples'] if x['faces'])}/{len(analyses[aid]['samples'])} samples"
+    A = W / H
+    for it in items:
+        a = metas[it["asset_id"]]["aspect"]
+        cw, ch = min(1.0, A / a), min(1.0, a / A)
+        if cw > 0.98 and ch > 0.98:
+            continue  # same shape: nothing to reframe
+        keys = fa.camera_keys(fa.subject_centres(analyses[it["asset_id"]]), cw, ch)
+        L = it["timeline_out"] - it["timeline_in"]
+        lo, hi = it["source_in"] - 2.0, it["source_in"] + ct.source_at(it, L, L) + 2.0
+        before = [k for k in keys if k[0] <= lo][-1:]
+        it["reframe"] = {"keys": before + [k for k in keys if lo < k[0] <= hi] or keys[-1:], "source": "frame_awareness subject track"}
+        plan["reframed"].append(it["id"])
+    # Captions go where the face is not: measured face centres inside the kept segments, in output coordinates.
+    ys = []
+    for it in items:
+        L = it["timeline_out"] - it["timeline_in"]
+        s0, s1 = it["source_in"], it["source_in"] + ct.source_at(it, L, L)
+        for smp in analyses[it["asset_id"]]["samples"]:
+            if s0 <= smp["t"] < s1 and smp["faces"]:
+                x, y, w, h = smp["faces"][0]["box"]
+                ys.append(ct.frame_point(it, smp["t"], x + w / 2, y + h / 2, metas[it["asset_id"]]["aspect"], W, H)[1])
+    if ys:
+        face_y = sorted(ys)[len(ys) // 2]
+        plan["face_y"] = round(face_y, 3)
+        plan["captions_position"] = "upper" if face_y > 0.55 else "lower"
+    # "Track it" and other spoken cues: follow the fingertip the pictures show right after the cue.
+    for m in moments:
+        if m["type"] != "CUE":
+            continue
+        w0 = cap_words[m["word_index"][0]]
+        it = items[w0["segment"]]
+        L = it["timeline_out"] - it["timeline_in"]
+        s0, s1 = w0["src_start"], it["source_in"] + ct.source_at(it, L, L)
+        pts = []
+        for smp in analyses[it["asset_id"]]["samples"]:
+            if s0 <= smp["t"] < min(s1, s0 + 3.0) and smp["hands"]:
+                hand = min(smp["hands"], key=lambda h: h["index_tip"][1])  # the raised hand
+                pts.append({"asset_id": it["asset_id"], "src_t": smp["t"], "x": hand["index_tip"][0], "y": hand["index_tip"][1],
+                            "aspect": metas[it["asset_id"]]["aspect"]})
+        if len(pts) >= 3:
+            plan["anchors"].append({"moment": m["text"], "start": m["start"], "end": min(it["timeline_out"], m["start"] + 3.0), "points": pts})
+        else:
+            plan.setdefault("unfollowed", []).append({"moment": m["text"], "at": m["start"], "reason": "no hand seen in the 3 s after the cue"})
+    return plan
+
+
 # ----------------------------------------------------------------------------------------------- timeline
 def _probe(path: Path) -> dict:
     r = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)], capture_output=True, text=True, check=True)
@@ -384,6 +453,10 @@ def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: 
             fired.append({"moment": "CONTRAST", "text": m["text"], "at": m["start"], "move": "caption emphasis on both sides of the contrast"})
         elif m["type"] == "NAME" and people and m["text"].strip(".,!?") in people and aspect == "16:9":
             fired.append({"moment": "NAME", "text": m["text"], "at": m["start"], "move": "speaker lower third"})
+    vision_ok, vision_why = vision_ready()
+    frame = frame_plan(project, metas, items, cap_words, moments, W, H) if vision_ok else {"status": "NOT_MEASURED", "reason": vision_why}
+    for a in frame.get("anchors", []):
+        fired.append({"moment": "CUE", "text": a["moment"], "at": a["start"], "move": "marker follows the measured fingertip"})
     tracks = [{"id": "v_main", "kind": "video", "items": items}]
     remotion_ok = rb.available()[0]
     if remotion_ok:
@@ -393,7 +466,11 @@ def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: 
                   **({"emphasis": True} if w["index"] in emphasis else {})} for w in cap_words]
         tracks.append({"id": "captions", "kind": "graphic", "items": [
             {"id": "CAPS", "template": "kinetic_captions", "follow": "main", "timeline_in": 0.0, "timeline_out": total,
-             "params": {"words": words, "maxWords": 3, "position": "lower"}}]})
+             "params": {"words": words, "maxWords": 3, "position": frame.get("captions_position", "lower")}}]})
+        if frame.get("anchors"):
+            tracks.append({"id": "markers", "kind": "graphic", "items": [
+                {"id": f"MK{i + 1}", "template": "anchor_marker", "timeline_in": round(a["start"], 3), "timeline_out": round(a["end"], 3),
+                 "params": {"anchors": a["points"]}} for i, a in enumerate(frame["anchors"])]})
     else:  # no Remotion here: plain burned-in lines, said plainly in the report
         caps = []
         for line in timeline_lines:
@@ -419,8 +496,10 @@ def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: 
                 "removed_words": [{"text": r["text"], "clip": r["clip"], "at": r["start"], "why": r["why"]} for r in removed],
                 "captions": "kinetic_captions (Remotion)" if remotion_ok else "plain burned-in lines (Remotion not available)"},
         "moments": moments, "fired": fired,
+        "frame": {k: v for k, v in frame.items() if k != "anchors"} | {"anchors": [{k: a[k] for k in ("moment", "start", "end")} | {"points": len(a["points"])}
+                                                                              for a in frame.get("anchors", [])]},
         "notes": ["Take choice, lines and moments are INFERRED from the transcript by rules; review them before approving.",
-                  "Framing is a centre crop; subject-aware reframing needs frame awareness (Phase 3)."],
+                  "Framing follows the measured subject when the vision models are installed; otherwise it is a centre crop."],
     }
     return ir, report
 

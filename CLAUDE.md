@@ -315,8 +315,7 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   render.
 - **Remaining phases, in order:**
   - Phase 2, talking-head core: done (see below).
-  - Phase 3, frame awareness: tracking, empty-space map, text behind the
-    subject.
+  - Phase 3, frame awareness: done (see below).
   - Phase 4, Signatures.
   - Phase 5, simple 3D.
 
@@ -340,8 +339,28 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
 - **Tests:** `tests/test_talking_head.py`, including an end-to-end run on
   Windows-TTS speech through Whisper with captions measured inside the Reels
   safe area.
-- **Not yet:** no real owner footage tested; framing is a centre crop
-  (Phase 3).
+- **Not yet:** no real owner footage tested.
+
+**Frame awareness (Oct 8, branch `frame-awareness`, stacked on
+`talking-head`; Phase 3).** Details and status: `references/frame-awareness.md`.
+- **Models:** local MediaPipe models (face, hands, person segmentation;
+  Apache-2.0) in `~/NarrativeOS-Models` via `scripts/vision_models.py fetch`,
+  sha256-checked. MediaPipe is installed `--no-deps` (its opencv-contrib
+  dependency would clash with opencv-python-headless).
+- **Analysis:** `scripts/frame_awareness.py` measures faces (on square crops:
+  the model squashes wide frames), fingertips, the person box and an
+  empty-space grid.
+- **Reframing:** `camera_keys()` is a deadzone camera with look-ahead; shots
+  carry `reframe` keys in source time.
+- **Text behind the subject:** graphics with `behind_subject` get the person
+  put back on top through a matte of the exact picture.
+- **Talking-head pass:** it now reframes 16:9 to 9:16 around the speaker,
+  places captions from the measured face, and follows the fingertip after
+  "look at this"-style cues (`anchor_marker`).
+- **Tests:** `tests/test_frame_awareness.py`. The face is kept by reframing and
+  lost by a centre crop, and text behind the subject hides exactly where the
+  segmentation says the person is.
+- **Not validated:** fingertip tracking on real hands (no footage yet).
 
 **Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
 completed on branch `editorial-intelligence-completion`).** Exact status
