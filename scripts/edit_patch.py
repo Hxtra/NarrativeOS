@@ -205,15 +205,19 @@ def apply_op(ir: dict, op: dict, warnings: list[str]) -> set[str]:
             raise PatchError(f"{it['id']} is the first shot; there is nothing to transition from")
         prev = seq[i - 1]
         ttype, dur = op["type"], float(op.get("duration", 0.5))
+        if ttype == "recipe" and not op.get("recipe"):
+            raise PatchError("a recipe transition needs a recipe id")
         old = it.get("transition_in") or {"type": "cut", "duration": 0}
         old_overlap = float(old.get("duration", 0)) if old.get("type") == "crossfade" else 0.0
         new_overlap = dur if ttype == "crossfade" else 0.0
         prev["timeline_out"] = round(float(prev["timeline_out"]) + new_overlap - old_overlap, 6)
         if ttype == "cut":
             it.pop("transition_in", None)
+        elif ttype == "recipe":  # rendered by the Remotion TransitionStack over the straight cut
+            it["transition_in"] = {"type": "recipe", "recipe": op["recipe"]}
         else:
             it["transition_in"] = {"type": ttype, "duration": dur}
-        return {it["id"], prev["id"]}
+        return {it["id"], prev["id"]} if new_overlap != old_overlap else {it["id"]}
     if kind == "set_gain":
         if op.get("track_id"):
             t = next((x for x in ir["tracks"] if x["id"] == op["track_id"]), None)
@@ -342,7 +346,27 @@ ROLE_WORDS = {"music": "music", "song": "music", "score": "music", "narration": 
               "vo": "narration", "sfx": "sfx", "sound effect": "sfx", "sound effects": "sfx", "ambience": "ambience", "ambient": "ambience"}
 
 
-def interpret(message: str, ir: dict, selection: dict | None = None, asset_ids: set[str] | None = None) -> dict:
+# Plain words for the registered VFX recipes, most specific first; only recipes the registry actually has are offered.
+RECIPE_WORDS = [
+    (r"\bglitch\s*reveal\b", ["glitch_reveal"]), (r"\bglitch\b", ["glitch_cut", "glitch_reveal", "glitch_overlay_cut"]),
+    (r"\b(rgb|chromatic|colou?r)\s*(split|aberration|shift)\b", ["rgb_split_hit"]), (r"\b(digital\s*)?tear\b", ["digital_tear"]),
+    (r"\b(vhs|static)\b", ["vhs_static_cut"]), (r"\bstutter\b", ["stutter_cut"]),
+    (r"\b(cool|cold|blue)\s*(light\s*)?leak\b", ["light_leak_cool"]), (r"\bleak\b.*\bwhip\b|\bwhip\b.*\bleak\b", ["leak_whip"]),
+    (r"\blight\s*leak\b|\bleak\b", ["light_leak_warm", "leak_crossfade"]), (r"\bfilm\s*burn\b|\bburn\b", ["film_burn_passage", "film_burn_procedural"]),
+    (r"\bfilm\s*damage\b", ["film_damage_dip"]), (r"\blens\s*flare\b|\bflare\b", ["lens_flare_sweep"]),
+    (r"\bwhip\s*zoom\b|\bzoom\s*transition\b", ["whip_zoom"]), (r"\bwhip\b.*\bup\b", ["whip_pan_up"]),
+    (r"\bwhip\b.*\bright\b", ["whip_pan_right"]), (r"\bwhip\b", ["whip_pan_left"]),
+    (r"\bimpact\b|\bpunch\b", ["impact_cut"]), (r"\bshake\b", ["shake_impact"]), (r"\bhalftone\b", ["halftone_reveal"]),
+    (r"\bwipe\b.*\bup\b", ["soft_wipe_up"]), (r"\bwipe\b", ["soft_wipe_left"]), (r"\b(projector)\b", ["projector_flicker_cut"]),
+    (r"\b(archive|archival|old film)\b.*\bflicker\b|\bflicker\b", ["archive_flicker_cut", "projector_flicker_cut"]),
+    (r"\bscratch", ["archive_scratch_cut"]), (r"\bdust\b", ["dust_drift_dissolve"]), (r"\bsnow", ["snowfall_passage"]),
+    (r"\b(particle|shimmer|sparkle)", ["particle_shimmer_reveal"]), (r"\bmemory\b|\bdreamy\b", ["memory_fade"]),
+    (r"\bblur\s*(dissolve|transition)\b", ["blur_dissolve"]), (r"\bpush[- ]in\s*cut\b", ["push_in_cut"]),
+]
+
+
+def interpret(message: str, ir: dict, selection: dict | None = None, asset_ids: set[str] | None = None,
+              recipes: set[str] | None = None) -> dict:
     """Plain words to a patch with explicit rules. Returns {reply, operations, understood}."""
     text = message.strip()
     low = text.lower()
@@ -395,6 +419,14 @@ def interpret(message: str, ir: dict, selection: dict | None = None, asset_ids: 
             ops.append({"op": "set_gain", "track_id": t["id"], "delta_db": delta})
         return {"reply": f"Turning the {role} {'up' if delta > 0 else 'down'} by {abs(delta):g} dB ({', '.join(t['id'] for t in tracks)}).",
                 "operations": ops, "understood": True}
+    # Recipe transitions into the selected shot (rendered by the Remotion TransitionStack).
+    if recipes and re.search(r"\b(transition|into|here|cut|this|between|reveal|use|add|put)\b", low):
+        rid = next((c for pat, cands in RECIPE_WORDS if re.search(pat, low) for c in cands if c in recipes), None)
+        if rid:
+            if target is None or target.get("id") not in {x["id"] for x in _sorted_main(ir)}:
+                return need("the shot the transition should lead into")
+            return {"reply": f"{rid.replace('_', ' ').capitalize()} into {target['id']}.",
+                    "operations": [{"op": "set_transition", "item_id": target["id"], "type": "recipe", "recipe": rid}], "understood": True}
     # Transitions into the selected shot.
     trans = None
     if re.search(r"\b(dip|fade)\s*(to|through)?\s*black\b", low):
@@ -479,9 +511,10 @@ def interpret(message: str, ir: dict, selection: dict | None = None, asset_ids: 
             "operations": [], "understood": False}
 
 
-def propose(ir: dict, message: str, selection: dict | None = None, asset_ids: set[str] | None = None, provider: dict | None = None) -> dict:
+def propose(ir: dict, message: str, selection: dict | None = None, asset_ids: set[str] | None = None, provider: dict | None = None,
+            recipes: set[str] | None = None) -> dict:
     """A patch proposal: rules first; a configured reasoning provider only for what the rules could not parse."""
-    r = interpret(message, ir, selection, asset_ids)
+    r = interpret(message, ir, selection, asset_ids, recipes)
     basis = "rules"
     if not r["understood"] and provider:
         r, basis = ask_provider(ir, message, selection, asset_ids, provider)
@@ -532,7 +565,10 @@ def explain(op: dict, ir: dict) -> str:
             return f"remove {_label(ir, op['item_id'])} and close the gap"
         if k == "set_transition":
             _, it = find(ir, op["item_id"])
-            old = (it.get("transition_in") or {"type": "cut"})["type"].replace("_", " ")
+            old_tr = it.get("transition_in") or {"type": "cut"}
+            old = (old_tr.get("recipe") or old_tr["type"]).replace("_", " ")
+            if op["type"] == "recipe":
+                return f"into {op['item_id']}: {old} → {op['recipe'].replace('_', ' ')} (rendered VFX transition)"
             new = op["type"].replace("_", " ") + (f" {float(op.get('duration', 0.5)):.2f} s" if op["type"] != "cut" else "")
             return f"into {op['item_id']}: {old} → {new}"
         if k == "set_gain":

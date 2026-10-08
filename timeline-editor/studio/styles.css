@@ -27,6 +27,7 @@
   --music: #8391ff;
   --sfx: #fb7192;
   --ambience: #60a5fa;
+  --graphic: #7dd3fc;
   --r-lg: 16px;
   --r: 10px;
   --r-sm: 7px;
@@ -520,3 +521,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 13p
   .shots { display: none; }
   .app { grid-template-rows: 50px minmax(0, 1fr) var(--tl-h); }
 }
+
+/* graphics lane, rendered VFX transitions, retiming tags */
+.clip.graphic { background: linear-gradient(135deg, rgba(125, 211, 252, 0.34), rgba(125, 211, 252, 0.14)); border-color: rgba(125, 211, 252, 0.45); }
+.clip.graphic .lbl { background: transparent; backdrop-filter: none; padding: 0; top: 50%; transform: translateY(-50%); left: 9px; color: #dff4ff; }
+.clip .lbl .tagx { font: 500 9.5px var(--mono); font-style: normal; margin-left: 6px; padding: 0 4px; border-radius: 4px; background: var(--ember-soft); color: var(--ember-2); }
+.fxm { position: absolute; top: 50%; z-index: 3; transform: translate(-50%, -50%); padding: 1px 5px; border-radius: 5px; pointer-events: auto; cursor: help;
+  font: 600 9.5px var(--mono); letter-spacing: 0.06em; color: #1b0d05; background: linear-gradient(180deg, #ffa064, #ff7434); box-shadow: 0 0 12px var(--ember-glow); }
+.joint .fxj { font: 600 9px var(--mono); font-style: normal; color: #1b0d05; background: var(--ember); border-radius: 4px; padding: 1px 4px; }

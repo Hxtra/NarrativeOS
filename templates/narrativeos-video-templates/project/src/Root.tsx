@@ -5,8 +5,18 @@ import {TemplatePlayer, MultiLayerPlayer} from './TemplatePlayer';
 import {resolveTemplate} from './registry/registry';
 import {TransitionProof, proofTiming} from './vfx/TransitionProof';
 import {listTransitions} from './vfx/transitionRegistry';
+import {TransitionSegment} from './vfx/TransitionSegment';
 
 const fps = 30;
+
+/** Compositions driven by the multi-track compiler (scripts/render_segments.mjs): size, rate and length come from the props. */
+type SegmentMeta = {durationInFrames: number; fps: number; width: number; height: number};
+function segmentMetadata<T extends SegmentMeta>({props}: {props: T}) {
+	return {durationInFrames: props.durationInFrames, fps: props.fps, width: props.width, height: props.height};
+}
+const GraphicSegment: React.FC<{templateId: string; styleId: string; params: unknown} & SegmentMeta> = ({templateId, styleId, params}) => (
+	<TemplatePlayer templateId={templateId} styleId={styleId} params={params} />
+);
 
 export const RemotionRoot: React.FC = () => {
 	const chapter = resolveTemplate('chapter_break');
@@ -28,6 +38,30 @@ export const RemotionRoot: React.FC = () => {
 
 	return (
 		<>
+			{/* Rendered by the compiler, not proofs: a template over transparency, and a recipe between two real shots. */}
+			<Composition
+				id="NOS-Graphic"
+				component={GraphicSegment}
+				calculateMetadata={segmentMetadata}
+				durationInFrames={90}
+				fps={fps}
+				width={1920}
+				height={1080}
+				defaultProps={{templateId: 'title_card', styleId: 'documentary_general', params: title.defaultParams, durationInFrames: 90, fps, width: 1920, height: 1080}}
+			/>
+			<Composition
+				id="NOS-Transition"
+				component={TransitionSegment}
+				calculateMetadata={segmentMetadata}
+				durationInFrames={30}
+				fps={fps}
+				width={1920}
+				height={1080}
+				defaultProps={{
+					transitionId: 'hard_cut', styleId: 'documentary_general', outgoingSrc: 'media-library/nasa_eileen_collins_001.jpg',
+					incomingSrc: 'media-library/nasa_hubble_deep_field_001.jpg', cutFrame: 15, seed: 'default', durationInFrames: 30, fps, width: 1920, height: 1080,
+				}}
+			/>
 			<Composition
 				id="Proof-TitleCard"
 				component={TemplatePlayer}
