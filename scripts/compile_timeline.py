@@ -555,17 +555,60 @@ def verify(out: Path, info: dict) -> dict:
         problems.append(f"duration {dur:.3f} s, timeline says {info['duration']:.3f} s")
     if bool(a) != info["has_audio"]:
         problems.append("audio stream " + ("missing" if info["has_audio"] else "present without any audio in the timeline"))
+    av_delta = None
     if v and a:
         vd, ad = _num(v.get("duration")), _num(a.get("duration"))
-        if vd is not None and ad is not None and abs(vd - ad) > AV_TOLERANCE:
-            problems.append(f"audio {ad:.3f} s vs video {vd:.3f} s differ by more than {AV_TOLERANCE * 1000:.0f} ms")
-    return {"passed": not problems, "problems": problems, "duration": dur, "ffprobe": data}
+        if vd is not None and ad is not None:
+            av_delta = round(abs(vd - ad) * 1000, 1)
+            if abs(vd - ad) > AV_TOLERANCE:
+                problems.append(f"audio {ad:.3f} s vs video {vd:.3f} s differ by more than {AV_TOLERANCE * 1000:.0f} ms")
+    return {"passed": not problems, "problems": problems, "duration": dur, "av_delta_ms": av_delta, "ffprobe": data}
 
 
-def compile_timeline(project: Path, ir: dict, output: Path, preview: bool = False, release: bool = False, scale: float | None = None) -> dict:
+def _run_with_progress(cmd: list[str], cwd: Path, total: float, progress) -> tuple[int, str]:
+    """Run FFmpeg reporting the fraction rendered (from -progress out_time) to progress(fraction).
+
+    A callback that takes two arguments also gets FFmpeg's own counters for that block:
+    {"frame", "fps", "speed"} as FFmpeg reported them (MEASURED by the encoder, not estimated here)."""
+    import inspect
+    import tempfile
+    try:
+        wants_stats = len(inspect.signature(progress).parameters) >= 2
+    except (TypeError, ValueError):
+        wants_stats = False
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as err:
+        proc = subprocess.Popen([*cmd[:1], "-progress", "pipe:1", "-nostats", *cmd[1:]], cwd=cwd, stdout=subprocess.PIPE, stderr=err, text=True)
+        block: dict[str, str] = {}
+        for line in proc.stdout:
+            key, _, val = line.strip().partition("=")
+            block[key] = val
+            if key != "progress":
+                continue
+            us = block.get("out_time_us") or block.get("out_time_ms") or ""
+            if us.isdigit() and total > 0:
+                frac = min(1.0, int(us) / 1e6 / total)
+                if wants_stats:
+                    stats = {"frame": int(block["frame"]) if block.get("frame", "").isdigit() else None,
+                             "fps": _num(block.get("fps")), "speed": _num(block.get("speed", "").rstrip("x"))}
+                    progress(frac, stats)
+                else:
+                    progress(frac)
+            block = {}
+        code = proc.wait()
+        err.seek(0)
+        return code, err.read()
+
+
+def compile_timeline(project: Path, ir: dict, output: Path, preview: bool = False, release: bool = False, scale: float | None = None,
+                     progress=None, phase=None) -> dict:
+    """Validate, compile and verify. `progress(fraction[, stats])` follows the encode; `phase(name, detail)` is told
+    when each stage starts (validate, graph, encode, verify) with what that stage actually found."""
+    phase = phase or (lambda name, detail: None)
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         raise CompileError("ffmpeg and ffprobe are required")
     project = project.resolve()
+    n_items = sum(len(t.get("items", [])) for t in ir.get("tracks", []))
+    phase("validate", {"tracks": len(ir.get("tracks", [])), "items": n_items})
     check = validate(ir, project, release)
     if check["errors"]:
         raise CompileError("timeline failed validation:\n- " + "\n- ".join(check["errors"]))
@@ -574,6 +617,10 @@ def compile_timeline(project: Path, ir: dict, output: Path, preview: bool = Fals
     work.mkdir(parents=True, exist_ok=True)
     args, graph, info = build(ir, check, work, scale if scale else (0.5 if preview else 1.0))
     (work / "filtergraph.txt").write_text(graph + "\n", encoding="utf-8")
+    phase("graph", {"inputs": info["inputs"], "filters": len([f for f in graph.replace(";", ",").split(",") if f.strip()]),
+                    "warnings": len(check["warnings"]), "has_audio": info["has_audio"]})
+    phase("encode", {"frames": round(info["duration"] * info["fps"]), "duration": info["duration"],
+                     "width": info["width"], "height": info["height"], "fps": info["fps"]})
     output = output if output.is_absolute() else project / output
     output.parent.mkdir(parents=True, exist_ok=True)
     tmp = output.with_name(output.stem + ".partial" + output.suffix)
@@ -583,11 +630,16 @@ def compile_timeline(project: Path, ir: dict, output: Path, preview: bool = Fals
     cmd += ["-c:v", "libx264", "-preset", "ultrafast" if preview else "medium", "-crf", "26" if preview else "18", "-pix_fmt", "yuv420p",
             "-r", f"{info['fps']:g}", "-t", f"{info['duration']:.6f}", "-movflags", "+faststart", str(tmp)]
     (work / "command.json").write_text(json.dumps({"cwd": str(work), "argv": cmd}, indent=2) + "\n", encoding="utf-8")
-    r = subprocess.run(cmd, cwd=work, capture_output=True, text=True)
-    if r.returncode:
+    if progress:
+        code, stderr = _run_with_progress(cmd, work, info["duration"], progress)
+    else:
+        r = subprocess.run(cmd, cwd=work, capture_output=True, text=True)
+        code, stderr = r.returncode, r.stderr
+    if code:
         tmp.unlink(missing_ok=True)
-        raise CompileError(f"ffmpeg failed ({r.returncode}): {r.stderr[-3000:]}")
+        raise CompileError(f"ffmpeg failed ({code}): {stderr[-3000:]}")
     os.replace(tmp, output)  # atomic: a half-written render never sits at the output path
+    phase("verify", {"size_bytes": output.stat().st_size})
     ver = verify(output, info)
     unrendered = (ir.get("compile") or {}).get("unrendered", [])
     manifest = {

@@ -17,6 +17,72 @@ The API enforces `state.json.current_stage == "EDITORIAL_QA"` for writes.
 The component's `editingEnabled` prop controls the UI affordance, but is not
 the security boundary.
 
+## NarrativeOS Studio (live editor UI)
+
+`studio/` (static HTML/CSS/JS, no build step) and `server/studio.py` (mounted at
+`/api/studio`) add a live window onto a project, plus an assistant you can
+type corrections to. It is a layer on top of the pipeline. It removes nothing
+and bypasses no gate.
+
+```bash
+python timeline-editor/run_studio.py --projects <folder of projects> [--port 8420] [--no-browser]
+# opens http://127.0.0.1:8420/studio/
+```
+
+- **Live view.** Shows the production graph (`controller.graph_data`), the
+  multi-track timeline (`timeline_v3.json`, or one converted in memory from
+  `timeline.json`), assets, evidence links, the render state and the event
+  log. It polls every 1.5 s with an etag (every 0.35 s while something is
+  running), so a running pipeline shows up as it happens.
+  - Video clips show filmstrips of real frames. Hovering shows the frame at
+    that point.
+  - Audio clips show waveforms MEASURED from the samples (`/wave/{item}`:
+    peak per bucket, drawn on a dB scale with a −48 dB floor).
+  - The player's ambient glow is sampled from the actual frame.
+- **The Director shows its work.** `POST /assistant/stream` returns one JSON
+  line per step as the server performs it: read the edit, resolve the
+  selection, interpret, try it on a copy, validate with the compiler. Each
+  line carries what that step found and its real duration. The UI only paces
+  how fast the lines appear; it never invents a step.
+  `POST /assistant` returns the same final result in one response.
+- **Render follow-along.** `compile_timeline(..., phase=)` reports validate,
+  graph (inputs and filter count), encode (frames) and verify (ffprobe A/V
+  offset). The progress callback also receives FFmpeg's own frame, fps and
+  speed counters. ETA is an extrapolation and is labelled as one.
+- **Change this part.** Click a clip, or drag on the ruler to select a
+  stretch, then type into the AI Assistant tab, e.g. "make this faster", "dip
+  to black here", "music down 6 dB", `change the caption to "…"`.
+  - The request becomes a typed edit patch (`scripts/edit_patch.py`): rules
+    first, then an optional reasoning provider (`studio_provider.json` in the
+    project, or `NARRATIVEOS_REASONING_PROVIDER`; command type only).
+  - The assistant shows the diff and the compiler's validation. Nothing
+    changes until you press Apply.
+  - A patch that does not validate is shown but cannot be applied. A patch
+    proposed before another edit landed is refused (409), not merged.
+  - The proposed cut is drawn as dashed outlines on the timeline before you
+    apply it.
+  - Ripples keep crossfades exact. A bed (music or ambience) that ended with
+    the programme is trimmed with it when the programme gets shorter, and is
+    reported as an edit. Narration that spans an edit point only gets a sync
+    warning.
+- **Keyboard:**
+  - Ctrl/⌘ K opens the command bar (ask, render, undo, jump to a shot).
+  - Space plays; ←/→ step a frame (Shift: 1 s); ↑/↓ change shot.
+  - Ctrl/⌘ Z undoes; Esc clears the selection.
+- **Apply** writes a new version (`timeline_versions/vNNN.json`, where `v001`
+  is the starting point) and `timeline_v3.json`, then logs the event. If the
+  project is pinned to a channel, it also records the correction in creative
+  memory. It then re-renders `renders/preview.mp4` in the background, with live
+  FFmpeg progress.
+- **Undo** restores the previous version. The undone file is kept as
+  `vNNN.undone.json`, and version numbers are never reused.
+- **Never written:** the approved `timeline.json` and `timeline_ir.json`.
+  The controller's gates still decide what ships.
+
+Tests: `timeline-editor/tests/test_studio.py` covers the payload, thumbnails,
+propose/apply/render/undo, validation refusal, stale-patch refusal and
+unclear requests. Real FFmpeg renders run on synthetic clips.
+
 ## What was actually verified before this was written
 
 Both known NarrativeOS project shapes were inspected by running the real

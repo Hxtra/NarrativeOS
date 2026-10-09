@@ -20,7 +20,7 @@ import tempfile
 from pathlib import Path
 from typing import Callable
 
-TASKS = {"propose_edit_events"}
+TASKS = {"propose_edit_events", "propose_edit_patch"}
 
 
 def load_reasoning_provider(config: dict) -> tuple[dict, Callable[[str, dict], dict]]:
@@ -49,8 +49,9 @@ def _checked(fn: Callable[[str, dict], dict]) -> Callable[[str, dict], dict]:
         if task not in TASKS:
             raise ValueError(f"unknown reasoning task {task!r}")
         reply = fn(task, context)
-        if not isinstance(reply, dict) or not isinstance(reply.get("events", []), list):
-            raise ValueError("reasoning provider must reply with an object containing an 'events' list")
+        key = "operations" if task == "propose_edit_patch" else "events"
+        if not isinstance(reply, dict) or not isinstance(reply.get(key, []), list):
+            raise ValueError(f"reasoning provider must reply with an object containing an '{key}' list")
         return reply
     return call
 
