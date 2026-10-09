@@ -16,6 +16,16 @@ renders it. `analysis/talking_head.json` records every decision with its reasons
 1. **Transcribe.** faster-whisper (`base`, CPU, offline once cached) with word timings, cached per clip in
    `analysis/transcripts/`. A short prompt with hesitations nudges Whisper to write "um" and "uh" instead of
    silently dropping them.
+   - **Word timing.** Decoding a whole take, Whisper `base` often puts a word that follows a pause *before* the
+     pause, together with the previous word's tail. In a test take, "I posted (0.6 s) three videos" came back with
+     "three" at 0.60 s; the audio has it at 1.48 s. So the take is decoded twice:
+     - whole, for the text and punctuation;
+     - phrase by phrase between pauses measured from the audio (`phrases_of`), for the times.
+
+     Words are matched in order, with numbers compared as digits (`align_to_phrases`). Their edges are then
+     trimmed to the measured sound (`refine_words`), and the model's own times are kept in `model_times`.
+   - **Fallback.** Without a clear speech/silence contrast (≥ 12 dB, e.g. a noisy room or a music bed), the
+     whole-take times are used. `word_timing` in the transcript says which method was used.
 2. **Lines.** Speech is split at pauses of 0.6 s or more and at every sentence end; retakes are usually per
    sentence. Lines made only of hesitation sounds are dropped.
 3. **Takes.** Attempts at the same line are grouped.
@@ -86,6 +96,7 @@ a real screenshot before treating them as exact.
 | Lines, take grouping (with and without a script), choice with reasons, tight cut, segment joining | VALIDATED on exact word lists (`tests/test_talking_head.py`) |
 | End to end | VALIDATED on real synthetic speech: a Windows-TTS raw take with a false start, an "um" and a twice-said sentence. Through Whisper it gives the right kept takes and reasons, a cut under 60% of the raw length, a NUMBER moment, a 9:16 render, and caption pixels measured inside the Reels safe area on every sample. |
 | Captions staying in sync through edits (remove, slow down) | VALIDATED (`test_captions_follow_the_picture_through_any_edit`) |
+| Word timing at pauses | VALIDATED on two TTS takes: every word after a pause lands within 0.02 s of where the audio has it (whole-take times were off by up to 0.9 s), and exact rule tests (`test_word_times_come_from_the_phrase_they_were_said_in`, `test_word_edges_are_trimmed_to_the_measured_sound`) |
 | Whisper's punctuation | MEASURED as transcribed. In the demo, "And the best part?" came back with a full stop, so that QUESTION moment was not seen. |
 | Real talking-head footage | NOT YET TESTED: no owner footage yet; the demo uses synthetic speech over a test pattern |
 | Subject-aware reframing (9:16 from 16:9 footage) | NOT YET: centre crop. Phase 3 (face/subject tracking). |

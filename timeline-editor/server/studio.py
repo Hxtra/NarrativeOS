@@ -177,6 +177,7 @@ def studio(pid: str):
     return {
         "project_id": pid, "name": proj.get("title") or proj.get("project_id") or pid,
         "channel": (profile.get("pin") or {}) | {"name": (profile.get("identity") or {}).get("name")} if profile.get("pin") else None,
+        "signature": _signature(p),
         # Shown as the compiler will render it: caption words placed from their source, spans fitted to the picture.
         "pipeline": _pipeline(p), "timeline": ct.resolve_dynamic(ir) if ir else None, "timeline_source": source, "versions": _versions(p),
         "timeline_sha256": ep.timeline_sha(ir) if ir else None,
@@ -529,6 +530,32 @@ def wave(pid: str, item_id: str, n: int = 160):
     return body
 
 
+def _signature(p: Path) -> Optional[dict]:
+    """The Signature this project was cut with (signature_pin.json), and whether the library still has it."""
+    pin = _load(p / "signature_pin.json")
+    if not pin:
+        return None
+    try:
+        import signature as sig_mod
+        s = sig_mod.load(pin["id"])
+        return pin | {"label": s.get("label"), "current_version": s.get("version"), "current_status": s.get("status"),
+                      "moves": [{"id": m["id"], "name": m["name"], "fires": m["fires"].get("on")} for m in s.get("moves", [])]}
+    except Exception as e:  # noqa: BLE001 - a missing library still shows the pin
+        return pin | {"missing": str(e)}
+
+
+def _record_signature_note(p: Path, patch: dict) -> Optional[str]:
+    """A correction on a project cut with a Signature is a note on that Signature (evidence; rules need 2+ projects)."""
+    pin = _load(p / "signature_pin.json")
+    if not pin:
+        return None
+    try:
+        import signature as sig_mod
+        return sig_mod.note(pin["id"], p.name, patch["request"], patch)["id"]
+    except Exception as e:  # noqa: BLE001 - best-effort, like creative memory
+        return f"not recorded: {e}"
+
+
 def _record_memory(p: Path, patch: dict, res: dict) -> Optional[str]:
     profile = _load(p / "channel_profile.json", {}) or {}
     pin = profile.get("pin")
@@ -565,11 +592,13 @@ def apply_patch(pid: str, patch_id: str):
     _write_atomic(vdir / f"v{n:03d}.json", res["timeline"])
     _write_atomic(p / TIMELINE, res["timeline"])
     mem = _record_memory(p, pend["patch"], res)
+    sig_note = _record_signature_note(p, pend["patch"])
     _append_event(p, {"action": "patch_applied", "patch_id": patch_id, "request": pend["patch"]["request"], "basis": pend["patch"]["basis"],
-                      "operations": pend["patch"]["operations"], "summary": ep.describe(res), "version": f"v{n:03d}", "creative_memory": mem})
+                      "operations": pend["patch"]["operations"], "summary": ep.describe(res), "version": f"v{n:03d}", "creative_memory": mem,
+                      "signature_note": sig_note})
     _pending.pop(patch_id, None)
     job = _start_render(p, res["timeline"], f"v{n:03d}")
-    return {"version": f"v{n:03d}", "summary": ep.describe(res), "warnings": res["warnings"], "creative_memory": mem,
+    return {"version": f"v{n:03d}", "summary": ep.describe(res), "warnings": res["warnings"], "creative_memory": mem, "signature_note": sig_note,
             "job": _public_job(job)}
 
 

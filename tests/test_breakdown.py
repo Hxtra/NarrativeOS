@@ -260,5 +260,24 @@ def test_still_shots_are_not_frame_holds(tmp_path):
     assert [e["type"] for m in res["moments"] for e in m["events"]] == ["hard_cut", "hard_cut"]
 
 
+def flash_cut_video(dest: Path) -> Path:
+    """A cut that flashes to white and fades back (as the flash_cut recipe does) between two still photos."""
+    a, b = _plate("nasa_eileen_collins_001.jpg"), _plate("nasa_hubble_deep_field_001.jpg")
+    white = np.full((H, W, 3), 255, np.float32)
+    fade = [1.0, 1.0, 0.85, 0.7, 0.55, 0.4, 0.28, 0.17, 0.08, 0.0]  # whiteness after the cut
+    imgs = [_view(a, 0) for _ in range(FPS)]
+    imgs += [(_view(b, 0) * (1 - k) + white * k).astype(np.uint8) for k in fade] + [_view(b, 0) for _ in range(FPS)]
+    _write(imgs, dest)
+    return dest
+
+
+def test_a_flash_washing_the_picture_out_is_not_a_blur_or_whip(tmp_path):
+    # A white wash lowers measured sharpness with the square of contrast; the picture under it is still sharp.
+    res = breakdown.analyze(flash_cut_video(tmp_path / "flash.mp4"), tmp_path / "out", strips=False, with_speech=False)
+    kinds = {e["type"] for m in res["moments"] for e in m["events"]}
+    assert "hard_cut" in kinds and kinds & {"flash_frame", "exposure_bloom"} and not kinds & {"whip_pan", "blur"}, res["moments"]
+    assert [m["suggestion"]["recipe"] for m in res["moments"]] == ["flash_cut"]
+
+
 if __name__ == "__main__":  # python tests/test_breakdown.py <out.mp4>: write the fixture to look at
     print(make_video(Path(sys.argv[1])))

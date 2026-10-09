@@ -316,7 +316,7 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
 - **Remaining phases, in order:**
   - Phase 2, talking-head core: done (see below).
   - Phase 3, frame awareness: done (see below).
-  - Phase 4, Signatures.
+  - Phase 4, Signatures: done (see below).
   - Phase 5, simple 3D.
 
 **Talking-head core (Oct 8, branch `talking-head`, stacked on
@@ -361,6 +361,28 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   lost by a centre crop, and text behind the subject hides exactly where the
   segmentation says the person is.
 - **Not validated:** fingertip tracking on real hands (no footage yet).
+
+**Signatures (Oct 9, branch `signatures`, stacked on `frame-awareness`;
+Phase 4).** Details and status: `references/signatures.md`.
+- **What it is:** a saved editing style, studied from one reference edit
+  (`scripts/signature.py study REF --id x`). It is stored outside the repo in
+  `~/NarrativeOS-Signatures/<id>/` and versioned on every change.
+- **Moves are measured, not described:** the breakdown's visual moments are
+  paired with the transcript's moments (numbers, contrasts, line starts ...)
+  within 0.4 s. An effect fires on a trigger only with support ≥ 2 and
+  precision ≥ 0.5; otherwise it stays UNCLASSIFIED. Each transition move is
+  verified by recreating it and breaking the recreation down again.
+- **Apply** (`signature.py apply ID --project P --clips ...`) runs the
+  talking-head pipeline with the Signature's cut settings, captions and moves.
+  It makes a cut at a moment when the reference had one there, skips moments at
+  segment edges (reported), never lets captions cover the measured face, and
+  pins the project (`signature_pin.json`).
+- **Learning:** Studio corrections on a pinned project become notes; rules only
+  from notes in ≥ 2 projects; `proven` needs 2 approved shipped edits.
+- **StyleProfile:** the measured one stays in the Signature folder;
+  `src/styles/generated/` is still untouched.
+- **Not yet:** no real reference (the owner supplies the first); documentary
+  Signatures can be studied but not applied.
 
 **Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
 completed on branch `editorial-intelligence-completion`).** Exact status
