@@ -31,11 +31,16 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from perception import FILLERS  # noqa: E402
 
+CAPTION_BANDS = {"upper": (0.0, 0.38), "center": (0.38, 0.58), "lower": (0.58, 1.0)}  # output-frame height a caption position covers
+
 CONFIG = {
-    "line_pause_sec": 0.6,         # a pause this long ends a line
+    "line_pause_sec": 0.6,         # a pause this long ends a line when the speaker starts over after it
+    "mid_sentence_pause_max_sec": 2.0,  # ... or when it is longer than this, whatever follows
     "sentence_pause_sec": 0.0,     # a sentence end (. ? !) ends a line at any pause: retakes are usually per sentence
     "max_gap_in_run_sec": 0.35,    # inside a kept take, a longer silence becomes a jump cut
     "pad_in_sec": 0.08,            # breathing room before the first word of a segment
@@ -66,35 +71,183 @@ def _identity(path: Path) -> str:
     return hashlib.sha256(f"{path.resolve()}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
 
 
-def transcribe(path: Path, cache_dir: Path, model_size: str = "base") -> dict:
-    """Words with times (MEASURED by the model), cached per file content."""
-    cache = cache_dir / f"{path.stem}-{_identity(path)}-{model_size}.json"
-    if cache.is_file():
-        return json.loads(cache.read_text(encoding="utf-8"))
-    from faster_whisper import WhisperModel
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
-    segs, info = model.transcribe(str(path), word_timestamps=True, vad_filter=False, condition_on_previous_text=False,
-                                  initial_prompt=DISFLUENCY_PROMPT)
-    words = []
+def _energy_db(path: Path, hop: float = 0.01) -> np.ndarray:
+    """RMS level per 10 ms of the clip's audio, in dB (MEASURED)."""
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vn", "-ac", "1", "-ar", "16000", "-f", "f32le", "-"],
+                         capture_output=True, check=True).stdout
+    a = np.frombuffer(raw, np.float32)
+    k = int(16000 * hop)
+    frames = a[: len(a) // k * k].reshape(-1, k) if len(a) >= k else np.zeros((1, k), np.float32)
+    return 20 * np.log10(np.sqrt(np.mean(frames.astype(np.float64) ** 2, axis=1)) + 1e-5)
+
+
+def refine_words(words: list[dict], db: np.ndarray, hop: float = 0.01, min_trim: float = 0.08, min_pause: float = 0.15) -> list[dict]:
+    """Whisper puts a pause inside the word next to it, often with the neighbour's tail: "three" after a 0.7 s pause
+    was given 0.60-1.66 s, starting at the end of "posted". Trim each word to its own sound: the voiced 10 ms frames
+    (a threshold between the clip's noise floor and its speech level), split at silences of min_pause or more, and
+    the longest voiced run kept (a neighbour's tail is the short one). Words only shrink, by at least min_trim, and
+    keep at least 0.1 s. Model times are kept in model_times."""
+    if not len(db) or not words:
+        return words
+    floor, speech = float(np.percentile(db, 10)), float(np.percentile(db, 95))
+    if speech - floor < 12:  # no clear speech/silence contrast (noisy room, music bed): leave the model's times
+        return words
+    voiced = db >= floor + 0.3 * (speech - floor)
+    gap = int(round(min_pause / hop))
+    out = []
+    for w in words:
+        a, b = int(w["start"] / hop), min(len(voiced), int(np.ceil(w["end"] / hop)))
+        idx = np.flatnonzero(voiced[a:b])
+        start, end = float(w["start"]), float(w["end"])
+        if len(idx):
+            runs, r0 = [], idx[0]
+            for x, y in zip(idx, idx[1:]):
+                if y - x > gap:
+                    runs.append((r0, x))
+                    r0 = y
+            runs.append((r0, idx[-1]))
+            i0, i1 = max(runs, key=lambda r: r[1] - r[0])
+            s2, e2 = float((a + i0) * hop - 0.02), float((a + i1 + 1) * hop + 0.03)
+            if s2 - start >= min_trim and end - s2 >= 0.1:
+                start = s2
+            if end - e2 >= min_trim and e2 - start >= 0.1:
+                end = e2
+        out.append(w | ({"start": round(start, 3), "end": round(end, 3), "model_times": w.get("model_times", [w["start"], w["end"]])}
+                        if (start, end) != (w["start"], w["end"]) else {}))
+    return out
+
+
+DETERMINERS = {"the", "this", "that", "these", "those", "which", "each", "every", "any", "no", "another", "my", "your", "our", "their"}
+DIGITS_OF = {w: str(i) for i, w in enumerate("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen "
+                                                 "fifteen sixteen seventeen eighteen nineteen twenty".split())}
+DIGITS_OF |= {w: str(10 * i) for i, w in enumerate("thirty forty fifty sixty seventy eighty ninety".split(), 3)}
+
+
+def _tok(text: str) -> str:
+    n = norm(text).lstrip("$")
+    return DIGITS_OF.get(n, n)
+
+
+def phrases_of(db: np.ndarray, hop: float = 0.01, min_pause: float = 0.3) -> Optional[list[list[float]]]:
+    """Stretches of speech between measured pauses of min_pause or more. None when the audio has no clear
+    speech/silence contrast (a noisy room or a music bed), where pauses cannot be measured this way."""
+    if not len(db):
+        return None
+    floor, speech = float(np.percentile(db, 10)), float(np.percentile(db, 95))
+    if speech - floor < 12:
+        return None
+    idx = np.flatnonzero(db >= floor + 0.3 * (speech - floor))
+    if not len(idx):
+        return None
+    runs, r0 = [], idx[0]
+    gap = int(round(min_pause / hop))
+    for x, y in zip(idx, idx[1:]):
+        if y - x > gap:
+            runs.append([round(r0 * hop, 3), round((x + 1) * hop, 3)])
+            r0 = y
+    runs.append([round(r0 * hop, 3), round((idx[-1] + 1) * hop, 3)])
+    return runs
+
+
+def _words_of(segs) -> list[dict]:
+    out = []
     for seg in segs:
         for w in seg.words or []:
             text = w.word.strip()
             if text and w.end > w.start:
-                words.append({"text": text, "start": round(w.start, 3), "end": round(w.end, 3), "prob": round(w.probability, 3)})
-    out = {"file": path.name, "model": f"faster-whisper {model_size}", "language": info.language, "duration": round(info.duration, 3),
-           "words": words, "status": "MEASURED"}
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps(out, indent=1), encoding="utf-8")
+                out.append({"text": text, "start": round(float(w.start), 3), "end": round(float(w.end), 3), "prob": round(float(w.probability), 3)})
     return out
 
 
+def align_to_phrases(words: list[dict], phrase_words: list[dict]) -> list[dict]:
+    """Times from the per-phrase decode, text from the whole-take decode. Decoding the whole take, the model often
+    puts a word that follows a pause before it ("I posted three | videos", when "three" was said after the pause);
+    decoded phrase by phrase it cannot cross a pause, but it adds a full stop at every phrase end and the odd stray
+    word. So words are matched in order (numbers as digits), matched words take the phrase times, and unmatched
+    words keep their own times if they fit between their matched neighbours, else share that interval evenly."""
+    a, b = [_tok(w["text"]) for w in words], [_tok(w["text"]) for w in phrase_words]
+    out, matched = [dict(w) for w in words], [False] * len(words)
+    for blk in SequenceMatcher(None, a, b, autojunk=False).get_matching_blocks():
+        for k in range(blk.size):
+            w, pw = out[blk.a + k], phrase_words[blk.b + k]
+            if (pw["start"], pw["end"]) != (w["start"], w["end"]):
+                w["model_times"] = [w["start"], w["end"]]
+                w["start"], w["end"] = pw["start"], pw["end"]
+            matched[blk.a + k] = True
+    i = 0
+    while i < len(out):
+        if matched[i]:
+            i += 1
+            continue
+        j = i
+        while j < len(out) and not matched[j]:
+            j += 1
+        lo = out[i - 1]["end"] if i else 0.0
+        hi = out[j]["start"] if j < len(out) else max(lo, max(w["end"] for w in out[i:j]))
+        run = out[i:j]
+        if not all(lo <= w["start"] and w["end"] <= hi for w in run):
+            step = max(hi - lo, 0.1 * len(run)) / len(run)
+            for k, w in enumerate(run):
+                w["model_times"] = [w["start"], w["end"]]
+                w["start"], w["end"] = round(lo + k * step, 3), round(lo + (k + 1) * step, 3)
+        i = j
+    return out
+
+
+def transcribe(path: Path, cache_dir: Path, model_size: str = "base") -> dict:
+    """Words with times (MEASURED by the model), cached per file content. The take is decoded whole (text and
+    punctuation) and phrase by phrase between measured pauses (timing: align_to_phrases); word edges are then
+    trimmed to the measured audio (refine_words). Without a clear speech/silence contrast, the whole-take times are
+    used and the result says so."""
+    cache = cache_dir / f"{path.stem}-{_identity(path)}-{model_size}-p1.json"
+    if cache.is_file():
+        out = json.loads(cache.read_text(encoding="utf-8"))
+    else:
+        from faster_whisper import WhisperModel
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        segs, info = model.transcribe(str(path), word_timestamps=True, vad_filter=False, condition_on_previous_text=False,
+                                      initial_prompt=DISFLUENCY_PROMPT)
+        words = _words_of(segs)
+        phrases = phrases_of(_energy_db(path))
+        phrase_words = None
+        if phrases and len(phrases) > 1:
+            clips = [x for a, b in phrases for x in (max(0.0, a - 0.12), b + 0.15)]
+            psegs, _ = model.transcribe(str(path), word_timestamps=True, condition_on_previous_text=False, initial_prompt=DISFLUENCY_PROMPT,
+                                        clip_timestamps=clips)
+            phrase_words = _words_of(psegs)
+        out = {"file": path.name, "model": f"faster-whisper {model_size}", "language": info.language, "duration": round(info.duration, 3),
+               "words": words, "phrases": phrases, "phrase_words": phrase_words, "status": "MEASURED"}
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(out, indent=1), encoding="utf-8")
+    words = align_to_phrases(out["words"], out["phrase_words"]) if out.get("phrase_words") else out["words"]
+    timing = ("decoded phrase by phrase between measured pauses; edges trimmed to the measured audio" if out.get("phrase_words")
+              else "whole-take decode (no measurable pauses); edges trimmed to the measured audio")
+    return {k: v for k, v in out.items() if k != "phrase_words"} | {"words": refine_words(words, _energy_db(path)), "word_timing": timing}
+
+
 # ----------------------------------------------------------------------------------------------- lines and takes
+def _restarts(cur: list[dict], ahead: list[dict]) -> bool:
+    """After a pause: is the speaker starting over (a hesitation, or the same words again)?"""
+    if not ahead or norm(ahead[0]["text"]) in FILLERS:
+        return True
+    x = [t for t in (norm(w["text"]) for w in cur) if t and t not in FILLERS]
+    if not x:  # only hesitation so far: what follows is a fresh start
+        return True
+    y = [t for t in (norm(w["text"]) for w in ahead) if t and t not in FILLERS][:len(x)]
+    return _ratio(x, y) >= 0.8 or y[:1] == x[:1]
+
+
 def lines_of(words: list[dict], clip: str, cfg: dict) -> list[dict]:
+    """Lines: split at a sentence end, and at a pause of line_pause_sec or more where the speaker starts over (or
+    the pause is longer than mid_sentence_pause_max_sec). A pause in the middle of a sentence ("and after ...
+    twelve weeks") stays inside its line, so it is never mistaken for a separate attempt; the tight cut removes it."""
     lines, cur = [], []
     for i, w in enumerate(words):
         if cur:
             gap = w["start"] - cur[-1]["end"]
-            if gap >= cfg["line_pause_sec"] or (re.search(r"[.?!]$", cur[-1]["text"]) and gap >= cfg["sentence_pause_sec"]):
+            sentence_end = re.search(r"[.?!]$", cur[-1]["text"]) and gap >= cfg["sentence_pause_sec"]
+            pause = gap >= cfg["line_pause_sec"] and (gap > cfg["mid_sentence_pause_max_sec"] or _restarts(cur, words[i:i + 8]))
+            if sentence_end or pause:
                 lines.append(cur)
                 cur = []
         cur.append({**w, "clip": clip})
@@ -280,7 +433,9 @@ def find_moments(words: list[dict], lines: list[list[dict]]) -> list[dict]:
         add("HOOK", lines[0][: min(len(lines[0]), 8)], "INFERRED", "first line of the cut")
     for line in lines:
         toks = [norm(w["text"]) for w in line]
-        for w, t in zip(line, toks):
+        for k, (w, t) in enumerate(zip(line, toks)):
+            if t == "one" and (DETERMINERS & set(toks[max(0, k - 2):k]) or toks[k + 1:k + 2] == ["of"]):
+                continue  # "the cheap one", "this one", "one of them": a pronoun, not a number
             if re.search(r"\d", w["text"]) or t in NUMBER_WORDS or "%" in w["text"] or "$" in w["text"]:
                 add("NUMBER", [w], "MEASURED", "a number in the transcript")
             if t in ORDINALS:
@@ -383,7 +538,38 @@ def frame_plan(project: Path, metas: dict, items: list[dict], cap_words: list[di
     return plan
 
 
+def fire_defaults(moments: list[dict], items: list[dict], cap_words: list[dict], cfg: dict, people, aspect: str) -> tuple[list[dict], set]:
+    """The built-in moves, used when no Signature is applied: emphasis and a punch-in on numbers and list markers,
+    emphasis on both sides of a contrast."""
+    fired, emphasis = [], set()
+    for m in moments:
+        if m["type"] in ("NUMBER", "LIST"):
+            emphasis.update(m["word_index"])
+            seg = cap_words[m["word_index"][0]]["segment"]
+            items[seg]["motion"] = {"kind": "push_in", "scale_from": cfg["emphasis_scale"], "scale_to": cfg["emphasis_scale"]}
+            fired.append({"moment": m["type"], "text": m["text"], "at": m["start"], "move": f"caption emphasis + punch-in {cfg['emphasis_scale']} on {items[seg]['id']}"})
+        elif m["type"] == "CONTRAST":
+            emphasis.update(m["emphasis"])
+            fired.append({"moment": "CONTRAST", "text": m["text"], "at": m["start"], "move": "caption emphasis on both sides of the contrast"})
+        elif m["type"] == "NAME" and people and m["text"].strip(".,!?") in people and aspect == "16:9":
+            fired.append({"moment": "NAME", "text": m["text"], "at": m["start"], "move": "speaker lower third"})
+    return fired, emphasis
+
+
 # ----------------------------------------------------------------------------------------------- timeline
+def caption_position(caption_params: Optional[dict], frame: dict) -> dict:
+    """A Signature's caption position never covers the measured face: the face wins, and the conflict is recorded
+    in frame["caption_conflict"]."""
+    params = dict(caption_params or {})
+    if params.get("position") and frame.get("face_y") is not None:
+        lo, hi = CAPTION_BANDS.get(params["position"], (0.0, 0.0))
+        if lo - 0.1 <= frame["face_y"] <= hi + 0.1:
+            frame["caption_conflict"] = {"wanted": params["position"], "used": frame["captions_position"], "face_y": frame["face_y"],
+                                         "reason": "the signature's caption position would cover the measured face"}
+            params["position"] = frame["captions_position"]
+    return params
+
+
 def _probe(path: Path) -> dict:
     r = subprocess.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)], capture_output=True, text=True, check=True)
     d = json.loads(r.stdout)
@@ -395,7 +581,7 @@ def _probe(path: Path) -> dict:
 
 
 def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: str, platform: Optional[str], style: str,
-          cfg: dict, people: Optional[dict] = None) -> tuple[dict, dict]:
+          cfg: dict, people: Optional[dict] = None, moves: Optional[list[dict]] = None, caption_params: Optional[dict] = None) -> tuple[dict, dict]:
     """(timeline IR, report) for the given raw clips."""
     import remotion_bridge as rb
     cache = project / "analysis" / "transcripts"
@@ -440,23 +626,16 @@ def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: 
     total = round(t, 3)
     moments = find_moments(cap_words, timeline_lines)
 
-    fired = []
-    emphasis = set()
-    for m in moments:
-        if m["type"] in ("NUMBER", "LIST"):
-            emphasis.update(m["word_index"])
-            seg = cap_words[m["word_index"][0]]["segment"]
-            items[seg]["motion"] = {"kind": "push_in", "scale_from": cfg["emphasis_scale"], "scale_to": cfg["emphasis_scale"]}
-            fired.append({"moment": m["type"], "text": m["text"], "at": m["start"], "move": f"caption emphasis + punch-in {cfg['emphasis_scale']} on {items[seg]['id']}"})
-        elif m["type"] == "CONTRAST":
-            emphasis.update(m["emphasis"])
-            fired.append({"moment": "CONTRAST", "text": m["text"], "at": m["start"], "move": "caption emphasis on both sides of the contrast"})
-        elif m["type"] == "NAME" and people and m["text"].strip(".,!?") in people and aspect == "16:9":
-            fired.append({"moment": "NAME", "text": m["text"], "at": m["start"], "move": "speaker lower third"})
+    if moves is None:
+        fired, emphasis = fire_defaults(moments, items, cap_words, cfg, people, aspect)
+    else:  # a Signature's own moves, each with the condition it fires on
+        import signature as sig_mod
+        fired, emphasis = sig_mod.fire_moves(moves, moments, items, cap_words, cfg)
     vision_ok, vision_why = vision_ready()
     frame = frame_plan(project, metas, items, cap_words, moments, W, H) if vision_ok else {"status": "NOT_MEASURED", "reason": vision_why}
     for a in frame.get("anchors", []):
         fired.append({"moment": "CUE", "text": a["moment"], "at": a["start"], "move": "marker follows the measured fingertip"})
+    caption_params = caption_position(caption_params, frame)
     tracks = [{"id": "v_main", "kind": "video", "items": items}]
     remotion_ok = rb.available()[0]
     if remotion_ok:
@@ -466,7 +645,7 @@ def build(project: Path, clips: list[Path], script_text: Optional[str], aspect: 
                   **({"emphasis": True} if w["index"] in emphasis else {})} for w in cap_words]
         tracks.append({"id": "captions", "kind": "graphic", "items": [
             {"id": "CAPS", "template": "kinetic_captions", "follow": "main", "timeline_in": 0.0, "timeline_out": total,
-             "params": {"words": words, "maxWords": 3, "position": frame.get("captions_position", "lower")}}]})
+             "params": {"words": words, "maxWords": 3, "position": frame.get("captions_position", "lower"), **caption_params}}]})
         if frame.get("anchors"):
             tracks.append({"id": "markers", "kind": "graphic", "items": [
                 {"id": f"MK{i + 1}", "template": "anchor_marker", "timeline_in": round(a["start"], 3), "timeline_out": round(a["end"], 3),

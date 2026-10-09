@@ -193,6 +193,16 @@ function renderTop() {
   document.title = `${d.name} · NarrativeOS Studio`;
   const c = d.timeline && d.timeline.canvas;
   $("pmeta").textContent = [fmt(d.stats.duration), `${d.stats.clips} shots`, c ? `${c.width}×${c.height}` : null, c ? `${c.fps} fps` : null].filter(Boolean).join(" · ");
+  const sg = d.signature, sp = $("sigpin");
+  sp.hidden = !sg;
+  if (sg) {
+    const moves = (sg.moves || []).map((m) => `${m.id} ${m.name}`).join("\n");
+    sp.title = sg.missing ? `Signature ${sg.id} v${sg.version}: not in this library (${sg.missing})`
+      : `Cut with Signature ${sg.label || sg.id} v${sg.version} (${sg.status}).` + (sg.current_version !== sg.version ? ` The library is now at v${sg.current_version}.` : "")
+        + (moves ? `\n\nMoves:\n${moves}` : "") + "\n\nCorrections you make here are kept as notes on this Signature.";
+    put(sp, h("i", {}), `${sg.label || sg.id}`, h("em", {}, `v${sg.version}`));
+    sp.classList.toggle("warn", !!sg.missing || sg.current_version !== sg.version);
+  }
   put($("rail"), GROUPS.map(([g, stages]) => {
     const passed = stages.map(stageStatus).filter((s) => s === "passed").length;
     const st = d.pipeline.present ? groupState(stages) : "";
@@ -999,7 +1009,7 @@ async function applyRun(m) {
     const r = await api(`/api/studio/${enc(S.pid)}/patches/${m.proposal.patch_id}/apply`, { method: "POST" });
     m.state = "applied"; m.version = r.version; m.renderFor = r.version; m.render = followable(r.job, r.version);
     m.after = [{ id: "saved", label: `Saved as ${r.version}`, status: r.warnings.length ? "warn" : "done",
-      detail: [r.summary, ...(r.creative_memory && !String(r.creative_memory).startsWith("not") ? [`remembered for this channel (${r.creative_memory})`] : []), ...r.warnings.map((w) => `⚠ ${w}`)] }];
+      detail: [r.summary, ...(r.creative_memory && !String(r.creative_memory).startsWith("not") ? [`remembered for this channel (${r.creative_memory})`] : []), ...(r.signature_note && !String(r.signature_note).startsWith("not") ? [`kept as a note on the Signature (${r.signature_note})`] : []), ...r.warnings.map((w) => `⚠ ${w}`)] }];
     (m.proposal.diff.edited || []).forEach((e) => S.changed.add(e.id));
     S.ghost = null; S.flipFrom = { pos: flip, sha: m.proposal.parent };
     toast(`Applied ${r.version} — rendering a fresh preview`);

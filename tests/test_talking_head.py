@@ -34,6 +34,13 @@ def test_lines_split_at_pauses_and_sentence_ends():
     assert ls[1]["content"] == []  # a hesitation-only line
 
 
+def test_a_pause_inside_a_sentence_does_not_make_a_separate_attempt():
+    # "I posted" alone would look like an earlier attempt at "Then I posted" and be dropped.
+    ls = th.lines_of(words("I posted|0.86 three videos a week. Nothing happened. Then I posted|0.8 five a day."), "c", CFG)
+    assert [ln["text"] for ln in ls] == ["I posted three videos a week.", "Nothing happened.", "Then I posted five a day."]
+    assert len(th.lines_of(words("I posted|2.5 three videos."), "c", CFG)) == 2  # a very long pause still ends the line
+
+
 def test_false_starts_lose_and_the_later_complete_take_wins():
     ls = th.lines_of(words("So the real|1.0 So the real problem is quality.|1.2 This took three years to figure out.|1.5 "
                            "This took three years to learn."), "c", CFG)
@@ -94,6 +101,37 @@ def test_moments_fire_on_what_is_said():
     assert [tl[i]["text"] for i in contrast["emphasis"]] == ["quantity,", "quality."]
     assert [m["text"] for m in by["NUMBER"]] == ["3"] and by["NAME"][0]["text"].startswith("Sarah")
     assert "Phase 3" in by["CUE"][0]["evidence"] and by["CUE"][0]["status"] == "MEASURED"
+
+
+def test_word_times_come_from_the_phrase_they_were_said_in():
+    # Measured from a real decode: whole-take, the model put "three" before the pause; phrase by phrase, after it.
+    whole = [{"text": "I", "start": 0.0, "end": 0.2}, {"text": "posted", "start": 0.2, "end": 0.6}, {"text": "three", "start": 0.6, "end": 1.66},
+             {"text": "videos", "start": 1.66, "end": 2.06}, {"text": "uh", "start": 2.06, "end": 2.2}, {"text": "week.", "start": 2.3, "end": 2.64}]
+    phrase = [{"text": "I", "start": 0.0, "end": 0.22}, {"text": "posted.", "start": 0.22, "end": 0.6}, {"text": "3", "start": 1.36, "end": 1.68},
+              {"text": "videos", "start": 1.68, "end": 2.08}, {"text": "did", "start": 2.1, "end": 2.2}, {"text": "week.", "start": 2.4, "end": 2.6}]
+    out = th.align_to_phrases(whole, phrase)
+    assert [w["text"] for w in out] == ["I", "posted", "three", "videos", "uh", "week."]  # text and punctuation from the whole take
+    assert (out[2]["start"], out[2]["end"], out[2]["model_times"]) == (1.36, 1.68, [0.6, 1.66])  # "three" = "3", after the pause
+    assert (out[4]["start"], out[4]["end"]) == (2.08, 2.4)  # unmatched, did not fit between its neighbours: their gap
+
+
+def test_word_edges_are_trimmed_to_the_measured_sound():
+    db = np.full(300, -90.0)
+    db[10:88] = -15.0   # "I posted"
+    db[148:269] = -16.0  # "three videos a week"
+    assert th.phrases_of(db) == [[0.1, 0.88], [1.48, 2.69]]
+    w = th.refine_words([{"text": "three", "start": 1.36, "end": 1.68}, {"text": "posted", "start": 0.2, "end": 1.3}], db)
+    assert (w[0]["start"], w[0]["end"]) == (1.46, 1.68) and w[0]["model_times"] == [1.36, 1.68]
+    assert (w[1]["start"], w[1]["end"]) == (0.2, 0.91)  # the pause after it is not part of the word
+    assert th.phrases_of(np.full(300, -30.0)) is None  # no speech/silence contrast: pauses cannot be measured
+
+
+def test_one_as_a_pronoun_is_not_a_number():
+    def nums(text):
+        ws = [{"text": x, "t_in": i, "t_out": i + 0.3, "index": i, "segment": 0} for i, x in enumerate(text.split())]
+        return [m["text"] for m in th.find_moments(ws, [ws]) if m["type"] == "NUMBER"]
+    assert nums("The cheap one won.") == nums("One of them failed.") == nums("Which one is better?") == []
+    assert nums("I had one job.") == nums("It took one year.") == ["one"]
 
 
 # ----------------------------------------------------------------------------------------------- end to end

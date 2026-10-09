@@ -93,9 +93,15 @@ kbd { font: 500 10.5px var(--mono); padding: 1px 5px; border-radius: 5px; border
 .project .chev { width: 14px; height: 14px; color: var(--text-3); flex: none; }
 .project select { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .pmeta { color: var(--text-3); font: 400 11.5px var(--mono); white-space: nowrap; flex: none; }
-.rail { flex: 1; display: flex; justify-content: center; gap: 12px; min-width: 0; padding: 0 12px; }
-.rail .seg-i { display: flex; flex-direction: column; gap: 5px; min-width: 64px; max-width: 120px; flex: 1; padding: 5px 4px 0; cursor: default; }
-.rail .seg-i span { font-size: 11px; color: var(--text-3); white-space: nowrap; display: flex; justify-content: space-between; gap: 6px; }
+.sigpin { display: inline-flex; align-items: center; gap: 7px; flex: none; padding: 3px 9px 3px 8px; border-radius: 999px; font-size: 11.5px; color: var(--text-2);
+  border: 1px solid var(--line); background: rgba(255,255,255,.03); white-space: nowrap; cursor: default; }
+.sigpin[hidden] { display: none; }
+.sigpin i { width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, #ff6a2b, #ffc07a); box-shadow: 0 0 8px rgba(255,140,60,.6); }
+.sigpin em { font: 400 10.5px var(--mono); font-style: normal; color: var(--text-3); }
+.sigpin.warn i { background: #e5b93f; box-shadow: none; }
+.rail { flex: 1; display: flex; justify-content: safe center; gap: 12px; min-width: 0; padding: 0 12px; overflow: hidden; }
+.rail .seg-i { display: flex; flex-direction: column; gap: 5px; min-width: 0; max-width: 120px; flex: 1; padding: 5px 4px 0; cursor: default; }
+.rail .seg-i span { font-size: 11px; color: var(--text-3); white-space: nowrap; display: flex; justify-content: space-between; gap: 6px; overflow: hidden; text-overflow: ellipsis; }
 .rail .seg-i span em { font: 400 10px var(--mono); font-style: normal; opacity: 0.8; }
 .rail .seg-i .bar { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.07); overflow: hidden; position: relative; }
 .rail .seg-i .bar i { position: absolute; inset: 0 auto 0 0; background: var(--text-2); border-radius: 3px; transition: width 0.8s var(--ease); }
@@ -504,6 +510,9 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 13p
 .toast.out { opacity: 0; transform: translateY(8px); transition: all 0.35s; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
 
+@media (max-width: 1600px) {
+  .top:has(.sigpin:not([hidden])) .pmeta { display: none; }  /* the Signature chip takes its place; the timeline shows the same facts */
+}
 @media (max-width: 1360px) {
   .app { grid-template-columns: 236px minmax(0, 1fr) 364px; }
   .rail .seg-i { min-width: 50px; }

@@ -259,6 +259,7 @@ class _FrameMeter:
         gx = cv2.Sobel(sf, cv2.CV_32F, 1, 0)
         gy = cv2.Sobel(sf, cv2.CV_32F, 0, 1)
         out["sharp"] = float(lap.var())
+        out["contrast"] = float(gray.std())
         out["texture"] = float(np.mean(np.abs(gx)) + np.mean(np.abs(gy)))
         out["aniso"] = float(np.log((np.mean(gx ** 2) + 1e-3) / (np.mean(gy ** 2) + 1e-3)))
         kp, des = self.orb.detectAndCompute(small, None)
@@ -367,6 +368,17 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
         med = float(np.median(sharp[m])) if m.any() else 0.0
         if med > 1e-3:
             ratio[m] = sharp[m] / med
+    # A flash or a dip washes the picture out: Laplacian variance falls with the square of contrast while the picture
+    # underneath is just as sharp. So a blur must also hold once contrast is divided out (a whip pan barely changes
+    # contrast, so it passes both). Frames measured before contrast was recorded skip this check.
+    contrast = col("contrast", np.nan)
+    wash = np.ones(n)
+    for s in np.unique(shot):
+        m = (shot == s) & np.isfinite(contrast)
+        med = float(np.median(contrast[m])) if m.any() else 0.0
+        if med > 1e-3:
+            wash[m] = np.clip(contrast[m] / med, 1e-3, None)
+    ratio_norm = ratio / np.minimum(wash, 1.0) ** 2
     aniso = col("aniso")
     texture = col("texture")
     textured = texture >= cfg["min_texture_ratio"] * float(np.median(texture))
@@ -383,7 +395,7 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
         taken[a : b + 1] = True
 
     # Whip pan: one-axis blur and a sharpness collapse.
-    whip_mask = (ratio <= cfg["whip_max_sharpness_ratio"]) & (np.abs(aniso) >= cfg["whip_min_anisotropy"]) & ~taken & textured
+    whip_mask = (ratio <= cfg["whip_max_sharpness_ratio"]) & (ratio_norm <= cfg["whip_max_sharpness_ratio"]) & (np.abs(aniso) >= cfg["whip_min_anisotropy"]) & ~taken & textured
     for a, b in _runs(whip_mask):
         if b - a + 1 < 2:
             continue
@@ -401,7 +413,7 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
             taken[int(round(e["start"] * fps)) : int(round(e["end"] * fps))] = True
 
     # Blur without a direction.
-    for a, b in _runs((ratio <= cfg["blur_max_sharpness_ratio"]) & ~taken & (np.abs(aniso) < cfg["whip_min_anisotropy"]) & textured):
+    for a, b in _runs((ratio <= cfg["blur_max_sharpness_ratio"]) & (ratio_norm <= cfg["blur_max_sharpness_ratio"]) & ~taken & (np.abs(aniso) < cfg["whip_min_anisotropy"]) & textured):
         if b - a + 1 >= cfg["blur_min_frames"]:
             p = a + int(np.argmin(ratio[a : b + 1]))
             add("blur", a, b, {"min_sharpness_ratio": round(float(ratio[p]), 3)}, p)
@@ -452,7 +464,12 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
         sides_w = [float(np.median(warm[sl])) for sl in (pre, post) if sl.stop > sl.start]
         if not sides_y:
             continue
-        dy, dw = float(y[p] - max(sides_y)), float(warm[p] - np.mean(sides_w))
+        dy = float(y[p] - max(sides_y))
+        # The light's own colour: white light only pulls a picture toward neutral (warm * (1 - k)), so that part of
+        # the shift is removed, measured against the side in the peak's own shot (not a mix across a cut).
+        own = [sl for sl in (pre, post) if sl.stop > sl.start and shot[sl.start] == shot[p]] or [sl for sl in (pre, post) if sl.stop > sl.start]
+        y0, w0 = float(np.median(np.concatenate([y[sl] for sl in own]))), float(np.median(np.concatenate([warm[sl] for sl in own])))
+        dw = float(warm[p] - w0 + w0 * max(0.0, y[p] - y0) / max(1.0, 255.0 - y0))
         if dy < cfg["leak_min_luma_rise"]:
             continue
         bl = frames[a - 1] if a else frames[a]
@@ -469,12 +486,15 @@ def visual_events(frames: list[dict], fps: float, cuts: list[float], cfg: dict, 
 
     # Frame holds: identical frames right after motion (one repeat is pulldown, not a hold).
     diff = col("diff", 99.0)
+    # Motion is the change a global brightness change does not explain: a fade or flash moves every pixel the same
+    # way, so its mean absolute difference equals the change in mean brightness, and a still after it is not a hold.
+    motion = np.maximum(diff - np.abs(np.diff(y, prepend=y[0])), 0.0)
     shot_start = {int(sh): int(np.flatnonzero(shot == sh)[0]) for sh in np.unique(shot)}
     for a, b in _runs(diff <= cfg["hold_max_diff"], max_gap=0):
         repeats = b - a + 1
         # Motion before the hold must be inside the same shot: the cut itself is not motion,
         # and a still image after a cut is a still shot, not a freeze.
-        before = diff[max(shot_start[int(shot[a])] + 1, a - 3) : a]
+        before = motion[max(shot_start[int(shot[a])] + 1, a - 3) : a]
         if repeats >= cfg["hold_min_repeats"] and len(before) >= 2 and float(np.mean(before)) >= cfg["hold_min_motion_before"]:
             add("frame_hold", a - 1, b, {"held_frames": repeats + 1, "motion_before": round(float(np.mean(before)), 2)}, a - 1)
     return events
