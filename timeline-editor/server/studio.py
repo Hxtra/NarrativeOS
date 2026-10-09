@@ -185,6 +185,7 @@ def studio(pid: str):
         "preview_url": f"/api/studio/{pid}/preview" if (p / "renders" / "preview.mp4").is_file() else None,
         "job": _public_job(_jobs.get(str(p))), "events": _events(p),
         "assistant": {"rules": True, "provider": (lambda c: f"{c.get('name', 'provider')}/{c.get('model', '?')}" if c else None)(_provider(p))},
+        "vfx_recipes": _vfx_recipes(),
         "stats": {"duration": check["duration"], "clips": len(next((t["items"] for t in (ir or {}).get("tracks", []) if t["kind"] == "video"), [])),
                   "sources": len(research.get("sources", [])) if isinstance(research, dict) else 0,
                   "evidence_links": sum(len(v) for v in ev.values())},
@@ -247,6 +248,11 @@ def _render(p: Path, ir: dict) -> None:
     try:
         def on_phase(name: str, detail: dict) -> None:
             now = time.perf_counter()
+            if job["phases"] and job["phases"][-1]["name"] == name:  # progress of the same phase (graphics): update it
+                job["phases"][-1]["detail"] = detail
+                if name == "graphics":
+                    job["progress_graphics"] = detail.get("progress", 0)
+                return
             if job["phases"]:
                 job["phases"][-1]["ms"] = round((now - job["phases"][-1]["_t"]) * 1000)
             if name == "encode":
@@ -326,6 +332,17 @@ class AssistantRequest(BaseModel):
     selection: dict = Field(default_factory=dict)
 
 
+def _vfx_recipes() -> list[dict]:
+    """The registered VFX transition recipes, when the Remotion project can run here (else none: never guessed)."""
+    try:
+        import remotion_bridge as rb
+        if not rb.available()[0]:
+            return []
+        return [{k: r[k] for k in ("id", "label", "meaning", "intensity")} for r in rb.registry()["transitions"]]
+    except Exception:  # noqa: BLE001 - recipes are optional; the assistant still handles native transitions
+        return []
+
+
 def _provider(p: Path) -> Optional[dict]:
     cfg = _load(p / "studio_provider.json") or (_load(Path(os.environ["NARRATIVEOS_REASONING_PROVIDER"])) if os.environ.get("NARRATIVEOS_REASONING_PROVIDER") else None)
     return cfg if isinstance(cfg, dict) and cfg.get("type") == "command" else None
@@ -391,7 +408,8 @@ def assistant_run(p: Path, message: str, selection: dict):
 
     # What the request means.
     assets = set(ct.asset_registry(p, ir))
-    r = ep.interpret(message, ir, sel, assets)
+    recipes = {r["id"] for r in _vfx_recipes()}
+    r = ep.interpret(message, ir, sel, assets, recipes)
     basis = "rules"
     if r["understood"] and r["operations"]:
         yield step("understand", "Understood the request", [ep.explain(op, ir) for op in r["operations"]], basis="rules")

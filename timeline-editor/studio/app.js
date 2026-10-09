@@ -19,8 +19,8 @@ const GROUPS = [
   ["QA", ["EDITORIAL_ANALYSIS", "EDITORIAL_REPAIR", "COST_REVIEW", "VARIANT_BUILD", "THUMBNAIL", "PREVIEW_RENDER", "TECHNICAL_QA", "EDITORIAL_QA", "TARGETED_REVISION"]],
   ["Publish", ["FINAL_RENDER", "DELIVERY_REVIEW", "PUBLISH", "COMPLETE"]],
 ];
-const LANE_H = { video: 66, overlay: 34, caption: 34, audio: 48 };   // comfortable heights
-const LANE_MIN = { video: 44, overlay: 26, caption: 26, audio: 34 };  // still readable when space is short
+const LANE_H = { video: 66, overlay: 34, graphic: 34, caption: 34, audio: 48 };   // comfortable heights
+const LANE_MIN = { video: 44, overlay: 26, graphic: 26, caption: 26, audio: 34 };  // still readable when space is short
 const ICONS = {
   check: '<svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   warn: '<svg viewBox="0 0 16 16"><path d="M8 3.5v5.5M8 12v.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
@@ -101,11 +101,14 @@ const kindOf = (t) => (t.kind === "audio" ? t.role || "music" : t.kind);
 function trackName(t) {
   if (t.kind === "video") return "Picture";
   if (t.kind === "overlay") return "Overlay · FX";
+  if (t.kind === "graphic") return "Graphics";
   if (t.kind === "caption") return "Text";
   return { narration: "Voiceover", music: "Music", sfx: "Sound FX", ambience: "Ambience", dialogue: "Dialogue" }[t.role] || t.id;
 }
+const recipeLabel = (id) => { const r = ((S.data && S.data.vfx_recipes) || []).find((x) => x.id === id); return r ? r.label : String(id || "").replace(/_/g, " "); };
 function itemName(t, it) {
   if (it.text != null) return it.text;
+  if (it.template) { const p = it.params || {}; return `${it.template.replace(/_/g, " ")}${p.headline || p.name || p.title || p.location ? " · " + (p.headline || p.name || p.title || p.location) : ""}`; }
   const a = (S.data.assets || {})[it.asset_id] || {};
   return a.file || it.asset_id || it.id;
 }
@@ -395,7 +398,7 @@ function renderHud() {
   renderRenderOverlay();
 }
 function flashHud() { const t = $("freshTag"); if (t) { t.classList.remove("flash"); void t.offsetWidth; t.classList.add("flash"); } }
-const PHASES = [["validate", "Validate"], ["graph", "Filtergraph"], ["encode", "Encode"], ["verify", "Verify"]];
+const PHASES = [["validate", "Validate"], ["graphics", "Graphics"], ["graph", "Filtergraph"], ["encode", "Encode"], ["verify", "Verify"]];
 function renderRenderOverlay() {
   const j = S.data.job, ovl = $("renderOvl");
   if (!jobActive(j) || !S.data.preview_url) { ovl.hidden = true; S.ovlPrev = null; return; }
@@ -406,7 +409,7 @@ function renderRenderOverlay() {
   const st = j.stats || {};
   put(ovl,
     h("div", { class: "r1" }, h("span", { class: "ttl" }, j.state === "queued" ? "Queued" : `Rendering ${j.for && j.for.startsWith("v") ? j.for : "preview"}`),
-      h("span", { class: "pct" }, `${Math.round((j.progress || 0) * 100)}%`), h("span", { class: "grow" }),
+      h("span", { class: "pct" }, cur === "graphics" ? `graphics ${Math.round((j.progress_graphics || 0) * 100)}%` : `${Math.round((j.progress || 0) * 100)}%`), h("span", { class: "grow" }),
       h("span", { class: "st" }, statsLine(st))),
     h("div", { class: "phs" }, PHASES.map(([n, l]) => h("span", { class: names.includes(n) ? (n === cur ? "on" : "done") : "" }, l))),
     h("div", { class: "prog", "data-sid": "ovl" }, h("i", { style: `width:${(j.progress || 0) * 100}%` })));
@@ -441,8 +444,8 @@ function renderShots() {
   items.forEach((it, i) => {
     if (i) {
       const tr = it.transition_in;
-      out.push(h("div", { class: "joint", title: tr ? `${tr.type.replace("_", " ")}${tr.duration ? ` · ${tr.duration} s` : ""}` : "cut" },
-        !tr || tr.type === "cut" ? h("i", { class: "cut" }) : tr.type === "crossfade" ? icon("xfade") : h("i", { class: `dip${tr.type === "dip_white" ? " w" : ""}` })));
+      out.push(h("div", { class: "joint", title: tr ? (tr.type === "recipe" ? recipeLabel(tr.recipe) : `${tr.type.replace("_", " ")}${tr.duration ? ` · ${tr.duration} s` : ""}`) : "cut" },
+        !tr || tr.type === "cut" ? h("i", { class: "cut" }) : tr.type === "crossfade" ? icon("xfade") : tr.type === "recipe" ? h("i", { class: "fxj" }, "FX") : h("i", { class: `dip${tr.type === "dip_white" ? " w" : ""}` })));
     }
     out.push(h("div", { class: `shot${S.sel && S.sel.item_id === it.id ? " sel" : ""}${S.changed.has(it.id) ? " changed" : ""}`, "data-id": it.id, onclick: () => select({ item_id: it.id }, true) },
       h("div", { class: "th", style: `background-image:url('${thumbUrl(it.id)}')` }, h("span", { class: "num" }, String(i + 1).padStart(2, "0")), h("span", { class: "len" }, `${dur(it).toFixed(1)}s`), h("i", { class: "now" })),
@@ -509,6 +512,7 @@ function renderTimeline() {
       const w = Math.max(3, dur(it) * z - 1), k = kindOf(t);
       const cls = `clip ${t.kind === "audio" ? "audio " + k : t.kind}${S.sel && S.sel.item_id === it.id ? " sel" : ""}${S.changed.has(it.id) ? " changed" : ""}`;
       const label = t.kind === "audio" ? `${it.id}${it.gain_db ? ` · ${it.gain_db} dB` : ""}` : t.kind === "caption" ? it.text : `${it.id} · ${itemName(t, it)}`;
+      const extra = t.kind === "video" ? [it.speed && it.speed !== 1 ? `${it.speed}×` : null, it.speed_ramp ? "ramp" : null, it.grade === null ? "ungraded" : null].filter(Boolean) : [];
       const c = h("div", { class: cls, "data-id": it.id, style: `left:${it.timeline_in * z}px;width:${w}px`, title: `${it.id} · ${fmt(it.timeline_in)} → ${fmt(it.timeline_out)} (${dur(it).toFixed(2)} s)`,
         onclick: (e) => { e.stopPropagation(); select({ item_id: it.id }, true); } });
       if (t.kind === "video") {
@@ -516,7 +520,7 @@ function renderTimeline() {
         c.append(h("div", { class: "strip" }, Array.from({ length: n }, (_, j) => h("span", { style: `background-image:url('${thumbUrl(it.id, ((j + 0.5) * dur(it)) / n)}')` }))));
       }
       if (t.kind === "audio") { const cv = h("canvas"); c.append(cv); drawWave(it, cv, w, laneH(t) - 10); }
-      c.append(h("span", { class: "lbl" }, label));
+      c.append(h("span", { class: "lbl" }, label, extra.length ? h("em", { class: "tagx" }, extra.join(" · ")) : null));
       lane.append(c);
       if (flip && flip[it.id]) {
         const [a0, a1] = flip[it.id];
@@ -529,6 +533,7 @@ function renderTimeline() {
       if (t.kind === "video" && i > 0 && it.transition_in) {
         const prev = items[i - 1], tr = it.transition_in;
         if (tr.type === "crossfade") lane.append(h("div", { class: "xfade", style: `left:${it.timeline_in * z}px;width:${Math.max(4, (prev.timeline_out - it.timeline_in) * z)}px`, title: `crossfade ${tr.duration} s` }));
+        else if (tr.type === "recipe") lane.append(h("div", { class: "fxm", style: `left:${it.timeline_in * z}px`, title: `${recipeLabel(tr.recipe)} (rendered VFX transition)` }, "FX"));
         else if (tr.type.startsWith("dip")) lane.append(h("div", { class: `dipm${tr.type === "dip_white" ? " w" : ""}`, style: `left:${it.timeline_in * z}px`, title: tr.type.replace("_", " ") }));
       }
       // ghost of the proposed cut, drawn where this item would end up
@@ -654,12 +659,15 @@ function renderFocus() {
     const tr = it.transition_in, mo = it.motion;
     const pic = t.kind === "video" || t.kind === "overlay";
     put(box, h("div", { class: "f-card" },
-      h("div", { class: "th", style: pic ? `background-image:url('${thumbUrl(it.id)}')` : "" }, pic ? null : icon(t.kind === "caption" ? "text" : "wave")),
+      h("div", { class: "th", style: pic ? `background-image:url('${thumbUrl(it.id)}')` : "" }, pic ? null : icon(t.kind === "caption" || t.kind === "graphic" ? "text" : "wave")),
       h("div", { style: "min-width:0" },
         h("div", { class: "t1" }, itemName(t, it)),
         h("div", { class: "t2" }, `${it.id} · ${trackName(t)} · ${fmt(it.timeline_in)} → ${fmt(it.timeline_out)} · ${dur(it).toFixed(2)} s`),
         h("div", { class: "t3" },
-          t.kind === "video" ? h("span", { class: "chip" }, tr ? tr.type.replace("_", " ") : "cut in") : null,
+          t.kind === "video" ? h("span", { class: `chip${tr && tr.type === "recipe" ? " ember" : ""}` }, tr ? (tr.type === "recipe" ? `${recipeLabel(tr.recipe)} in` : tr.type.replace("_", " ")) : "cut in") : null,
+          t.kind === "video" && (it.speed_ramp || (it.speed && it.speed !== 1)) ? h("span", { class: "chip" }, it.speed_ramp ? "speed ramp" : `${it.speed}× speed`) : null,
+          t.kind === "graphic" ? h("span", { class: "chip ember" }, it.template) : null,
+          t.kind === "graphic" && it.style ? h("span", { class: "chip" }, it.style) : null,
           mo && mo.kind !== "none" ? h("span", { class: "chip" }, `${mo.kind.replace("_", " ")} ${mo.scale_from}→${mo.scale_to}`) : null,
           t.kind === "audio" ? h("span", { class: "chip" }, `${it.gain_db ?? 0} dB`) : null,
           t.kind === "overlay" ? h("span", { class: "chip" }, `${it.blend || "normal"} · ${Math.round((it.opacity ?? 1) * 100)}%`) : null,
@@ -689,7 +697,8 @@ function suggestions() {
     if (!it) return global;
     if (t.kind === "video") {
       const first = mainItems()[0] && mainItems()[0].id === it.id;
-      return ["Make this faster", "Let it breathe", first ? null : "Crossfade into this", first ? null : "Dip to black here", "Push in", "Make it 2.5 s", "Remove this shot"].filter(Boolean);
+      const fx = (S.data.vfx_recipes || []).length && !first ? ["Glitch into this", "Light leak into this", "Whip pan into this"] : [];
+      return ["Make this faster", "Let it breathe", first ? null : "Crossfade into this", ...fx, first ? null : "Dip to black here", "Push in", "Make it 2.5 s", "Remove this shot"].filter(Boolean);
     }
     if (t.kind === "caption") return [`Change the caption to "${it.text}"`, "Remove this"];
     if (t.kind === "audio") { const n = t.role === "narration" ? "Narration" : trackName(t); return [`${n} down 3 dB`, `${n} up 3 dB`]; }
@@ -770,6 +779,12 @@ function renderSteps(m) {
   const failed = j.state === "failed";
   if (j.state === "queued") out.push({ id: "r-q", label: "Waiting for the render before it to finish", status: "running" });
   if (ph.validate) out.push({ id: "r-v", label: "Validated the timeline", detail: `${ph.validate.detail.tracks} tracks · ${ph.validate.detail.items} items · source ranges, handles, overlaps, paths`, status: ph.graph ? "done" : failed ? "failed" : "running", ms: ph.validate.ms });
+  if (ph.graphics) {
+    const g = ph.graphics.detail, done = !!ph.graph || j.state === "done";
+    out.push({ id: "r-x1", label: done ? `Rendered ${g.to_render} graphic/transition segment(s)` : `Rendering ${g.to_render} graphic/transition segment(s) with Remotion`,
+      detail: `${g.segments} segment(s) · ${g.cached} reused from cache${g.render_seconds ? ` · ${g.render_seconds} s of rendering` : ""}`,
+      status: done ? "done" : failed ? "failed" : "running", ms: ph.graphics.ms, progress: done || !g.to_render ? null : g.progress || 0 });
+  }
   if (ph.graph) { const g = ph.graph.detail; out.push({ id: "r-g", label: "Built one FFmpeg filtergraph", detail: `${g.inputs} inputs · ${g.filters} filters · ${g.has_audio ? "audio mixed and loudness-normalised" : "no audio"}${g.warnings ? ` · ${g.warnings} warning(s)` : ""}`, status: ph.encode ? "done" : failed ? "failed" : "running", ms: ph.graph.ms }); }
   if (ph.encode) {
     const e = ph.encode.detail, st = j.stats || {}, enc_done = !!ph.verify || j.state === "done";

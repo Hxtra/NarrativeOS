@@ -30,4 +30,7 @@ logs/
 node_modules/
 .playwright-mcp/
 templates/narrativeos-video-templates/project/public/vfx
+# staging for compiler-driven Remotion renders (copies of project media; never committed)
+templates/narrativeos-video-templates/project/public/_nos
+templates/narrativeos-video-templates/project/.nos-bundle
 templates/narrativeos-video-templates/project/out/

@@ -168,3 +168,35 @@ def test_patches_are_validated_by_the_compiler(tmp_path):
     assert ok["validation"]["errors"] == []
     bad = ep.apply(t, {"operations": [{"op": "set_duration", "item_id": "A", "duration": 6}]}, tmp_path)
     assert any("asset is 4.000 s" in e for e in bad["validation"]["errors"])
+
+
+RECIPES = {"glitch_cut", "glitch_reveal", "light_leak_warm", "light_leak_cool", "whip_pan_left", "whip_pan_right", "halftone_reveal", "impact_cut"}
+
+
+@pytest.mark.parametrize("message,expected", [
+    ("glitch into this", "glitch_cut"),
+    ("add a glitch reveal here", "glitch_reveal"),
+    ("light leak transition here", "light_leak_warm"),
+    ("a cool leak into this shot", "light_leak_cool"),
+    ("whip pan right into this", "whip_pan_right"),
+    ("halftone reveal", "halftone_reveal"),
+    ("put an impact cut here", "impact_cut"),
+])
+def test_plain_words_pick_registered_vfx_recipes(message, expected):
+    r = ep.interpret(message, ir(), {"item_id": "C"}, recipes=RECIPES)
+    assert r["operations"] == [{"op": "set_transition", "item_id": "C", "type": "recipe", "recipe": expected}], r
+
+
+def test_recipe_transitions_replace_overlaps_and_are_only_offered_when_registered():
+    # Without the registry the same words are not guessed at.
+    assert not ep.interpret("glitch into this", ir(), {"item_id": "C"})["operations"]
+    # B came in on a 0.5 s crossfade; a recipe sits on a straight cut, so A gives the overlap back.
+    r = run(ir(), {"op": "set_transition", "item_id": "B", "type": "recipe", "recipe": "glitch_cut"})
+    it = items(r["timeline"])
+    assert it["B"]["transition_in"] == {"type": "recipe", "recipe": "glitch_cut"} and it["A"]["timeline_out"] == pytest.approx(2.75)
+    assert "glitch cut (rendered VFX transition)" in ep.explain({"op": "set_transition", "item_id": "D", "type": "recipe", "recipe": "glitch_cut"}, ir())
+    # Changing a cut into a recipe touches only the shot it leads into.
+    r = run(ir(), {"op": "set_transition", "item_id": "D", "type": "recipe", "recipe": "impact_cut"})
+    assert {e["id"] for e in r["diff"]["edited"]} == {"D"}
+    with pytest.raises(ep.PatchError):
+        run(ir(), {"op": "set_transition", "item_id": "D", "type": "recipe"})

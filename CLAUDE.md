@@ -263,7 +263,8 @@ owner's Hermes research).** See `references/timeline-compiler.md`.
 - It validates source ranges, handles, overlaps, approvals and allowed paths
   first, and verifies the output with ffprobe afterwards (A/V within 80 ms).
 - `render_ffmpeg.py` now wraps it, so nothing is stitched anymore. Remotion
-  TransitionStack recipes are listed as `unrendered`, not faked.
+  TransitionStack recipes now render too (see "Graphics into the final cut");
+  only without Remotion are they listed as `unrendered`, never faked.
 
 **NarrativeOS Studio (Oct 7, branch `studio`, stacked on `multitrack-compiler`).**
 The owner asked for a live screen so the system "does not feel dead", where
@@ -284,6 +285,41 @@ NarrativeOS can do. It is a layer on top, and the gates are unchanged.
     re-renders the preview with live progress. Undo is available.
 - **Never written:** approved timelines.
 - **Tests:** `tests/test_edit_patch.py` and `timeline-editor/tests/test_studio.py`.
+
+**Graphics into the final cut (Oct 8, branch `final-cut-graphics`, stacked on
+`studio`; Phase 1 of the owner's "level up what we have" plan).** No Blender,
+After Effects or Resolve on this PC yet (to be added later), so the current
+code-native stack is pushed first. Details: `references/timeline-compiler.md`.
+- **What changed:** the compiler renders Remotion segments and composites them
+  in its single FFmpeg pass (`scripts/remotion_bridge.py`,
+  `project/scripts/render_segments.mjs`, `export_registry.mjs`).
+  - A `graphic` track for registry templates (transparent ProRes 4444).
+  - `{"type": "recipe"}` transitions: the 40 VFX recipes, rendered between the
+    real shots' windows.
+- **Caching:** segments are cached by content key in `renders/segments/`.
+- **Finishing:**
+  - `grade` (LUT, exposure, contrast, saturation, gamma, temperature);
+  - `speed` and exact `speed_ramp`;
+  - `motion_blur`;
+  - `stabilize` (basic deshake).
+- **Sound cues:** recipe and graphic cues are resolved from an SFX catalogue
+  (`NARRATIVEOS_SFX_LIBRARY`). No real sounds are sourced yet, so cues are
+  reported as unresolved.
+- **The Studio** shows a graphics lane, FX markers on recipe cuts and the
+  graphics render phase. Typed words ("glitch into this", "light leak here",
+  "whip pan right") map to registered recipes.
+- **Limits:** graphics need a 16:9 canvas; vertical templates are Phase 2.
+- **Tests:** `tests/test_final_cut.py`, measured from frames and samples.
+- **Gotcha:** Remotion's bundle copies `public/` when it is built. Staged
+  compiler inputs (`public/_nos`) are synced into the cached bundle before each
+  render.
+- **Remaining phases, in order:**
+  - Phase 2, talking-head core: best takes, kinetic captions, safe zones,
+    firing moments from the script.
+  - Phase 3, frame awareness: tracking, empty-space map, text behind the
+    subject.
+  - Phase 4, Signatures.
+  - Phase 5, simple 3D.
 
 **Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
 completed on branch `editorial-intelligence-completion`).** Exact status

@@ -200,7 +200,8 @@ def test_same_timeline_renders_the_same_frames(media):
     assert a["canvas"]["width"] == W // 2  # preview is half size
 
 
-def test_shot_timeline_converts_transitions_motion_and_lists_what_it_cannot_render(media):
+def test_shot_timeline_converts_transitions_motion_and_lists_what_it_cannot_render(media, monkeypatch):
+    monkeypatch.setattr(ct, "_recipe_renderable", lambda recipe: False)  # as on a machine without Remotion
     tl = {"output": {"width": W, "height": H, "fps": FPS},
           "shots": [{"shot_id": "S1", "asset_id": "red", "start": 0, "end": 3, "source_start": 0, "motion": "slow_zoom_in"},
                     {"shot_id": "S2", "asset_id": "blue", "start": 3, "end": 5, "source_start": 1.0, "transition": "crossfade"},
@@ -216,6 +217,12 @@ def test_shot_timeline_converts_transitions_motion_and_lists_what_it_cannot_rend
     assert [t["id"] for t in ir["tracks"]] == ["v_main", "a_narration", "a_music"] and ir["tracks"][2]["duck_under"] == "a_narration"
     m = ct.compile_timeline(media, ir, Path("renders/converted.mp4"), preview=True)
     assert m["status"] == "passed" and m["unrendered"][0]["recipe"] == "glitch_cut"
+    # Where Remotion runs, the same Director event becomes a rendered recipe transition instead.
+    monkeypatch.setattr(ct, "_recipe_renderable", lambda recipe: True)
+    ir = ct.from_shot_timeline(tl, media)
+    s3 = next(it for it in ir["tracks"][0]["items"] if it["id"] == "S3")
+    assert s3["transition_in"] == {"type": "recipe", "recipe": "glitch_cut", "source": "Director event ED0007"}
+    assert not ir["compile"]["unrendered"]
 
 
 def test_render_ffmpeg_no_longer_stitches(media):
