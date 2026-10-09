@@ -251,7 +251,7 @@ Rookcast research).** Status table and sources: `references/channel-operations.m
 - **YouTube publish:** dry run only. A real upload is BLOCKED until the owner
   sets up OAuth.
 
-**Multi-track compiler (Oct 7, branch `multitrack-compiler`; gap 1 from the
+**Multi-track compiler (Oct 7, branch `multitrack-compiler`, PR #11; gap 1 from the
 owner's Hermes research).** See `references/timeline-compiler.md`.
 - `scripts/compile_timeline.py` renders IR 3.0 timelines in one FFmpeg pass:
   - real crossfade overlaps and dips;
@@ -266,7 +266,7 @@ owner's Hermes research).** See `references/timeline-compiler.md`.
   TransitionStack recipes now render too (see "Graphics into the final cut");
   only without Remotion are they listed as `unrendered`, never faked.
 
-**NarrativeOS Studio (Oct 7, branch `studio`, stacked on `multitrack-compiler`).**
+**NarrativeOS Studio (Oct 7, branch `studio`, PR #12).**
 The owner asked for a live screen so the system "does not feel dead", where
 they can type corrections ("change this part"). It must not reduce what
 NarrativeOS can do. It is a layer on top, and the gates are unchanged.
@@ -286,9 +286,9 @@ NarrativeOS can do. It is a layer on top, and the gates are unchanged.
 - **Never written:** approved timelines.
 - **Tests:** `tests/test_edit_patch.py` and `timeline-editor/tests/test_studio.py`.
 
-**Graphics into the final cut (Oct 8, branch `final-cut-graphics`, stacked on
-`studio`; Phase 1 of the owner's "level up what we have" plan).** No Blender,
-After Effects or Resolve on this PC yet (to be added later), so the current
+**Graphics into the final cut (Oct 8, branch `final-cut-graphics`, PR #13;
+Phase 1 of the owner's "level up what we have" plan).** No Blender, After
+Effects or Resolve on this PC yet (to be added later), so the current
 code-native stack is pushed first. Details: `references/timeline-compiler.md`.
 - **What changed:** the compiler renders Remotion segments and composites them
   in its single FFmpeg pass (`scripts/remotion_bridge.py`,
@@ -319,9 +319,8 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   - Phase 4, Signatures: done (see below).
   - Phase 5, simple 3D.
 
-**Talking-head core (Oct 8, branch `talking-head`, stacked on
-`final-cut-graphics`; Phase 2).** Details and status table:
-`references/talking-head.md`.
+**Talking-head core (Oct 8, branch `talking-head`, PR #14; Phase 2).**
+Details and status table: `references/talking-head.md`.
 - `scripts/talking_head.py` turns raw takes into a tight cut:
   - Whisper word timings, split into lines at pauses and sentence ends;
   - takes grouped by script or similarity, false starts recognised;
@@ -341,8 +340,8 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   safe area.
 - **Not yet:** no real owner footage tested.
 
-**Frame awareness (Oct 8, branch `frame-awareness`, stacked on
-`talking-head`; Phase 3).** Details and status: `references/frame-awareness.md`.
+**Frame awareness (Oct 8, branch `frame-awareness`, PR #15; Phase 3).**
+Details and status: `references/frame-awareness.md`.
 - **Models:** local MediaPipe models (face, hands, person segmentation;
   Apache-2.0) in `~/NarrativeOS-Models` via `scripts/vision_models.py fetch`,
   sha256-checked. MediaPipe is installed `--no-deps` (its opencv-contrib
@@ -362,7 +361,7 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   segmentation says the person is.
 - **Not validated:** fingertip tracking on real hands (no footage yet).
 
-**Signatures (Oct 9, branch `signatures`, stacked on `frame-awareness`;
+**Signatures (Oct 9, branch `signatures`, PR #16;
 Phase 4).** Details and status: `references/signatures.md`.
 - **What it is:** a saved editing style, studied from one reference edit
   (`scripts/signature.py study REF --id x`). It is stored outside the repo in
