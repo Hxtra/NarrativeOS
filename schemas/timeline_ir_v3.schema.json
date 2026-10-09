@@ -48,6 +48,14 @@
             44100,
             48000
           ]
+        },
+        "platform": {
+          "enum": [
+            "tiktok",
+            "reels",
+            "shorts",
+            "youtube"
+          ]
         }
       }
     },
@@ -386,6 +394,34 @@
         "follow": {
           "const": "main",
           "description": "Graphic items: span the main track at compile time (captions)."
+        },
+        "reframe": {
+          "type": "object",
+          "required": [
+            "keys"
+          ],
+          "description": "Camera keys following the subject inside a cover fit: [[source_time, cx, cy]] (crop centre, normalised source coordinates), eased between keys.",
+          "properties": {
+            "keys": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "source": {
+              "type": "string"
+            }
+          }
+        },
+        "behind_subject": {
+          "type": "boolean",
+          "description": "Graphic items: the person (segmented from the main picture) is composited back on top."
         }
       }
     },

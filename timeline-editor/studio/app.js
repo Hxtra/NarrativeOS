@@ -515,7 +515,8 @@ function renderTimeline() {
       const w = Math.max(3, dur(it) * z - 1), k = kindOf(t);
       const cls = `clip ${t.kind === "audio" ? "audio " + k : t.kind}${S.sel && S.sel.item_id === it.id ? " sel" : ""}${S.changed.has(it.id) ? " changed" : ""}`;
       const label = t.kind === "audio" ? `${it.id}${it.gain_db ? ` · ${it.gain_db} dB` : ""}` : t.kind === "caption" ? it.text : `${it.id} · ${itemName(t, it)}`;
-      const extra = t.kind === "video" ? [it.speed && it.speed !== 1 ? `${it.speed}×` : null, it.speed_ramp ? "ramp" : null, it.grade === null ? "ungraded" : null].filter(Boolean) : [];
+      const extra = t.kind === "video" ? [it.reframe ? "tracked" : null, it.speed && it.speed !== 1 ? `${it.speed}×` : null, it.speed_ramp ? "ramp" : null, it.grade === null ? "ungraded" : null].filter(Boolean)
+        : t.kind === "graphic" && it.behind_subject ? ["behind subject"] : [];
       const c = h("div", { class: cls, "data-id": it.id, style: `left:${it.timeline_in * z}px;width:${w}px`, title: `${it.id} · ${fmt(it.timeline_in)} → ${fmt(it.timeline_out)} (${dur(it).toFixed(2)} s)`,
         onclick: (e) => { e.stopPropagation(); select({ item_id: it.id }, true); } });
       if (t.kind === "video") {

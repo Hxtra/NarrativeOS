@@ -222,6 +222,42 @@ def grade_filters(g: Optional[dict], lut_files: dict[str, str]) -> list[str]:
     return f
 
 
+def _reframe(it: dict, W: int, H: int, r0: float, L: float) -> str:
+    """Cover-fit, then a crop window that follows the item's camera keys ([source_time, cx, cy], crop centre in
+    normalised source coordinates), eased between keys. Keys are in source time, so trims and speed changes keep
+    them right; the expression runs on the window's own clock t (item time minus r0)."""
+    base = float(it.get("source_in", 0))
+    pts = []
+    for src_t, cx, cy in it["reframe"]["keys"]:
+        lo, hi = 0.0, max(L, 1e-6)  # item time showing this source moment (source_at is monotonic)
+        target = float(src_t) - base
+        if target <= 0:
+            r = target / _edge_speed(it, 0.0, L)
+        elif target >= source_at(it, L, L):
+            r = L + (target - source_at(it, L, L)) / _edge_speed(it, L, L)
+        else:
+            for _ in range(40):
+                mid = (lo + hi) / 2
+                lo, hi = (mid, hi) if source_at(it, mid, L) < target else (lo, mid)
+            r = (lo + hi) / 2
+        pts.append((r - r0, float(cx), float(cy)))
+    pts.sort()
+
+    def track(i: int) -> str:
+        expr = f"{pts[-1][i]:.5f}"
+        for (t0, *v0), (t1, *v1) in reversed(list(zip(pts, pts[1:]))):
+            a, b = v0[i - 1], v1[i - 1]
+            if t1 - t0 < 1e-6 or abs(b - a) < 1e-6:
+                seg = f"{b:.5f}"
+            else:
+                s_ = f"clip((t-{t0:.5f})/{t1 - t0:.5f},0,1)"
+                seg = f"({a:.5f}+({b - a:.5f})*{s_}*{s_}*(3-2*{s_}))"
+            expr = f"if(lt(t,{t1:.5f}),{seg},{expr})"
+        return f"if(lt(t,{pts[0][0]:.5f}),{pts[0][i]:.5f},{expr})"
+    return (f"scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H}:x='clip(({track(1)})*iw-{W}/2,0,iw-{W})':y='clip(({track(2)})*ih-{H}/2,0,ih-{H})'")
+
+
 def window_source(it: dict, m: dict, r0: float, length: float, L: float) -> dict:
     """Which source range a picture window [r0, r0 + length] of an item needs, and how much of it does not exist
     (frozen with the nearest frame instead): {start, src_len, pre, post} with pre/post in output seconds."""
@@ -256,7 +292,7 @@ def picture_chain(it: dict, m: dict, k: int, r0: float, length: float, L: float,
     f.append(f"fps={fps:g}")
     if ws["pre"] > 1e-4 or ws["post"] > 1e-4:
         f.append(f"tpad=start_duration={ws['pre']:.6f}:start_mode=clone:stop_duration={ws['post']:.6f}:stop_mode=clone")
-    f += [_fit(it.get("fit", "cover"), W, H), "setsar=1"]
+    f += [_reframe(it, W, H, r0, L) if it.get("reframe") else _fit(it.get("fit", "cover"), W, H), "setsar=1"]
     f += grade_filters(grade, lut_files)
     n_total = max(1, int(round(L * fps)))
     mo = _motion(it.get("motion") or {}, n_total, W, H, fps, offset=int(round(r0 * fps)))
@@ -319,14 +355,44 @@ def _timeline_time(it: dict, src: float) -> float:
     return float(it["timeline_in"]) + (lo + hi) / 2
 
 
+def reframe_centre(it: dict, src_t: float) -> tuple[float, float]:
+    """The crop centre (normalised source coordinates) an item's reframe keys give at a source time, eased exactly
+    as the render's crop expression does; the frame centre without keys."""
+    keys = (it.get("reframe") or {}).get("keys") or []
+    if not keys:
+        return 0.5, 0.5
+    if src_t <= keys[0][0]:
+        return keys[0][1], keys[0][2]
+    for (t0, x0, y0), (t1, x1, y1) in zip(keys, keys[1:]):
+        if src_t < t1:
+            u = min(1.0, max(0.0, (src_t - t0) / (t1 - t0))) if t1 > t0 else 1.0
+            e = u * u * (3 - 2 * u)
+            return x0 + (x1 - x0) * e, y0 + (y1 - y0) * e
+    return keys[-1][1], keys[-1][2]
+
+
+def frame_point(it: dict, src_t: float, x: float, y: float, source_aspect: float, W: int, H: int) -> tuple[float, float]:
+    """Where a point measured in the source frame (normalised) lands in the output frame (normalised), through the
+    cover fit and the item's reframe crop at that moment."""
+    A = W / H
+    cw = min(1.0, A / source_aspect)   # crop window as a fraction of the source frame
+    ch = min(1.0, source_aspect / A)
+    cx, cy = reframe_centre(it, src_t)
+    x0 = min(max(cx - cw / 2, 0.0), 1 - cw)
+    y0 = min(max(cy - ch / 2, 0.0), 1 - ch)
+    return (x - x0) / cw, (y - y0) / ch
+
+
 def resolve_dynamic(ir: dict) -> dict:
     """A copy of the timeline with its dynamic items made concrete, so edits never desynchronise them:
 
     - a graphic with "follow": "main" spans the main track, whatever its current length;
     - caption words that carry their source ({"asset_id", "src_start", "src_end"}) are placed where the main track
       shows that moment of that clip now; words whose footage was cut out are dropped."""
-    if not any(it.get("follow") == "main" or any("src_start" in w for w in (it.get("params") or {}).get("words", []) if isinstance(w, dict))
-               for t in ir.get("tracks", []) if t.get("kind") == "graphic" for it in t.get("items", [])):
+    def dynamic(it: dict) -> bool:
+        p = it.get("params") or {}
+        return it.get("follow") == "main" or any(isinstance(w, dict) and "src_start" in w for w in p.get("words", []) or [])             or any(isinstance(a, dict) and "src_t" in a for a in p.get("anchors", []) or [])
+    if not any(dynamic(it) for t in ir.get("tracks", []) if t.get("kind") == "graphic" for it in t.get("items", [])):
         return ir
     import copy
     ir = copy.deepcopy(ir)
@@ -339,6 +405,25 @@ def resolve_dynamic(ir: dict) -> dict:
         for it in t.get("items", []):
             if it.get("follow") == "main":
                 it["timeline_in"], it["timeline_out"] = (round(float(shots[0]["timeline_in"]), 6) if shots else 0.0), round(end, 6)
+            anchors = (it.get("params") or {}).get("anchors")
+            if isinstance(anchors, list) and any(isinstance(a, dict) and "src_t" in a for a in anchors):
+                # Measured points (source time, source position) -> this graphic's clock and the output frame.
+                base = float(it["timeline_in"])
+                c = ir["canvas"]
+                placed = []
+                for pt in anchors:
+                    if "src_t" not in pt:
+                        placed.append(pt)
+                        continue
+                    for s in shots:
+                        L = float(s["timeline_out"]) - float(s["timeline_in"])
+                        s0 = float(s.get("source_in", 0))
+                        if s.get("asset_id") == pt.get("asset_id") and s0 <= float(pt["src_t"]) < s0 + source_at(s, L, L):
+                            fx, fy = frame_point(s, float(pt["src_t"]), float(pt["x"]), float(pt["y"]), float(pt.get("aspect", 16 / 9)),
+                                                 int(c["width"]), int(c["height"]))
+                            placed.append({"t": round(_timeline_time(s, float(pt["src_t"])) - base, 3), "x": round(fx, 4), "y": round(fy, 4)})
+                            break
+                it["params"] = {**it["params"], "anchors": sorted(placed, key=lambda a: a["t"])}
             words = (it.get("params") or {}).get("words")
             if not isinstance(words, list) or not any(isinstance(w, dict) and "src_start" in w for w in words):
                 continue
@@ -502,6 +587,11 @@ def validate(ir: dict, project: Path, release: bool = False) -> dict:
                         refs[aid] = m["path"]
                 graphic_media[iid] = refs
                 graphics.append(it)
+                if it.get("behind_subject"):
+                    import vision_models
+                    missing = [k for k, v in vision_models.status().items() if k == "selfie_segmenter" and v["status"] != "ready"]
+                    if missing:
+                        errors.append(f"{iid}: behind_subject needs the person segmentation model; run: python scripts/vision_models.py fetch")
                 continue
             src = _num(it.get("source_in", 0)) or 0.0
             L = b - a
@@ -533,6 +623,15 @@ def validate(ir: dict, project: Path, release: bool = False) -> dict:
                     errors.append(f"{iid}: motion_blur must be true or {{frames: 2-10}}")
                 if "stabilize" in it and not isinstance(it["stabilize"], bool):
                     errors.append(f"{iid}: stabilize must be true or false")
+                rf = it.get("reframe")
+                if rf is not None:
+                    keys = rf.get("keys") if isinstance(rf, dict) else None
+                    ok = isinstance(keys, list) and keys and all(isinstance(k, list) and len(k) == 3 and all(_num(v) is not None for v in k)
+                                                                 and 0 <= k[1] <= 1 and 0 <= k[2] <= 1 for k in keys)
+                    if not ok or any(b[0] < a[0] for a, b in zip(keys, keys[1:])):
+                        errors.append(f"{iid}: reframe needs keys [[source_time, cx, cy], ...] in time order with cx, cy within 0-1")
+                    elif it.get("fit", "cover") != "cover":
+                        errors.append(f"{iid}: reframe follows the subject inside a cover-fitted frame; fit must be cover")
             for k in ("fade_in", "fade_out"):
                 v = _num(it.get(k, 0))
                 if v is None or v < 0:
@@ -732,7 +831,7 @@ def prepare_segments(ir: dict, check: dict, project: Path, W: int, H: int, work:
     recipe window is keyed by both shots' full description, their media and grades, so editing anything about A or B
     re-renders it and nothing else does."""
     fps, total = float(ir["canvas"]["fps"]), check["duration"]
-    out = {"graphics": {}, "windows": [], "sfx": [], "unresolved_sfx": [], "segments": []}
+    out = {"graphics": {}, "windows": [], "sfx": [], "unresolved_sfx": [], "segments": [], "mattes": []}
     cues: list[dict] = []
     cache = project / "renders" / "segments"
     jobs: list[dict] = []
@@ -786,6 +885,26 @@ def prepare_segments(ir: dict, check: dict, project: Path, W: int, H: int, work:
             for s in w["sfx"]:
                 cues.append({"cue": s.get("cue"), "time": w["cut"] + float(s.get("at", 0)) / rb.RECIPE_FPS, "volume": float(s.get("volume", 1.0)),
                              "seed": f"{w['recipe']}:{B['id']}:{s.get('cue')}", "source": f"{w['recipe']} into {B['id']}"})
+        # Text behind the subject: the main picture under each such graphic, and a person matte of exactly that picture.
+        for g in check["graphics"]:
+            if not g.get("behind_subject"):
+                continue
+            import frame_awareness as fa
+            import vision_models
+            ga, gb = float(g["timeline_in"]), float(g["timeline_out"])
+            main = next((t for t in ir["tracks"] if t["kind"] == "video"), {"items": []})
+            for it in main["items"]:
+                a, b = max(ga, float(it["timeline_in"])), min(gb, float(it["timeline_out"]))
+                if b - a < 1 / fps:
+                    continue
+                m = check["media"][it["id"]]
+                key = _sha({"kind": "matte", "item": it, "media": rb.file_identity(m["path"]), "range": [a, b], "W": W, "H": H, "fps": fps,
+                            "grade": effective_grade(ir, it), "model": (vision_models._manifest().get("selfie_segmenter") or {}).get("sha256")})[:20]
+                pic, mat = project / "renders" / "mattes" / f"{key}_picture.mp4", project / "renders" / "mattes" / f"{key}_matte.mp4"
+                if not (pic.is_file() and mat.is_file()):
+                    render_window(it, m, a - float(it["timeline_in"]), b - a, ir, W, H, fps, lut_files, pic, work)
+                    fa.matte(pic, 0.0, b - a, fps, W, H, mat)
+                out["mattes"].append({"graphic": g["id"], "start": a, "dur": b - a, "picture": str(pic), "matte": str(mat)})
         n = len(out["segments"])
         phase("graphics", {"segments": n, "cached": n - len(jobs), "to_render": len(jobs), "done": 0, "progress": 0.0 if jobs else 1.0})
         if jobs:
@@ -1013,6 +1132,16 @@ def build(ir: dict, check: dict, work: Path, scale: float = 1.0) -> tuple[list[s
                 graph.append(chain + f",setpts=PTS+{a:.6f}/TB[g{k}]")
                 graph.append(f"[{current}][g{k}]overlay=eof_action=pass:format=yuv420[c{k}]")
                 current = f"c{k}"
+                for mt in (segs.get("mattes") or []):  # behind_subject: the person, cut out, back on top of the graphic
+                    if mt["graphic"] != it["id"]:
+                        continue
+                    kp = add_input(Path(mt["picture"]), 0.0, mt["dur"], False)
+                    km = add_input(Path(mt["matte"]), 0.0, mt["dur"], False)
+                    graph.append(f"[{kp}:v]fps={fps:g},scale={W}:{H},setsar=1,trim=duration={mt['dur']:.6f},setpts=PTS-STARTPTS,format=yuva420p[pp{kp}]")
+                    graph.append(f"[{km}:v]fps={fps:g},scale={W}:{H},setsar=1,trim=duration={mt['dur']:.6f},setpts=PTS-STARTPTS,format=gray[mm{km}]")
+                    graph.append(f"[pp{kp}][mm{km}]alphamerge,setpts=PTS+{mt['start']:.6f}/TB[ps{kp}]")
+                    graph.append(f"[{current}][ps{kp}]overlay=eof_action=pass:format=yuv420[c{kp}]")
+                    current = f"c{kp}"
         elif kind == "overlay":
             for it in sorted(t.get("items", []), key=lambda x: float(x["timeline_in"])):
                 m = media[it["id"]]
