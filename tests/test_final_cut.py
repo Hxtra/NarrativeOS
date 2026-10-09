@@ -192,7 +192,7 @@ def test_graphics_and_recipe_transitions_render_into_the_final_cut(tmp_path, mon
 
 
 @needs_remotion
-def test_unknown_templates_recipes_and_non_16_9_canvases_are_refused(tmp_path):
+def test_unknown_templates_recipes_and_unsupported_canvas_shapes_are_refused(tmp_path):
     (tmp_path / "m").mkdir()
     colour_clip(tmp_path / "m" / "red.mp4", "red", 2)
     p = project(tmp_path, {"red": "m/red.mp4"})
@@ -202,8 +202,17 @@ def test_unknown_templates_recipes_and_non_16_9_canvases_are_refused(tmp_path):
         {"id": "g", "kind": "graphic", "items": [{"id": "G", "template": "no_such_template", "timeline_in": 0, "timeline_out": 1}]})
     errors = " | ".join(ct.validate(ir, p)["errors"])
     assert "unknown transition recipe 'no_such_recipe'" in errors and "unknown template 'no_such_template'" in errors
-    ir["canvas"].update(width=180, height=320)
-    assert "laid out for 16:9" in " | ".join(ct.validate(ir, p)["errors"])
+    ir["canvas"].update(width=240, height=180)  # 4:3: no design shape
+    assert "need a 16:9, 9:16, 1:1, 4:5 canvas" in " | ".join(ct.validate(ir, p)["errors"])
+    vertical = timeline({"id": "v", "kind": "video", "items": [{"id": "A", "asset_id": "red", "timeline_in": 0, "timeline_out": 1}]},
+                        {"id": "g", "kind": "graphic", "items": [{"id": "T", "template": "title_card", "timeline_in": 0, "timeline_out": 1},
+                                                                 {"id": "K", "template": "kinetic_captions", "timeline_in": 0, "timeline_out": 1,
+                                                                  "params": {"words": [{"text": "hi", "start": 0, "end": 0.5}]}}]})
+    vertical["canvas"].update(width=180, height=320, platform="reels")
+    errs = ct.validate(vertical, p)["errors"]
+    assert errs == ["T: title_card is laid out for 16:9, not 9:16"], errs  # the caption template works vertically
+    vertical["canvas"]["platform"] = "myspace"
+    assert any("canvas platform must be one of" in e for e in ct.validate(vertical, p)["errors"])
     ir = timeline({"id": "v", "kind": "video", "items": [
         {"id": "A", "asset_id": "red", "timeline_in": 0, "timeline_out": 0.2},
         {"id": "B", "asset_id": "red", "timeline_in": 0.2, "timeline_out": 2, "transition_in": {"type": "recipe", "recipe": "glitch_reveal"}}]})

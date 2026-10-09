@@ -529,3 +529,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 13p
 .fxm { position: absolute; top: 50%; z-index: 3; transform: translate(-50%, -50%); padding: 1px 5px; border-radius: 5px; pointer-events: auto; cursor: help;
   font: 600 9.5px var(--mono); letter-spacing: 0.06em; color: #1b0d05; background: linear-gradient(180deg, #ffa064, #ff7434); box-shadow: 0 0 12px var(--ember-glow); }
 .joint .fxj { font: 600 9px var(--mono); font-style: normal; color: #1b0d05; background: var(--ember); border-radius: 4px; padding: 1px 4px; }
+
+/* vertical (9:16) edits: a narrow player keeps its overlays out of the picture */
+.frame.vertical .hud.tl { display: none; }
+.frame.vertical .hud.tr { top: 8px; right: 8px; }
+.frame.vertical .hud .tag { font-size: 10px; padding: 3px 7px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.frame.vertical .render-ovl { padding: 30px 10px 10px; }
+.frame.vertical .render-ovl .r1 .ttl { font-size: 16px; }
+.frame.vertical .render-ovl .phs, .frame.vertical .render-ovl .r1 .st { display: none; }

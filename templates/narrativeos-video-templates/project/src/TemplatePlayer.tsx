@@ -12,6 +12,7 @@ import './templates/LocationStamp';
 import './templates/InterviewFrame';
 import './templates/ArchiveVideo';
 import './templates/DoubleExposurePortrait';
+import './templates/KineticCaptions';
 
 // This is the literal "pick a template by name, fill the placeholder
 // params, done" call NarrativeOS's render stage would make — no code

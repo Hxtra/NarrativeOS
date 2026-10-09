@@ -62,6 +62,15 @@ TRANSITIONS = {"cut", "crossfade", "dip_black", "dip_white", "recipe"}
 SOFT_CUTS = {"crossfade", "soft_wipe", "halftone"}   # recipe cut types that show both shots around the cut
 GRADE_RANGES = {"exposure": (-3.0, 3.0), "contrast": (0.3, 3.0), "saturation": (0.0, 3.0), "gamma": (0.3, 3.0), "temperature": (1000.0, 40000.0)}
 SPEED_RANGE = (0.1, 10.0)
+# Fractions of the frame that platform UI covers (buttons, captions, progress bar), kept clear of captions and graphics.
+# DOCUMENTED from the platforms' published safe-zone guides, approximate; check against a real screenshot before
+# treating them as exact.
+PLATFORM_SAFE = {
+    "tiktok": {"top": 0.11, "bottom": 0.20, "left": 0.06, "right": 0.16},
+    "reels": {"top": 0.10, "bottom": 0.20, "left": 0.06, "right": 0.14},
+    "shorts": {"top": 0.10, "bottom": 0.18, "left": 0.06, "right": 0.14},
+    "youtube": {"top": 0.05, "bottom": 0.08, "left": 0.05, "right": 0.05},
+}
 BLENDS = {"normal", "screen", "add", "multiply"}
 MOTIONS = {"none", "push_in", "pull_out"}
 FITS = {"cover", "contain"}
@@ -295,9 +304,68 @@ def probe(path: Path) -> dict:
             "width": v.get("width") if v else None, "height": v.get("height") if v else None}
 
 
+# ----------------------------------------------------------------------------------------------- dynamic items
+def _timeline_time(it: dict, src: float) -> float:
+    """Timeline time at which a main-track item shows source time `src` (inverse of source_at, by bisection)."""
+    L = float(it["timeline_out"]) - float(it["timeline_in"])
+    target = src - float(it.get("source_in", 0))
+    lo, hi = 0.0, L
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if source_at(it, mid, L) < target:
+            lo = mid
+        else:
+            hi = mid
+    return float(it["timeline_in"]) + (lo + hi) / 2
+
+
+def resolve_dynamic(ir: dict) -> dict:
+    """A copy of the timeline with its dynamic items made concrete, so edits never desynchronise them:
+
+    - a graphic with "follow": "main" spans the main track, whatever its current length;
+    - caption words that carry their source ({"asset_id", "src_start", "src_end"}) are placed where the main track
+      shows that moment of that clip now; words whose footage was cut out are dropped."""
+    if not any(it.get("follow") == "main" or any("src_start" in w for w in (it.get("params") or {}).get("words", []) if isinstance(w, dict))
+               for t in ir.get("tracks", []) if t.get("kind") == "graphic" for it in t.get("items", [])):
+        return ir
+    import copy
+    ir = copy.deepcopy(ir)
+    main = next((t for t in ir["tracks"] if t.get("kind") == "video"), None)
+    shots = sorted(main["items"], key=lambda x: float(x["timeline_in"])) if main else []
+    end = max((float(s["timeline_out"]) for s in shots), default=0.0)
+    for t in ir["tracks"]:
+        if t.get("kind") != "graphic":
+            continue
+        for it in t.get("items", []):
+            if it.get("follow") == "main":
+                it["timeline_in"], it["timeline_out"] = (round(float(shots[0]["timeline_in"]), 6) if shots else 0.0), round(end, 6)
+            words = (it.get("params") or {}).get("words")
+            if not isinstance(words, list) or not any(isinstance(w, dict) and "src_start" in w for w in words):
+                continue
+            placed = []
+            base = float(it["timeline_in"])
+            for w in words:
+                if "src_start" not in w:
+                    placed.append(w)
+                    continue
+                mid = (float(w["src_start"]) + float(w["src_end"])) / 2
+                for s in shots:
+                    L = float(s["timeline_out"]) - float(s["timeline_in"])
+                    s0 = float(s.get("source_in", 0))
+                    if s.get("asset_id") == w.get("asset_id") and s0 <= mid < s0 + source_at(s, L, L):
+                        a = max(float(s["timeline_in"]), _timeline_time(s, float(w["src_start"])))
+                        b = min(float(s["timeline_out"]), _timeline_time(s, float(w["src_end"])))
+                        placed.append({k: v for k, v in w.items() if k not in ("asset_id", "src_start", "src_end")}
+                                      | {"start": round(a - base, 3), "end": round(max(b, a + 0.05) - base, 3)})
+                        break
+            it["params"] = {**it["params"], "words": sorted(placed, key=lambda w: w["start"])}
+    return ir
+
+
 # ----------------------------------------------------------------------------------------------- validation
 def validate(ir: dict, project: Path, release: bool = False) -> dict:
     """All invariants, before any render. Returns {errors, warnings, duration, media: {item_id: {...}}}."""
+    ir = resolve_dynamic(ir)
     errors: list[str] = []
     warnings: list[str] = []
     media: dict[str, dict] = {}
@@ -560,10 +628,13 @@ def validate(ir: dict, project: Path, release: bool = False) -> dict:
                 if longest > 42:
                     warnings.append(f"{it.get('id')}: caption line of {longest} characters (over 42 is hard to read)")
     windows = []
+    if c.get("platform") is not None and c["platform"] not in PLATFORM_SAFE:
+        errors.append(f"canvas platform must be one of {sorted(PLATFORM_SAFE)}")
     if graphics or recipe_cuts:
         import remotion_bridge as rb
-        if not (isinstance(W, int) and isinstance(H, int) and H and abs(W / H - rb.DESIGN_W / rb.DESIGN_H) < 0.01):
-            errors.append("graphics and recipe transitions are laid out for 16:9; this canvas is not 16:9")
+        aspect = rb.aspect_of(W, H) if isinstance(W, int) and isinstance(H, int) else None
+        if not aspect:
+            errors.append(f"graphics and recipe transitions need a {', '.join(rb.DESIGNS)} canvas; {W}x{H} is none of them")
         try:
             remo = rb.registry()
         except rb.RemotionError as e:
@@ -575,9 +646,12 @@ def validate(ir: dict, project: Path, release: bool = False) -> dict:
             default_style = ir.get("style", "documentary_general")
             if (graphics or recipe_cuts) and default_style not in styles:
                 errors.append(f"timeline style {default_style!r} is not a registered style ({', '.join(sorted(styles))})")
+            shapes = {t["id"]: t.get("aspects", ["16:9"]) for t in remo["templates"]}
             for g in graphics:
                 if g.get("template") not in templates:
                     errors.append(f"{g.get('id')}: unknown template {g.get('template')!r} (known: {', '.join(sorted(templates))})")
+                elif aspect and aspect not in shapes[g["template"]]:
+                    errors.append(f"{g.get('id')}: {g['template']} is laid out for {', '.join(shapes[g['template']])}, not {aspect}")
                 if g.get("style") and g["style"] not in styles:
                     errors.append(f"{g.get('id')}: unknown style {g['style']!r}")
             for A, B, rid, track_id in recipe_cuts:
@@ -666,14 +740,18 @@ def prepare_segments(ir: dict, check: dict, project: Path, W: int, H: int, work:
     if check.get("graphics") or check.get("windows"):
         import remotion_bridge as rb
         src = rb.src_hash()
-        rscale = W / rb.DESIGN_W
+        dw, dh = rb.DESIGNS[rb.aspect_of(W, H)]
+        rscale = W / dw
         style = ir.get("style", "documentary_general")
+        safe = PLATFORM_SAFE.get(ir["canvas"].get("platform") or "")
         lut_files = stage_luts(check, work)
         for g in check["graphics"]:
             a, b = float(g["timeline_in"]), float(g["timeline_out"])
             params = _stage_params(g.get("params", {}), check["graphic_media"].get(g["id"], {}), rb.stage_media)
+            if safe and isinstance(params, dict) and "safeArea" not in params:
+                params = {**params, "safeArea": safe}  # templates that place text keep it out of the platform's UI
             props = {"templateId": g["template"], "styleId": g.get("style", style), "params": params,
-                     "durationInFrames": max(1, int(round((b - a) * fps))), "fps": fps, "width": rb.DESIGN_W, "height": rb.DESIGN_H}
+                     "durationInFrames": max(1, int(round((b - a) * fps))), "fps": fps, "width": dw, "height": dh}
             key = _sha({"kind": "graphic", "props": props, "scale": rscale, "src": src})[:20]
             path = cache / f"g_{key}.mov"
             out["graphics"][g["id"]] = str(path)
@@ -689,7 +767,7 @@ def prepare_segments(ir: dict, check: dict, project: Path, W: int, H: int, work:
             nb, na = int(round(w["before"] * fps)), int(round(w["after"] * fps))
             dur, start = (nb + na) / fps, w["cut"] - nb / fps
             props = {"transitionId": w["recipe"], "styleId": B.get("style", style), "cutFrame": nb, "seed": f"{w['recipe']}:{A['id']}>{B['id']}",
-                     "durationInFrames": nb + na, "fps": fps, "width": rb.DESIGN_W, "height": rb.DESIGN_H}
+                     "durationInFrames": nb + na, "fps": fps, "width": dw, "height": dh}
             ident = {"A": A, "B": B, "a": rb.file_identity(mA["path"]), "b": rb.file_identity(mB["path"]),
                      "grades": [effective_grade(ir, A), effective_grade(ir, B)],
                      "luts": {k: rb.file_identity(v) for k, v in (check.get("luts") or {}).items()}}
@@ -1112,6 +1190,7 @@ def compile_timeline(project: Path, ir: dict, output: Path, preview: bool = Fals
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         raise CompileError("ffmpeg and ffprobe are required")
     project = project.resolve()
+    ir = resolve_dynamic(ir)  # captions placed from their source and spans following the main track, as of now
     n_items = sum(len(t.get("items", [])) for t in ir.get("tracks", []))
     phase("validate", {"tracks": len(ir.get("tracks", [])), "items": n_items})
     check = validate(ir, project, release)

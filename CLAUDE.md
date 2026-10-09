@@ -314,12 +314,34 @@ code-native stack is pushed first. Details: `references/timeline-compiler.md`.
   compiler inputs (`public/_nos`) are synced into the cached bundle before each
   render.
 - **Remaining phases, in order:**
-  - Phase 2, talking-head core: best takes, kinetic captions, safe zones,
-    firing moments from the script.
+  - Phase 2, talking-head core: done (see below).
   - Phase 3, frame awareness: tracking, empty-space map, text behind the
     subject.
   - Phase 4, Signatures.
   - Phase 5, simple 3D.
+
+**Talking-head core (Oct 8, branch `talking-head`, stacked on
+`final-cut-graphics`; Phase 2).** Details and status table:
+`references/talking-head.md`.
+- `scripts/talking_head.py` turns raw takes into a tight cut:
+  - Whisper word timings, split into lines at pauses and sentence ends;
+  - takes grouped by script or similarity, false starts recognised;
+  - the best take kept per line, with reasons recorded for every drop;
+  - hesitations and repeats removed and long pauses jump-cut, with alternate
+    punch-ins to hide the cuts.
+- **Firing moments** (hook, numbers, lists, contrasts, questions, spoken cues,
+  names) fire default moves: caption emphasis and punch-ins.
+- **Captions:** the `kinetic_captions` Remotion template works at
+  16:9/9:16/1:1/4:5 inside platform safe zones (`canvas.platform`). Its words
+  are anchored to their source moment and placed by the compiler at every
+  render (`resolve_dynamic`), so Studio edits never desync them.
+- **Compiler:** templates declare `aspects`, and graphics and recipes render
+  at any of the four canvas shapes.
+- **Tests:** `tests/test_talking_head.py`, including an end-to-end run on
+  Windows-TTS speech through Whisper with captions measured inside the Reels
+  safe area.
+- **Not yet:** no real owner footage tested; framing is a centre crop
+  (Phase 3).
 
 **Editorial intelligence (Sep 29; PR #5 started by the Hermes agent,
 completed on branch `editorial-intelligence-completion`).** Exact status

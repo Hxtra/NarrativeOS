@@ -314,6 +314,9 @@ function renderFeed() {
 // ───────────────────────────────────────────────────────────── player
 function renderPlayer() {
   const d = S.data, screen = $("screen");
+  const cv = d.timeline && d.timeline.canvas;
+  $("frame").style.aspectRatio = cv ? `${cv.width} / ${cv.height}` : "16 / 9";  // vertical edits get a vertical player
+  $("frame").classList.toggle("vertical", !!cv && cv.height > cv.width);
   if (!d.preview_url) {
     if (S.video) { S.video.pause(); S.video = null; }
     put(screen, h("div", { class: "empty-screen" },

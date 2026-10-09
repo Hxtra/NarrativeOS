@@ -22,12 +22,20 @@ from pathlib import Path
 from typing import Callable, Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DESIGN_W, DESIGN_H = 1920, 1080  # templates and recipes are laid out at this size; renders scale from it
+DESIGN_W, DESIGN_H = 1920, 1080  # the 16:9 design size; renders scale from the design size of their shape
+DESIGNS = {"16:9": (1920, 1080), "9:16": (1080, 1920), "1:1": (1080, 1080), "4:5": (1080, 1350)}
 RECIPE_FPS = 30                   # recipe windows and layer timings are authored in 30 fps frames
 
 
 class RemotionError(Exception):
     pass
+
+
+def aspect_of(width: int, height: int) -> Optional[str]:
+    """The design shape a canvas matches (within 1%), or None."""
+    if not width or not height:
+        return None
+    return next((k for k, (w, h) in DESIGNS.items() if abs(width / height - w / h) < 0.01), None)
 
 
 def project_dir() -> Path:

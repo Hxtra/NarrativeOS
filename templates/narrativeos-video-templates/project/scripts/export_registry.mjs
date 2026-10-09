@@ -21,7 +21,7 @@ export const registry = {
 		id: r.id, label: r.label, meaning: r.meaning, intensity: r.intensity, window: r.window,
 		cut: r.spec.cut, layers: r.spec.layers.map((l) => l.kind), sfx: r.spec.sfx ?? [],
 	})),
-	templates: Object.values(TEMPLATE_REGISTRY).map((t) => ({id: t.id, label: t.label, pack: t.pack})),
+	templates: Object.values(TEMPLATE_REGISTRY).map((t) => ({id: t.id, label: t.label, pack: t.pack, aspects: t.aspects ?? ['16:9']})),
 	styles: Object.keys(STYLE_REGISTRY),
 };
 `;
