@@ -24,6 +24,15 @@ export interface KineticCaptionsParams {
 	/** Colour of the spoken word and of emphasis. Defaults to the style's text colour (no invented palette). */
 	highlightColor?: string;
 	uppercase?: boolean;
+	/** All lowercase (some styles never capitalise, even at a sentence start). */
+	lowercase?: boolean;
+	/** Drop punctuation from the shown words. */
+	stripPunctuation?: boolean;
+	/** false: no outline, a soft shadow only (clean white words over the picture). Default true. */
+	outline?: boolean;
+	/** Override the style's sans family and weight (e.g. 'InterLocal', 900 for a heavy grotesk). */
+	fontFamily?: string;
+	fontWeight?: number;
 	fontScale?: number;
 }
 
@@ -88,22 +97,22 @@ const KineticCaptions: React.FC<{style: StyleProfile; params: KineticCaptionsPar
 						<span
 							key={`${w.start}-${i}`}
 							style={{
-								fontFamily: style.typography.sansFamily,
-								fontWeight: 800,
+								fontFamily: params.fontFamily ?? style.typography.sansFamily,
+								fontWeight: params.fontWeight ?? 800,
 								fontSize: size,
 								lineHeight: 1.08,
 								letterSpacing: -0.5,
-								textTransform: params.uppercase === false ? 'none' : 'uppercase',
+								textTransform: params.lowercase ? 'lowercase' : params.uppercase === false ? 'none' : 'uppercase',
 								color: active || w.emphasis ? highlight : style.typography.boneColor,
 								opacity: spoken ? 1 : 0.38,
 								transform: `scale(${active ? pop : 1})`,
 								display: 'inline-block',
-								textShadow: '0 3px 0 rgba(0,0,0,0.55), 0 0 18px rgba(0,0,0,0.55)',
-								WebkitTextStroke: `${Math.max(1, base * 0.025)}px rgba(0,0,0,0.6)`,
+								textShadow: params.outline === false ? '0 2px 14px rgba(0,0,0,0.45)' : '0 3px 0 rgba(0,0,0,0.55), 0 0 18px rgba(0,0,0,0.55)',
+								WebkitTextStroke: params.outline === false ? undefined : `${Math.max(1, base * 0.025)}px rgba(0,0,0,0.6)`,
 								paintOrder: 'stroke fill',
 							}}
 						>
-							{w.text}
+							{params.stripPunctuation ? w.text.replace(/[.,!?;:"“”]+/g, '') : w.text}
 						</span>
 					);
 				})}
