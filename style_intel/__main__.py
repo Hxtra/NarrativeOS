@@ -56,9 +56,26 @@ def main() -> int:
     b.add_argument("--no-strips", action="store_true", help="skip the per-moment review strips")
     b.add_argument("--no-speech", action="store_true", help="skip the Whisper pass that flags sounds overlapping speech")
     b.add_argument("--text", action="store_true", help="also read on-screen text and its animations (OCR; slow: ~4-6 s per second of video)")
+    c = sub.add_parser("compare", help="measure a render against its reference: every difference as numbers, and a similarity score")
+    c.add_argument("reference", type=Path)
+    c.add_argument("render", type=Path)
+    c.add_argument("--out", type=Path, required=True)
+    c.add_argument("--text", action="store_true", help="also compare on-screen text (OCR; slow)")
+    c.add_argument("--ref-cache", type=Path, help="an existing measurement folder for the reference (e.g. a Signature's reference/ folder)")
+    c.add_argument("--no-speech", action="store_true")
     args = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+
+    if args.cmd == "compare":
+        from style_intel import compare as compare_mod
+        for v in (args.reference, args.render):
+            if not v.is_file():
+                print(f"no such file: {v}", file=sys.stderr)
+                return 1
+        rep = compare_mod.run(args.reference.resolve(), args.render.resolve(), args.out, args.text, args.ref_cache, not args.no_speech)
+        print(compare_mod.to_markdown(rep))
+        return 0
 
     if args.cmd == "breakdown":
         if not args.video.is_file():

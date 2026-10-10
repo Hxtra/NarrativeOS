@@ -465,12 +465,14 @@ renders up to `draft_v3.mp4`).
 ## Next steps, in order
 
 **Agreed with the owner on Oct 10 (these come first):**
-1. Commit the lockup template, caption options and fonts with tests (branch
-   `typographic-lockup`).
-2. A **compare loop**: run the same DNA, breakdown and OCR on our render and
-   report the differences from the reference shot by shot (cut times, shot
-   lengths, colour per shot, text boxes and timing, loudness), as a measured
-   score instead of an eyeballed one.
+1. **Done:** the lockup template, caption options and fonts, with tests
+   (branch `typographic-lockup`, PR #18).
+2. **Compare loop: done** (Oct 10, branch `compare-loop`):
+   `python -m style_intel compare REF RENDER --out DIR --text`. Draft v3
+   measured 0.73 (not the eyeballed 90 %); fixing what it showed (film-look
+   grade, text ×1.3) gave v4 0.79. Next from its numbers: the voice is slower
+   (167 against 197 words/min), and the false-dissolve and camera-mix noise
+   listed in `style_intel/README.md`.
 3. A **voiceover + footage apply mode** for Signatures (what `build_draft.py`
    did by hand), plus edit-type detection that checks for faces.
 4. **Clip verification**: the expected subject is in frame after the crop,

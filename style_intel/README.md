@@ -138,6 +138,47 @@ Every threshold is in `breakdown.BREAKDOWN_DEFAULTS`.
 - The breakdown stores the recognised on-screen text (it is needed to say what a title reads). `analyze` / Style DNA still stores none.
 - An effect laid over a cut into a very different shot can be hidden by the cut's own change.
 
+## Compare: how close is a render to its reference?
+
+```
+python -m style_intel compare REFERENCE.mp4 RENDER.mp4 --out DIR [--text] [--ref-cache DIR]
+```
+
+Both videos go through the same analyzers: Style DNA, colour per shot, and with `--text` the on-screen text reader.
+Every metric reports both values, the difference, a 0–1 similarity and how it was scored. The groups are editing,
+camera, colour, sound and text; they are weighted into one overall score. Results are written to `compare.json` and
+`compare.md`.
+
+- **Measured on one side only:** the metric is listed as NOT_MEASURED and left out of the score, never filled in.
+- **Reusing measurements:** they are cached per video by sha256. `--ref-cache` reuses a Signature's
+  `reference/` folder.
+- **Content is never compared.** Different footage and words are expected; this scores the editing language.
+- **Colour per shot** is the mean Lab colour of each shot. Its spread across shots shows whether the look
+  jumps between shots, or is flattened too far.
+
+**First use (the friends_future real test, Oct 10).** It replaced an eyeballed "about 90 %" with numbers:
+
+| Draft | Overall | Editing | Camera | Colour | Sound | Text |
+|---|---|---|---|---|---|---|
+| v2 (one flat boost on every clip; no text read) | 0.68 | 0.83 | 0.88 | 0.36 | 0.83 | — |
+| v3 (each shot pulled to the reference's average colour) | 0.73 | 0.82 | 0.96 | 0.38 | 0.87 | 0.82 |
+| v4 (film look: brightness per shot, one tint and colour boost for the film; text ×1.3) | 0.79 | 0.83 | 0.89 | 0.58 | 0.87 | 0.87 |
+
+What the numbers showed:
+- **v2:** the brightness jumped between shots (spread 15.9 against the reference's 10.8). That is what the owner
+  saw.
+- **v3:** it fixed the brightness but flattened each shot's own colour (green-red spread 0.9 against 6.0).
+- **Both v2 and v3:** about 40 % less saturated than the reference.
+- **v3 text:** about 25 % smaller than the reference's.
+
+Known measurement noise:
+- **Camera mix:** it changed between v3 and v4 although the camera moves are identical. The grade changed how
+  one shot was classified.
+- **False dissolves:** the gradual-transition detector reported two dissolves in an edit made only of hard cuts.
+  One was a cut between two similar sunrise skies; the other was a person walking past the camera.
+- **Speech pace:** it read 153 words a minute without music and 167 with music, for the same voice. Whisper's
+  word count changes when music sits under the voice.
+
 ## Tests
 
 `tests/test_style_intel.py` builds synthetic videos with known answers:
