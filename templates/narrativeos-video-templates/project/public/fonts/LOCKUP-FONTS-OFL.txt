@@ -1,0 +1,12 @@
+Fonts added 2026-10-09 for the typographic_lockup template, downloaded from Google Fonts (Latin subset, woff2).
+All are licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org), which permits use,
+bundling and redistribution with the software, provided the fonts are not sold on their own and this licence
+travels with them. Copyright lines are copied from each font file's name table. The full OFL 1.1 text is in Inter-OFL-LICENSE.txt in this folder.
+
+| File | Family | Copyright |
+|---|---|---|
+| inter-800.woff2, inter-900.woff2 | Inter | Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter) |
+| playfair-italic-700.woff2 | Playfair Display | Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display" |
+| pinyon-script-400.woff2 | Pinyon Script | Copyright 2022 The PinyonScript Project Authors (https://github.com/SorkinType/Pinyon) |
+| bungee-outline-400.woff2 | Bungee Outline | Copyright 2023 The Bungee Project Authors (https://github.com/djrrb/Bungee) |
+| silkscreen-400.woff2 | Silkscreen | Copyright 2001 The Silkscreen Project Authors (https://github.com/googlefonts/silkscreen) |
