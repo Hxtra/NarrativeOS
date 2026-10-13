@@ -462,6 +462,33 @@ renders up to `draft_v3.mp4`).
   reply (104.7 M cache-read tokens for this test alone). Start a fresh session
   per phase; this file carries the state.
 
+**Voiceover apply (Oct 13, branch `voiceover-apply`; step 3 below).** Details:
+`references/signatures.md`.
+- **Edit type** is measured: speech coverage plus the share of frames with a
+  trusted face (MediaPipe). alpine_one_word now measures `voiceover_broll`
+  (face in 8 % of frames).
+- **Study/remeasure** add `placement` (where cuts sit against speech onsets),
+  `camera` (fractions, push/pan rates) and `grade_target` (Lab + chroma).
+  alpine_one_word is at v6 after `remeasure --grade-from 5.3`.
+- **`plan`** picks cuts by dynamic programming (measured shot lengths and
+  placement; the hook sentence holds shot 1). **`apply`** does:
+  - script alignment;
+  - clip windows (never looped) and the subject crop;
+  - camera moves only on static clips (push-ins capped by clip resolution);
+  - per-shot LUTs;
+  - lockup + captions;
+  - ducked music.
+- **Real run:** `~/NarrativeOS-Projects/friends_future_apply/` (a copy; the
+  original is untouched), `renders/apply_v2.mp4`. Same sentence cuts as the
+  hand-built v3. The opening window (12 s) and two crop centres are still
+  frame-review overrides in the shot plan. Owner review pending.
+- **Lesson (MEASURED):** on b-roll, MediaPipe's face model reports faces in
+  foliage at 0.5–0.67 confidence and misses small, distant people.
+  `frame_awareness.trusted_faces` keeps a face only on a segmented person or
+  at ≥ 0.75. Choosing b-roll windows by subject needs a real detector (step 4).
+- **Tests:** `tests/test_voiceover_broll.py` (rules, plus an end-to-end render
+  measured from frames).
+
 ## Next steps, in order
 
 **Agreed with the owner on Oct 10 (these come first):**
@@ -473,8 +500,9 @@ renders up to `draft_v3.mp4`).
    grade, text ×1.3) gave v4 0.79. Next from its numbers: the voice is slower
    (167 against 197 words/min), and the false-dissolve and camera-mix noise
    listed in `style_intel/README.md`.
-3. A **voiceover + footage apply mode** for Signatures (what `build_draft.py`
-   did by hand), plus edit-type detection that checks for faces.
+3. **Voiceover + footage apply mode: done** (Oct 13, branch `voiceover-apply`):
+   `signature.py plan` / `apply --voice V --clips ...`, `remeasure`, face-aware
+   edit type, `scripts/grade_match.py`. See "Voiceover apply" above.
 4. **Clip verification**: the expected subject is in frame after the crop,
    and the footage is real, not AI-generated (owner review is the gate until a
    detector exists).

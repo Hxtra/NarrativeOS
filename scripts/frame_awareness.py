@@ -162,12 +162,25 @@ def analyze(path: Path, start: float, length: float, cache_dir: Optional[Path] =
     return out
 
 
+FACE_ALONE_SCORE = 0.75   # a face with no segmented person around it counts only at this confidence or above
+
+
+def trusted_faces(sample: dict) -> list[dict]:
+    """Faces to believe. The face model is a short-range one: on b-roll it reports "faces" in foliage and windows at
+    0.5-0.67 confidence with no person in the segmentation (measured on friends_future's clips, Oct 13). A face
+    counts when the segmentation found a person in the frame, or on its own at FACE_ALONE_SCORE or above."""
+    if sample.get("person"):
+        return sample["faces"]
+    return [f for f in sample["faces"] if f["score"] >= FACE_ALONE_SCORE]
+
+
 def subject_centres(analysis: dict) -> list[tuple[float, float, float]]:
     """(t, x, y) of the subject at each sample: the largest face, else the person box's upper third, else None skipped."""
     out = []
     for s in analysis["samples"]:
-        if s["faces"]:
-            x, y, w, h = s["faces"][0]["box"]
+        faces = trusted_faces(s)
+        if faces:
+            x, y, w, h = faces[0]["box"]
             out.append((s["t"], x + w / 2, y + h / 2))
         elif s["person"]:
             x, y, w, h = s["person"]

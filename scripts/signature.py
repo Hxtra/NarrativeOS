@@ -6,6 +6,9 @@ NARRATIVEOS_SIGNATURES), versioned on every change.
     python scripts/signature.py study REFERENCE.mp4 --id my_style [--label "..."] [--text] [--no-verify]
     python scripts/signature.py list | show ID
     python scripts/signature.py apply ID --project P --clips media/raw.mp4 [--script s.txt] [--force]
+    python scripts/signature.py plan ID --project P --voice media/vo.wav [--script s.txt] [--shots N]   (voiceover_broll)
+    python scripts/signature.py apply ID --project P --voice media/vo.wav --clips c1.mp4 ... [--plan shot_plan.json] [--music m.mp3]
+    python scripts/signature.py remeasure ID --reference REF.mp4 [--grade-from S]
     python scripts/signature.py ship ID --project P [--approved]
     python scripts/signature.py promote ID | reject ID --reason "..." | archive ID
     python scripts/signature.py note ID --project P --text "..."          (Studio records these automatically)
@@ -204,6 +207,54 @@ def discover_moves(visual: list[dict], speech: list[dict]) -> list[dict]:
     return moves
 
 
+FACE_MIN_HEIGHT = 0.08        # a face this tall (fraction of the frame height) is someone on camera, not a passer-by
+TALKING_HEAD_FACE_SHARE = 0.5  # a speech-led edit with a face in at least this share of its frames is a talking head
+SPEECH_LED = 0.35              # speech covers at least this share of the edit
+
+
+def edit_type(reference: Path, duration: float, coverage: float, work: Path) -> dict:
+    """What kind of edit the reference is: talking_head (speech-led, a face on screen), voiceover_broll (speech-led,
+    no face on screen) or documentary (not speech-led). Speech coverage and the face share are MEASURED; the kind
+    is a rule over them. Without the vision models the face share is NOT_MEASURED and speech alone decides."""
+    import talking_head as th
+    out = {"speech_coverage": round(coverage, 3), "rule": f"speech >= {SPEECH_LED} and face share >= {TALKING_HEAD_FACE_SHARE} -> talking_head; "
+                                                          f"speech >= {SPEECH_LED} -> voiceover_broll; otherwise documentary"}
+    if coverage < SPEECH_LED:
+        return out | {"kind": "documentary", "faces": {"status": "NOT_NEEDED"}}
+    ok, why = th.vision_ready()
+    if not ok:
+        return out | {"kind": "talking_head", "faces": {"status": "NOT_MEASURED", "reason": why},
+                      "warning": "speech alone decided: a voiceover over footage would be called talking_head"}
+    import frame_awareness as fa
+    a = fa.analyze(reference, 0.0, duration, work / "frames", fps=0.5)
+    with_face = [s["t"] for s in a["samples"] if any(f["box"][3] >= FACE_MIN_HEIGHT for f in fa.trusted_faces(s))]
+    share = len(with_face) / max(1, len(a["samples"]))
+    return out | {"kind": "talking_head" if share >= TALKING_HEAD_FACE_SHARE else "voiceover_broll",
+                  "faces": {"status": "MEASURED", "share": round(share, 3), "samples": len(a["samples"]), "fps": 0.5,
+                            "min_face_height": FACE_MIN_HEIGHT, "seen_at": [round(t, 1) for t in with_face[:20]]}}
+
+
+def measure_editing(reference: Path, work: Path, dna: dict, words: list[dict], aspect: Optional[tuple[int, int]] = None,
+                    grade_from: float = 0.0) -> dict:
+    """What a voiceover pass needs from the reference, all MEASURED: where it cuts against its speech, how its camera
+    moves (fractions, push-in and pan rates), and its colour (the grade target)."""
+    import grade_match as gm
+    import voiceover_broll as vb
+    ed = dna.get("editing") or {}
+    cuts = ((ed.get("transition_vocabulary") or {}).get("hard_cut") or {}).get("times_sec") or []
+    vwords = [{"text": w["text"], "start": w["t_in"], "end": w["t_out"]} for w in words]
+    shots_file = work / "dna" / "shots.json"
+    sampled = json.loads(shots_file.read_text(encoding="utf-8")).get("sampled", []) if shots_file.is_file() else []
+    push = [s["motion"]["zoom_per_sec"] for s in sampled if s.get("motion_class") == "push_in" and s.get("motion")]
+    pan = [s["motion"]["pan_px_per_sec"] / 480 for s in sampled if s.get("motion_class") == "pan" and s.get("motion")]
+    cm = (dna.get("visual") or {}).get("camera_motion") or {}
+    camera = {"status": "MEASURED" if cm.get("fractions") else "NOT_MEASURED", "fractions": cm.get("fractions"), "shots_measured": cm.get("shots_measured"),
+              "push_in_zoom_per_sec": round(median(push), 4) if push else None, "pan_frac_per_sec": round(median(pan), 4) if pan else None,
+              "basis": "style_intel.visual.camera_motion per sampled shot (pan rate as a fraction of the frame width per second)"}
+    return {"placement": vb.cut_placement(cuts, vwords), "camera": camera,
+            "grade_target": gm.measure_target(reference, grade_from, None, aspect) | ({"note": f"sampled from {grade_from}s (after the opening text)"} if grade_from else {})}
+
+
 def study(reference: Path, sig_id: str, label: str = "", with_text: bool = False, verify: bool = True, pipeline_kind: Optional[str] = None) -> dict:
     from style_intel import breakdown as bd_mod
     from style_intel import dna as dna_mod
@@ -220,7 +271,9 @@ def study(reference: Path, sig_id: str, label: str = "", with_text: bool = False
     W, H = src.get("width") or 1920, src.get("height") or 1080
     aspect = next((k for k, (w, h) in {"16:9": (16, 9), "9:16": (9, 16), "1:1": (1, 1), "4:5": (4, 5)}.items() if abs(W / H - w / h) < 0.02), "16:9")
     coverage = (dna.get("speech") or {}).get("speech_coverage") or (sum(w["t_out"] - w["t_in"] for w in words) / max(1.0, src["duration_sec"]))
-    kind = pipeline_kind or ("talking_head" if coverage >= 0.35 else "documentary")
+    etype = edit_type(reference, float(src["duration_sec"]), coverage, work)
+    kind = pipeline_kind or etype["kind"]
+    extra = measure_editing(reference, work, dna, words)
 
     moves = discover_moves(bd["moments"], speech)
     profile = profile_mod.build(dna, sig_id, label or sig_id)
@@ -237,7 +290,8 @@ def study(reference: Path, sig_id: str, label: str = "", with_text: bool = False
                      "cut": {**({"max_gap_in_run_sec": max(0.15, min(0.6, tight))} if tight else {}),
                              **({"punch_in_scale": round(max(1.04, min(1.4, median(zooms))), 3)} if zooms else {})},
                      "captions": captions.get("params", {}),
-                     "measured": {"speech_coverage": round(coverage, 3), "tightness_sec": tight, "zooms": len(zooms), "captions": captions,
+                     **extra,
+                     "measured": {"speech_coverage": round(coverage, 3), "edit_type": etype, "tightness_sec": tight, "zooms": len(zooms), "captions": captions,
                                   "pacing": (dna.get("editing") or {}).get("pacing"),
                                   "shot_duration_sec": (dna.get("editing") or {}).get("shot_duration_sec"),
                                   "transition_vocabulary": (dna.get("editing") or {}).get("transition_vocabulary")}},
@@ -387,18 +441,51 @@ def apply_rules(sig: dict, ir: dict, fired: list[dict]) -> list[dict]:
     return changes
 
 
-def apply(sig_id: str, project: Path, clips: list[Path], script_text: Optional[str] = None) -> tuple[dict, dict]:
-    """Run the Signature's pipeline on raw footage. Returns (timeline, report) and pins the project to this version."""
+def remeasure(sig_id: str, reference: Path, grade_from: float = 0.0) -> dict:
+    """Add the voiceover measurements (edit type with faces, cut placement against speech, camera rates, colour) to
+    an existing Signature from its own reference (checked by sha256). Earlier fields stay; the kind changes only
+    when the measurement says so, and the old value is kept in the history."""
+    sig = load(sig_id)
+    ref_sha = hashlib.sha256(reference.read_bytes()).hexdigest()
+    if sig["reference"].get("sha256") and sig["reference"]["sha256"] != ref_sha:
+        raise SignatureError(f"{reference.name} is not this Signature's reference (sha256 differs)")
+    work = sig_dir(sig_id) / "reference"
+    dna = json.loads((work / "dna" / "style_dna.json").read_text(encoding="utf-8"))
+    words, _, _ = _speech_moments(reference, work)
+    pl = sig["pipeline"]
+    coverage = pl.get("measured", {}).get("speech_coverage") or 0.0
+    etype = edit_type(reference, float(sig["reference"]["duration"]), coverage, work)
+    aspect = tuple(int(x) for x in pl.get("aspect", "16:9").split(":"))
+    pl.update(measure_editing(reference, work, dna, words, aspect, grade_from))
+    pl.setdefault("measured", {})["edit_type"] = etype
+    was = pl["kind"]
+    pl["kind"] = etype["kind"]
+    return save(sig, f"remeasured from the reference: edit type {etype['kind']} (was {was}), cut placement, camera rates, colour")
+
+
+def apply(sig_id: str, project: Path, clips: list[Path], script_text: Optional[str] = None, voice: Optional[Path] = None,
+          shot_plan: Optional[dict] = None, music: Optional[Path] = None, hook_keys: Optional[set] = None) -> tuple[dict, dict]:
+    """Run the Signature's pipeline on raw footage (talking_head) or on a voice plus b-roll clips (voiceover_broll).
+    Returns (timeline, report) and pins the project to this version."""
     import talking_head as th
     sig = load(sig_id)
     if sig["status"] in ("rejected", "archived"):
         raise SignatureError(f"signature {sig_id} is {sig['status']}")
     pl = sig["pipeline"]
-    if pl["kind"] != "talking_head":
-        raise SignatureError(f"{sig_id} drives a {pl['kind']} pipeline; only talking_head signatures can be applied to raw takes so far")
-    cfg = {**th.CONFIG, **{k: v for k, v in (pl.get("cut") or {}).items() if k in th.CONFIG}}
-    ir, report = th.build(project, clips, script_text, pl.get("aspect", "9:16"), pl.get("platform"), pl.get("style", "documentary_general"), cfg,
-                          moves=sig["moves"], caption_params=pl.get("captions") or None)
+    if pl["kind"] == "voiceover_broll":
+        import voiceover_broll as vb
+        if voice is None:
+            raise SignatureError(f"{sig_id} drives a voiceover_broll pipeline: give the voice track (--voice) and one clip per shot")
+        try:
+            ir, report = vb.build(sig, project, voice, clips, script_text, shot_plan, music, hook_keys)
+        except ValueError as e:
+            raise SignatureError(str(e)) from e
+    elif pl["kind"] == "talking_head":
+        cfg = {**th.CONFIG, **{k: v for k, v in (pl.get("cut") or {}).items() if k in th.CONFIG}}
+        ir, report = th.build(project, clips, script_text, pl.get("aspect", "9:16"), pl.get("platform"), pl.get("style", "documentary_general"), cfg,
+                              moves=sig["moves"], caption_params=pl.get("captions") or None)
+    else:
+        raise SignatureError(f"{sig_id} drives a {pl['kind']} pipeline; only talking_head and voiceover_broll signatures can be applied so far")
     report["rules_applied"] = apply_rules(sig, ir, report["fired"])
     report["signature"] = {"id": sig["id"], "version": sig["version"], "sha": sha(sig), "status": sig["status"]}
     ir.setdefault("compile", {})["signature"] = report["signature"]
@@ -467,6 +554,12 @@ def main() -> int:
     sh = sub.add_parser("show"); sh.add_argument("id")
     a = sub.add_parser("apply"); a.add_argument("id"); a.add_argument("--project", type=Path, required=True); a.add_argument("--clips", nargs="+", required=True)
     a.add_argument("--script"); a.add_argument("--out", default="timeline_v3.json"); a.add_argument("--force", action="store_true")
+    a.add_argument("--voice", help="voiceover_broll: the finished voice track"); a.add_argument("--plan", help="voiceover_broll: a shot plan from `plan`")
+    a.add_argument("--music"); a.add_argument("--hook-keys", nargs="*", default=[], help="voiceover_broll: lockup words that cycle faces")
+    pn = sub.add_parser("plan"); pn.add_argument("id"); pn.add_argument("--project", type=Path, required=True); pn.add_argument("--voice", required=True)
+    pn.add_argument("--script"); pn.add_argument("--shots", type=int); pn.add_argument("--out", default="shot_plan.json"); pn.add_argument("--force", action="store_true")
+    rm = sub.add_parser("remeasure"); rm.add_argument("id"); rm.add_argument("--reference", type=Path, required=True)
+    rm.add_argument("--grade-from", type=float, default=0.0, help="measure colour from this second on (skip an opening text card)")
     sp = sub.add_parser("ship"); sp.add_argument("id"); sp.add_argument("--project", type=Path, required=True); sp.add_argument("--approved", action="store_true")
     for name in ("promote", "archive"):
         x = sub.add_parser(name); x.add_argument("id")
@@ -488,14 +581,39 @@ def main() -> int:
             dest = project / args.out
             if dest.exists() and not args.force:
                 raise SignatureError(f"{dest.name} exists (it may hold edits); use --force or --out another file")
-            clips = [(Path(c) if Path(c).is_absolute() else project / c).resolve() for c in args.clips]
-            ir, report = apply(args.id, project, clips, Path(args.script).read_text(encoding="utf-8") if args.script else None)
-            import talking_head as th
-            th.register_clips(project, clips, approve=False)
+            at = lambda c: (Path(c) if Path(c).is_absolute() else project / c).resolve()  # noqa: E731
+            clips = [at(c) for c in args.clips]
+            ir, report = apply(args.id, project, clips, at(args.script).read_text(encoding="utf-8") if args.script else None,
+                               voice=at(args.voice) if args.voice else None,
+                               shot_plan=json.loads(at(args.plan).read_text(encoding="utf-8")) if args.plan else None,
+                               music=at(args.music) if args.music else None, hook_keys={k.lower() for k in args.hook_keys})
+            if not args.voice:
+                import talking_head as th
+                th.register_clips(project, clips, approve=False)
             dest.write_text(json.dumps(ir, indent=2) + "\n", encoding="utf-8")
             (project / "analysis").mkdir(exist_ok=True)
             (project / "analysis" / "signature_apply.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
             out = {"timeline": dest.name, "signature": report["signature"], "fired": report["fired"], "rules_applied": report["rules_applied"]}
+        elif args.cmd == "plan":
+            import voiceover_broll as vb
+            project = args.project.resolve()
+            dest = project / args.out
+            if dest.exists() and not args.force:
+                raise SignatureError(f"{dest.name} exists; use --force or --out another file")
+            sig = load(args.id)
+            if sig["pipeline"]["kind"] != "voiceover_broll":
+                raise SignatureError(f"{args.id} drives a {sig['pipeline']['kind']} pipeline; plan is for voiceover_broll")
+            voice = (Path(args.voice) if Path(args.voice).is_absolute() else project / args.voice).resolve()
+            try:
+                script = (Path(args.script) if Path(args.script).is_absolute() else project / args.script) if args.script else None
+                p = vb.plan(sig, project, voice, script.read_text(encoding="utf-8") if script else None, args.shots)
+            except ValueError as e:
+                raise SignatureError(str(e)) from e
+            dest.write_text(json.dumps(p, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+            out = {"plan": dest.name, "shots": [{k: s[k] for k in ("shot", "in", "out", "length", "says")} for s in p["shots"]], "planning": p["planning"]}
+        elif args.cmd == "remeasure":
+            s = remeasure(args.id, args.reference.resolve(), args.grade_from)
+            out = {k: s["pipeline"].get(k) for k in ("kind", "placement", "camera", "grade_target")} | {"edit_type": s["pipeline"]["measured"]["edit_type"], "version": s["version"]}
         elif args.cmd == "ship":
             out = ship(args.id, args.project.resolve(), args.approved)["shipped"][-1]
         elif args.cmd == "promote":

@@ -248,7 +248,9 @@ def test_a_style_is_learned_from_a_reference_verified_by_recreation_and_applied_
     th.register_clips(ref, [raw], approve=True)
     ct.compile_timeline(ref, ir, tmp_path / "reference.mp4")
 
-    s = sig.study(tmp_path / "reference.mp4", "flash_numbers")
+    # The reference is a test pattern with a voice: no face, so the measured edit type would be voiceover_broll.
+    s = sig.study(tmp_path / "reference.mp4", "flash_numbers", pipeline_kind="talking_head")
+    assert s["pipeline"]["measured"]["edit_type"]["kind"] in ("voiceover_broll", "talking_head")  # talking_head only without vision models
     flash = next(m for m in s["moves"] if m["does"].get("transition") == "flash_cut")
     assert flash["fires"]["on"] == "NUMBER" and flash["fires"]["support"] == 3 and flash["fires"]["precision"] == 1.0
     assert flash["recreation"]["status"] == "verified"

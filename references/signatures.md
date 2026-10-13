@@ -44,7 +44,14 @@ A study takes these steps:
    Any other effect is kept as **UNCLASSIFIED**, with the places it was seen, so a coincidence never becomes a
    rule.
 3. **Measure the pipeline:**
-   - the kind of edit (a talking head when speech covers ≥ 35% of the reference);
+   - the kind of edit (`edit_type`), from two measurements: speech coverage, and the share of frames with a face
+     at least 8% of the frame tall (MediaPipe, sampled at 0.5 fps). Speech ≥ 35% with a face in ≥ 50% of frames
+     is a **talking_head**; speech ≥ 35% without one is **voiceover_broll**; less speech is **documentary**.
+     Without the vision models the face share is NOT_MEASURED and speech alone decides (with a warning);
+   - where it cuts against its speech (`placement`): the share of cuts at the onset of a sentence, a clause, a
+     phrase after a pause, or mid-phrase, and the median offset from that onset;
+   - its camera (`camera`): the fractions of static, push-in and pan shots, and the median push-in and pan rates;
+   - its colour (`grade_target`): Lab mean, spread and chroma, the target every shot is graded toward;
    - the aspect ratio;
    - how tight it cuts: the longest pause kept inside a line, which becomes `max_gap_in_run_sec`;
    - how hard it punches in;
@@ -78,6 +85,45 @@ replaces the built-in moves with the Signature's moves:
 - **Pinning:** the project is pinned to the exact version in `signature_pin.json`. The Studio shows the pin, and
   says when the library has moved on.
 
+## Voiceover + footage (voiceover_broll)
+
+A faceless voiceover over stock or b-roll footage (the first real reference, `alpine_one_word`, is one). What
+`friends_future/build_draft.py` did by hand is now `scripts/voiceover_broll.py`:
+
+```
+python scripts/signature.py plan ID --project P --voice media/vo.wav [--script script.txt] [--shots N]
+python scripts/signature.py apply ID --project P --voice media/vo.wav --clips c01.mp4 ... c12.mp4     [--script script.txt] [--plan shot_plan.json] [--music m.mp3] [--hook-keys friends salary]
+```
+
+1. **Words.** The voice is transcribed (phrase-by-phrase timing). With a script, the script's spelling goes on the
+   heard words ("22" → "twenty-two", "they'll" → "you'll"); words the model missed get INTERPOLATED times, and heard
+   words that are not in the script are dropped. All three are listed in the report.
+2. **Plan.** A dynamic programme picks the cut points: shot lengths near the reference's measured median, p10 and
+   p90, cuts at the kinds of places the reference cut (cost = −log of the measured share), at the measured offset
+   from the word onset. With an opening lockup, the first shot holds the whole first sentence. `plan` writes
+   `shot_plan.json` with what each shot says, to source footage against; a shot can carry `source_in` and
+   `crop_centre` overrides from frame review.
+3. **Footage.** One clip per shot, in order. The window skips the clip's first second when it can. A clip shorter
+   than its shot is an error: it is never looped or frozen. A crop follows the measured subject (face, else person)
+   when one is found in ≥ 30% of sampled frames; otherwise it is centred, and the report says why.
+4. **Camera.** Each clip's own move is measured. Push-ins and pans are added only to static clips, until the cut
+   has the reference's fractions, at its measured rates; never on the lockup shot. A push-in is capped by the
+   clip's spare resolution (at least 1.1, at most 1.3), and the cap is reported.
+5. **Look.** A per-shot LUT toward the measured colour (`scripts/grade_match.py`, promoted from the
+   friends_future project script).
+6. **Text.** The Signature's captions over the words after the hook; the hook sentence in `typographic_lockup`
+   when the Signature has an `opening`. The lockup's layout is OBSERVED (two blocks split at the longest pause near
+   the middle; function words small, key words large); its text colour is MEASURED from the brightness behind each
+   block. Key words that cycle faces are only those given with `--hook-keys`.
+7. **Sound.** The voice as narration; music ducked under it; no sound effects when the reference has none.
+
+Clips without a rights record in `assets.json` are registered as `simulation_approved` with rights UNVERIFIED;
+an existing record (same sha256) keeps its id and rights.
+
+`remeasure ID --reference REF [--grade-from S]` adds these measurements to a Signature studied before they
+existed (the reference is checked by sha256). It was run on `alpine_one_word` (v6): edit type voiceover_broll
+(a face in 8% of frames), cuts at sentence onsets 58%, clause onsets 33%, mid-phrase 8%, median offset +0.06 s.
+
 ## Learning, slowly
 
 - **Notes.** A correction typed in the Studio on a pinned project is kept as a note on the Signature, alongside the
@@ -98,6 +144,8 @@ replaces the built-in moves with the Signature's moves:
 | Move discovery, support/precision, UNCLASSIFIED for coincidences, firing (use a cut, make a cut, skip at an edge), rules, face-over-captions, versions, lifecycle gates, Studio pin and notes | VALIDATED (`tests/test_signature.py`, exact) |
 | Known-answer reference → study → recreation → apply | VALIDATED (`test_a_style_is_learned_from_a_reference_verified_by_recreation_and_applied_to_a_new_take`). A TTS take is cut with a flash_cut before every number and nowhere else. The study finds exactly one move, "flash cut on number" (support 3/3, precision 1.0), and verifies it by recreation (similarity 1.0). Applied to a different take, it fires on all three numbers there and nowhere else. |
 | Caption style from measured text | IMPLEMENTED; NOT VALIDATED on a real reference |
+| Edit type with faces | VALIDATED on the real reference (voiceover_broll, matching the frame review) and by rule tests |
+| Voiceover + footage apply | IMPLEMENTED; rule tests and an end-to-end render (`tests/test_voiceover_broll.py`); applied to the friends_future voice and clips, owner review pending |
 | Documentary-kind Signatures | IMPLEMENTED as study output only; `apply` refuses them until the documentary pipeline can take moves |
 | A real reference | NOT YET: the owner supplies the first one |
 
