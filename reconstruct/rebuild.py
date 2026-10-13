@@ -126,3 +126,33 @@ def compare(ref_video: Path, fps: float, first: int, render_path: Path, mask: np
         m = mask if mask is not None else np.ones(d.shape, bool)
         out.append({"frame": first + k, "mae": round(float(d[m].mean()), 2), "within_12": round(float((d[m] <= 12).mean()), 3)})
     return out
+
+
+def prepare_layer(source: Path, src_t: float, frames: int, crop: tuple[int, int, int, int], size: tuple[int, int], lut: Path | None,
+                  out: Path, fps_rational: str = "2997/100") -> Path:
+    """The layer exactly as measured, as its own clip: source moment, crop, exact pixel size, fitted colour.
+    (melt's qtblend changes a cropped picture's aspect, MEASURED with a test pattern, so cropping and scaling
+    happen here and the editor only positions the clip.)"""
+    x, y, w, h = crop
+    vf = f"crop={w}:{h}:{x}:{y},scale={size[0]}:{size[1]}:flags=lanczos,setsar=1"
+    if lut:
+        vf += f",lut3d=file='{str(lut).replace(chr(92), '/').replace(':', chr(92) + ':')}':interp=tetrahedral"
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{src_t:.4f}", "-i", str(source), "-frames:v", str(frames), "-vf", vf + f",fps={fps_rational}",
+                    "-c:v", "libx264", "-crf", "8", "-preset", "fast", "-pix_fmt", "yuv420p", "-an", str(out)], check=True)
+    return out
+
+
+def canvas_layer(source: Path, src_t: float, frames: int, crop: tuple[int, int, int, int], place: tuple[int, int, int, int], canvas: tuple[int, int],
+                 lut: Path | None, out: Path, fps_rational: str = "2997/100") -> Path:
+    """The layer already in its exact place on a transparent full-size canvas (alpha .mov, lossless), so the editor
+    stacks it with no transform at all. place = (x, y, w, h) in edit pixels."""
+    x, y, w, h = crop
+    px, py, pw, ph = place
+    chain = f"setpts=PTS-STARTPTS,crop={w}:{h}:{x}:{y},scale={pw}:{ph}:flags=lanczos,setsar=1"
+    if lut:
+        chain += f",lut3d=file='{str(lut).replace(chr(92), '/').replace(':', chr(92) + ':')}':interp=tetrahedral"
+    fc = (f"color=c=black@0.0:s={canvas[0]}x{canvas[1]}:r={fps_rational},format=argb[bg];[0:v]{chain},format=argb[fg];"
+          f"[bg][fg]overlay={px}:{py}:shortest=1,format=argb")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{src_t:.4f}", "-i", str(source), "-filter_complex", fc, "-frames:v", str(frames),
+                    "-c:v", "qtrle", "-an", str(out)], check=True)
+    return out
