@@ -489,6 +489,27 @@ renders up to `draft_v3.mp4`).
 - **Tests:** `tests/test_voiceover_broll.py` (rules, plus an end-to-end render
   measured from frames).
 
+**Deep understanding / exact remake (Oct 13, branch `deep-understanding`; the owner's current focus).**
+The owner wants a system that watches a video like a person and can remake every detail, with no guesswork.
+First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan and research:
+`references/deep-understanding.md`. Work dir (outside the repo, sources are local-study only):
+`~/NarrativeOS-Remakes/ref_6cbda51b/`, with **`FINDINGS.md` as the state of what is known**.
+- **Principle:** watchers propose (Gemini, free OpenRouter models, Claude on frame sheets); every frame and
+  measurements decide; a rebuild rendered and compared frame by frame proves it (VERIFIED).
+- **Code (`reconstruct/`):** `cuts.py` (frame-exact cuts by layout correlation), `watch.py` (every frame to a
+  watcher with burned-in frame numbers, re-timed to 24 fps; Gemini API + OpenRouter video/frame-sheet modes),
+  `source_match.py` / `layers.py` (find each layer's original footage and its per-frame placement),
+  `music.py` (song offset and speed: rhythm proposes, harmony decides), `rebuild.py` (MLT from measured
+  layers, rendered by Kdenlive's `melt`, compared per frame).
+- **Keys:** Gemini key in `~/.narrativeos/gemini.key` (free tier: 429/503 often; the owner has no budget).
+  OpenRouter key not created yet (`~/.narrativeos/openrouter.key`). Kdenlive 25.12.3, melt 7.37.
+- **Lessons (MEASURED):** a single-model answer guesses (Gemini web app ~1 fps got the end window wrong);
+  feature-matched source times are wrong where backgrounds are static (use pixel/region alignment); an inset is a
+  mask window plus content with its own transform (find the window by peeling the aligned background).
+- **Next:** inset 1 content inside its window (measure qtblend's aspect behaviour), background face fit,
+  caption font by render-and-compare, then generalise the per-shot loop to the whole video; Kdenlive project
+  export from the same MLT; the unidentified 27-56 s music.
+
 ## Next steps, in order
 
 **Agreed with the owner on Oct 10 (these come first):**
