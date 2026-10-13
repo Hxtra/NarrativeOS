@@ -131,7 +131,7 @@ def watch_window(clip: Path, first: int, last: int, candidates: list[int], fps: 
     return out
 
 
-def watch_all(video: Path, work: Path, window: int = 120, model: str = "gemini-3.8-flash", parallel: int = 3) -> list[dict]:
+def watch_all(video: Path, work: Path, window: int = 120, model: str = "gemini-3.8-flash", parallel: int = 1) -> list[dict]:
     """Every window of the video, cached per window (a re-run only watches what is missing)."""
     from concurrent.futures import ThreadPoolExecutor
     c = json.loads((work / "cuts.json").read_text(encoding="utf-8"))
@@ -157,3 +157,73 @@ def watch_all(video: Path, work: Path, window: int = 120, model: str = "gemini-3
 if __name__ == "__main__":
     import sys
     watch_all(Path(sys.argv[1]), Path(sys.argv[2]))
+
+
+# ----------------------------------------------------------------------------------------------- OpenRouter (free models)
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+FREE_WATCHERS = {"video": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",   # video + audio
+                 "sheets": "google/gemma-4-31b-it:free"}                           # images: frame sheets
+
+
+def openrouter_key() -> str:
+    f = Path.home() / ".narrativeos" / "openrouter.key"
+    return os.environ.get("OPENROUTER_API_KEY") or (f.read_text(encoding="utf-8").strip() if f.is_file() else "")
+
+
+def frame_sheets(video: Path, first: int, last: int, fps: float, per_sheet: int = 40, cols: int = 8, width: int = 240) -> list[bytes]:
+    """JPEG sheets of every frame first..last, each tile labelled with its absolute frame number."""
+    from io import BytesIO
+
+    import numpy as np
+    from PIL import Image, ImageDraw
+    h = int(round(width * 9 / 16 / 2) * 2)
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{first / fps:.4f}", "-i", str(video), "-frames:v", str(last - first + 1),
+                          "-vf", f"scale={width}:{h}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True, check=True).stdout
+    frames = np.frombuffer(raw, np.uint8).reshape(-1, h, width, 3)
+    sheets = []
+    for s in range(0, len(frames), per_sheet):
+        chunk = frames[s:s + per_sheet]
+        rows = (len(chunk) + cols - 1) // cols
+        im = Image.new("RGB", (cols * (width + 4), rows * (h + 22)), "black")
+        d = ImageDraw.Draw(im)
+        for k, fr in enumerate(chunk):
+            x, y = (k % cols) * (width + 4), (k // cols) * (h + 22)
+            im.paste(Image.fromarray(fr), (x, y + 20))
+            d.text((x + 3, y + 3), f"F{first + s + k:04d}", fill="yellow")
+        buf = BytesIO()
+        im.save(buf, "JPEG", quality=88)
+        sheets.append(buf.getvalue())
+    return sheets
+
+
+def watch_window_openrouter(video: Path, clip: Path, first: int, last: int, candidates: list[int], fps: float, mode: str, cache: Path) -> dict:
+    """mode "video": the frame-numbered clip (with sound) to an omni model; mode "sheets": every frame as numbered
+    image tiles to a vision model (no frame-rate cap). Same schema and prompt as the Gemini pass."""
+    if cache.is_file():
+        return json.loads(cache.read_text(encoding="utf-8"))
+    import base64
+    import urllib.request
+    key = openrouter_key()
+    if not key:
+        raise RuntimeError("no OpenRouter key (~/.narrativeos/openrouter.key or OPENROUTER_API_KEY)")
+    prompt = PROMPT.format(speed=f"{WATCH_FPS / fps:.2f}x", candidates=", ".join(str(c) for c in candidates) or "none")
+    if mode == "sheets":
+        prompt = prompt.replace("A black bar under the picture shows the ABSOLUTE frame number (F####) of each frame;\nit is not part of the edit.",
+                                "The images are sheets of EVERY frame, in order, left to right and top to bottom; each tile's label (F####) is its ABSOLUTE frame number.")
+        parts = [{"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(b).decode()}} for b in frame_sheets(video, first, last, fps)]
+    else:
+        parts = [{"type": "video_url", "video_url": {"url": "data:video/mp4;base64," + base64.b64encode(clip.read_bytes()).decode()}}]
+    body = {"model": FREE_WATCHERS[mode], "temperature": 0.1,
+            "messages": [{"role": "user", "content": parts + [{"type": "text", "text": prompt + "\n\nAnswer ONLY with one JSON object following this schema:\n" + json.dumps(SCHEMA)}]}]}
+    req = urllib.request.Request(OPENROUTER_URL, data=json.dumps(body).encode(), headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+    t = time.time()
+    with urllib.request.urlopen(req, timeout=600) as r:
+        resp = json.loads(r.read())
+    text = resp["choices"][0]["message"]["content"]
+    start, end = text.find("{"), text.rfind("}")
+    out = json.loads(text[start:end + 1])
+    out["_meta"] = {"model": FREE_WATCHERS[mode], "mode": mode, "window": [first, last], "seconds": round(time.time() - t, 1), "status": "OBSERVED",
+                    "usage": resp.get("usage")}
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    return out
