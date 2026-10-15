@@ -102,8 +102,9 @@ def card(shot: dict, desc: str) -> np.ndarray:
     return np.asarray(im, np.float32)
 
 
-def build(work: Path, ref_video: Path, out: Path, rebuilt: dict[int, Path]) -> dict:
-    """rebuilt: first frame -> rebuilt clip (full canvas, starting at that frame)."""
+def build(work: Path, ref_video: Path, out: Path, rebuilt: dict[int, Path], rebuilt_has_captions: bool = True) -> dict:
+    """rebuilt: first frame -> rebuilt clip (full canvas, starting at that frame). A rebuilt clip that carries its own
+    captions (rebuilt_has_captions) gets no second caption from this preview."""
     c = json.loads((work / "cuts.json").read_text(encoding="utf-8"))
     n, fps = c["frames"], c["source"]["fps"]
     shots = c["shots"]
@@ -142,7 +143,7 @@ def build(work: Path, ref_video: Path, out: Path, rebuilt: dict[int, Path]) -> d
                 cards[s["id"]] = card(s, describe(s))
             img = cards[s["id"]].copy()
             status["card_frames"] += 1
-        line = caps[f]
+        line = None if (rebuilt_has_captions and f in rebuilt_frames) else caps[f]
         if line:
             key = tuple(line)
             if key not in cache:
