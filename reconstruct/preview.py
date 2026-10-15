@@ -161,8 +161,10 @@ def build(work: Path, ref_video: Path, out: Path, rebuilt: dict[int, Path], rebu
 
 def side_by_side(ref_video: Path, remake: Path, audio: Path, out: Path) -> None:
     font = "C\\:/Windows/Fonts/arialbd.ttf"
-    fc = (f"[0:v]scale=960:540,drawtext=fontfile='{font}':text='ORIGINAL':x=16:y=12:fontsize=26:fontcolor=white:box=1:boxcolor=black@0.6[a];"
-          f"[1:v]scale=960:540,drawtext=fontfile='{font}':text='REMAKE  frame %{{n}}':x=16:y=12:fontsize=26:fontcolor=white:box=1:boxcolor=black@0.6[b];"
-          f"[a][b]hstack=2[v]")
+    # Both sides re-timed to frame index / 29.97 so frame N pairs with frame N (two files declaring 2997/100 and
+    # 30000/1001 were otherwise merged at 60 fps with one side shifted: MEASURED on preview_v3).
+    fc = (f"[0:v]setpts=N/(29.97*TB),scale=960:540,drawtext=fontfile='{font}':text='ORIGINAL':x=16:y=12:fontsize=26:fontcolor=white:box=1:boxcolor=black@0.6[a];"
+          f"[1:v]setpts=N/(29.97*TB),scale=960:540,drawtext=fontfile='{font}':text='REMAKE  frame %{{n}}':x=16:y=12:fontsize=26:fontcolor=white:box=1:boxcolor=black@0.6[b];"
+          f"[a][b]hstack=2,fps=2997/100[v]")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(ref_video), "-i", str(remake), "-i", str(audio), "-filter_complex", fc, "-map", "[v]",
                     "-map", "2:a", "-c:v", "libx264", "-crf", "20", "-preset", "fast", "-c:a", "aac", "-b:a", "160k", "-shortest", str(out)], check=True)

@@ -515,6 +515,50 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
   caption font by render-and-compare, then generalise the per-shot loop to the whole video; Kdenlive project
   export from the same MLT; the unidentified 27-56 s music.
 
+**Owner direction, Oct 15-16 (READ FIRST; supersedes the remake-by-hand loop above).**
+- **Learn from real editors, never invent methods.** Before building any technique (finding clips, choosing clips, flow,
+  transitions, captions, effects, anime/funk edits), find how real editors do it: YouTube/TikTok tutorials and editor
+  breakdowns. Knowledge so far: `NarrativeOS-Data/knowledge/notes.md` (today still `~/NarrativeOS-Knowledge/notes.md`):
+  Molob (anime flow), Chris Moran (Netflix doc text, full AE recipe + creator-shown values), nancemedia (labelled CapCut
+  timeline), rabinn.fx, zannhd, wernervfx, requiem969.
+  - **Access:** YouTube transcripts via the owner's Chrome (open the video's "Show transcript" panel, retry once, read in
+    900-char chunks). Tutorial frames at 1080p by drawing the `<video>` to a canvas and POSTing to a 127.0.0.1 receiver.
+    TikTok single videos via yt-dlp; local Whisper. If a video cannot be watched, the owner's Manus agent in Chrome can
+    watch it.
+- **Words are not the spec.** A description loses the detail (Gemini's account of the end window was wrong in 3 places).
+  NarrativeOS works like a person redrawing:
+  - MEMORY: exact pixels + measurements;
+  - IMAGINATION: render a candidate in EffectCraft;
+  - COMPARISON: pixel/region metrics;
+  - FIX: automatic parameter search, not an LLM guessing.
+
+  Models only look at images and propose concrete project changes; renders decide.
+- **Concept memory (the "mind"), to build.** A concept is a short idea WITH its exact evidence, never words alone:
+  `{concept ("white flash, 2 frames, on the cut"), kind, evidence: [frames/crops + source + frame numbers],
+  measured: {ranges across examples}, recipe: EffectCraft layers+params, verified: {render-compare score, date},
+  fingerprint: local image embedding, links: [related concepts]}`.
+  - It reasons with concepts (compact, combinable) and rebuilds from the exemplars (exact).
+  - Each new example refines the measured ranges. Recall is by picture similarity.
+  - Data in `NarrativeOS-Data/memory/` (outside the repo, for rights); schema and code in the repo.
+- **First build (fresh session):**
+  1. consolidate folders (below);
+  2. concept memory with what exists: the reference video's shots, the Netflix-text step frames + recipe,
+     nancemedia's flashes;
+  3. recall test: an unseen frame finds the right concept by picture;
+  4. automatic parameter search calibrating EffectCraft against the tutor's step frames (AE value -> EffectCraft value
+     per effect).
+
+  EffectCraft question filed: storytold/effectcraft#1607 (Roughen Edges).
+- **One data folder (owner, Oct 16): stop creating folders around the PC.**
+  - Move everything to `C:\Users\openclaw\NarrativeOS-Data\` {projects, signatures, remakes, knowledge, vfx-library,
+    models, memory, secrets}, via ONE setting (`NARRATIVEOS_HOME`, default that path) used by all code.
+  - Today there are 33 path references in 14 files: signature.py, vision_models.py, channel.py, creative_memory.py,
+    compile_timeline.py, style_intel/compare.py, reconstruct/watch.py, vfx_ingest.py, link_vfx_library.py, docs.
+  - Re-link the VFX library. Ask before deleting `projects/friends_future_apply` (a test copy).
+  - Current folders: ~/NarrativeOS-{VFX-Library, Models, Projects, Signatures, Remakes, Knowledge}, ~/.narrativeos
+    (Gemini key), Downloads/vfx-overlays-inbox; Courier Prime installed per-user.
+  - Never create a folder outside NARRATIVEOS_HOME (temporary files: the session scratchpad only).
+
 ## Next steps, in order
 
 **Agreed with the owner on Oct 10 (these come first):**

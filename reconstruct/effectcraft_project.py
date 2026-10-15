@@ -64,6 +64,14 @@ def script(work: Path, captions: list[dict], rebuilt: dict[int, list[dict]], aud
               f'var pd = pt.property("Source Text").value; pd.fontSize = 18; pd.fillColor = [0.9, 0.47, 0.35]; pd.justification = ParagraphJustification.LEFT_JUSTIFY; pt.property("Source Text").setValue(pd);',
               f'pt.property("Transform").property("Position").setValue([24, {H - 30}]);']
     for k, cap in enumerate(captions):
+        if cap.get("words"):   # measured per-word layout: one left-aligned text layer per word, at its measured ink
+            for j, w in enumerate(cap["words"]):
+                v = f"w{k}_{j}"
+                L += [f'var {v} = caps.layers.addText({_q(w["text"])}); span({v}, {cap["first"]}, {cap["last"]}); {v}.name = {_q(w["text"] + " [" + w.get("status", "") + "]")};',
+                      f'var d{v} = {v}.property("Source Text").value; d{v}.font = {_q(SERIF if w["face"] == "serif" else SANS)};',
+                      f'd{v}.fontSize = {w["size"]}; d{v}.fillColor = [1, 1, 1]; d{v}.justification = ParagraphJustification.LEFT_JUSTIFY;',
+                      f'{v}.property("Source Text").setValue(d{v}); {v}.property("Transform").property("Position").setValue([{w["x"]:.1f}, {w["baseline"]:.1f}]);']
+            continue
         L += [f'var c{k} = caps.layers.addText({_q(cap["text"])}); span(c{k}, {cap["first"]}, {cap["last"]});',
               f'var d{k} = c{k}.property("Source Text").value; d{k}.font = {_q(SERIF if cap["face"] == "serif" else SANS)};',
               f'd{k}.fontSize = {cap["size"]}; d{k}.fillColor = [1, 1, 1]; d{k}.justification = ParagraphJustification.CENTER_JUSTIFY;',
