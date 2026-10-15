@@ -506,7 +506,12 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
 - **Lessons (MEASURED):** a single-model answer guesses (Gemini web app ~1 fps got the end window wrong);
   feature-matched source times are wrong where backgrounds are static (use pixel/region alignment); an inset is a
   mask window plus content with its own transform (find the window by peeling the aligned background).
-- **Next:** inset 1 content inside its window (measure qtblend's aspect behaviour), background face fit,
+- **EffectCraft (Oct 15):** the owner installed EffectCraft 0.10.0 and FilmCraft 0.8.0 (open-source After
+  Effects / Premiere reimplementations, `C:\Program Files\EffectCraft|FilmCraft`, both with headless CLIs).
+  `reconstruct/effectcraft.py` builds measured shots through EffectCraft's AE-style scripting and renders them
+  headless; it beat Kdenlive on the 42.1 s shot (full frames incl. caption 4.7-6.8/255). It is the primary
+  rebuild backend now; quirks in FINDINGS.md. Preview: `preview/preview_v2.mp4`.
+- **Next (old list, partly done):** inset 1 content inside its window (measure qtblend's aspect behaviour), background face fit,
   caption font by render-and-compare, then generalise the per-shot loop to the whole video; Kdenlive project
   export from the same MLT; the unidentified 27-56 s music.
 
