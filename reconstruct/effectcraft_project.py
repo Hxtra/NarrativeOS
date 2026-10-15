@@ -4,6 +4,8 @@ Structure (After Effects style, so a person can scrub and open each part):
 - comp "Shots": every measured shot at its frames. A shot with a measured rebuild gets its real layers (footage,
   transforms, masks, LUTs); every other shot is a labelled placeholder solid naming what it should show.
 - comp "Captions": one text layer per caption line, at its frames, in the measured font, size and position.
+- optionally the reference itself as a 50 % GUIDE layer on top of "Shots" (a viewing aid: guide layers never render;
+  a render with and without it was measured pixel-identical).
 - comp "Remake": the reference's own audio (test only), "Shots", and "Captions" three times with the fitted glow
   (halo blur 60, glow blur 38, sharp blur 2.5; MEASURED on the 42.1 s shot).
 """
@@ -24,7 +26,7 @@ def _q(s: str) -> str:
 
 
 def script(work: Path, captions: list[dict], rebuilt: dict[int, list[dict]], audio: Path | None, save_to: Path,
-           size=(1276, 718), fps=29.97) -> str:
+           size=(1276, 718), fps=29.97, guide: Path | None = None) -> str:
     """captions: [{text, first, last, face: serif|sans, x, y, size}]; rebuilt: first frame -> layer dicts (as
     effectcraft.shot_script, with start relative to that shot)."""
     c = json.loads((work / "cuts.json").read_text(encoding="utf-8"))
@@ -66,6 +68,10 @@ def script(work: Path, captions: list[dict], rebuilt: dict[int, list[dict]], aud
               f'var d{k} = c{k}.property("Source Text").value; d{k}.font = {_q(SERIF if cap["face"] == "serif" else SANS)};',
               f'd{k}.fontSize = {cap["size"]}; d{k}.fillColor = [1, 1, 1]; d{k}.justification = ParagraphJustification.CENTER_JUSTIFY;',
               f'c{k}.property("Source Text").setValue(d{k}); c{k}.property("Transform").property("Position").setValue([{cap["x"]:.1f}, {cap["y"]:.1f}]);']
+    if guide:  # the reference as a viewing guide: 50 %, a guide layer (never rendered; verified: renders identical)
+        L += [f'var gd = shots.layers.add(app.project.importFile(new ImportOptions(new File({_q(js_path(guide))}))));',
+              'gd.name = "REFERENCE (guide, 50%, never rendered)"; gd.startTime = 0; gd.moveToBeginning();',
+              'gd.property("Transform").property("Opacity").setValue(50); gd.guideLayer = true;']
     if audio:
         L += [f'var au = main.layers.add(app.project.importFile(new ImportOptions(new File({_q(js_path(audio))})))); au.name = "reference audio (TEST ONLY)";']
     L += ['var sh = main.layers.add(shots); sh.name = "Shots";']
