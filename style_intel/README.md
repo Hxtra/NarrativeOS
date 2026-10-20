@@ -179,6 +179,79 @@ Known measurement noise:
 - **Speech pace:** it read 153 words a minute without music and 167 with music, for the same voice. Whisper's
   word count changes when music sits under the voice.
 
+## Departments: what a channel's team would know about the sound
+
+`python -m style_intel departments <video> --out <dir> [--no-identify] [--no-sheets]`
+
+The owner's rule (Oct 17): an analysis is not real until it covers every department, plus the feeling behind each
+choice. Cuts and effects alone miss the key details. This command measures the sound side and lines it up with the picture.
+The machine cannot hear: it separates the audio and reads the spectra.
+
+- **Stems.** Demucs splits the audio into vocals, drums, bass and other; no_vocals is the sum of the last three.
+- **Music.**
+  - Shazam on 15 s windows (needs network). It gives the track, where in the track the video starts, whether the music was edited (the offsets jump) and the speed.
+  - The key, by chroma (INFERRED).
+  - How far the music dips under the voice.
+- **Voice.** Word times (faster-whisper), words per minute, and pauses.
+- **Sound effects by family**, found in the voice-free layer:
+  - **boom:** sub-bass under 60 Hz jumps 14 dB over the video's median, but not out of near-silence.
+  - **ping:** a narrow tone at least 26 dB above that same frequency's 75th-percentile level over ±3 s, ringing 0.2 s or longer. A note the music repeats becomes part of its own background.
+  - **tick:** the same test, but shorter.
+  - **whoosh:** a noise-like swell 2–10 kHz.
+  - **riser:** the best rising line on a semitone grid, beating both flat/falling lines and lines 4 semitones aside.
+  - Each tonal event gets its note. The same pitch used 3+ times is listed as "probably one sound file reused".
+- **Picture sync.** At every sound, the picture just after (+0.3 s) is compared with just before (−0.2 s), and that change is ranked against every moment of the video.
+  - Per family, a one-sided KS test asks whether the sounds sit on bigger picture changes than chance.
+  - A family that follows the picture is an effect laid to it; one that does not is probably part of the music.
+- **Ping tuning.** Are the pings' pitches in the music's key, compared with chance (7 of 12)?
+- **Review sheets.** For each event, the frames before, at and after it, with the words being spoken.
+- **Feeling.** The job and feeling of each family are written by a reviewer from this evidence (INFERRED). The module
+  leaves a slot for them and never generates them.
+
+Checked on the "one-hour documentary" promo (41e2e6b7) against a verified hand analysis:
+- the music was identified (Hans Zimmer, "Mountains", from 2:00.9 of the track, continuous, speed 1.001);
+- all 19 booms on headline slams were found, plus 3 extra candidates;
+- 6 of the 9 "task done" dings were found, with no music notes mixed in;
+- the upload riser was found.
+
+Known limits, MEASURED on that video:
+- the ticking in "Mountains" yields tick events that do not follow the picture (p = 0.45);
+- small UI changes (a badge, a check mark) are not big picture changes, so the rank test underrates sounds laid to them (dings p = 0.19 although every one was verified on a "done" badge by eye);
+- a fast-moving background swamps the before/after picture measure.
+- separation leaks: a voice's "s" sounds can leak into the voice-free layer and read as whooshes (e6016424, 40-43 s);
+- a tonal event's note is its strongest line, which can be an overtone: our own test film's E6 ding was reported as E7.
+Tests: `tests/test_departments.py` (synthetic sounds at known times over a music bed with a repeating note).
+
+## Motion: how a film moves, at full frame rate
+
+`style_intel/motion.py` (`motion.analyze(video, out)`) measures every frame:
+- the camera (pan, zoom, rotation) from a robust fit of tracked points;
+- motion beyond the camera;
+- repeated frames.
+
+From these it derives:
+- every transition, classified: hard cut, dissolve, dip to black, flash, wipe, cut on a camera move, match cut on layout, with its
+  length in frames;
+- runs of stepped animation;
+- each shot's camera move and easing (linear, ease in, ease out, ease in-out);
+- each shot's animation (held, camera only, animated) and drawing rate.
+
+It was built after the owner pointed out that 1 frame per second misses how things move. Every label was then checked against
+full-frame-rate strips on two long films (`NarrativeOS-Data/analysis/aven_refs/MOTION_NOTES.md`).
+
+Lessons from that check (MEASURED):
+- **Animation inside a shot is often read as a transition.** Examples: a letter unfolding, glyphs drifting behind a face, text
+  fading in, light crossing a wall. A dissolve now needs a steady blend: the mix weight must fall monotonically and every frame must
+  be explained by the mix. A wipe needs an edge that travels one way.
+- **Picture jumps up to 4 frames apart are stepped animation,** not a montage. Only the first jump counts as a cut.
+- **Special-transition counts stay too high on live action and text-heavy shots.** Report only examples verified on strips.
+- **The drawing-rate label is unreliable while the camera moves,** because the whole frame changes every frame. A character's
+  drawing rate is measured where the camera holds still.
+
+Tests: `tests/test_motion.py` (a synthetic film with a known cut, dissolve, constant-speed push-in, an element on twos and stepped
+jumps). Not covered: the steady-blend guard against fake dissolves, which is hard to synthesise convincingly; it was checked on real
+footage only.
+
 ## Tests
 
 `tests/test_style_intel.py` builds synthetic videos with known answers:

@@ -63,9 +63,42 @@ def main() -> int:
     c.add_argument("--text", action="store_true", help="also compare on-screen text (OCR; slow)")
     c.add_argument("--ref-cache", type=Path, help="an existing measurement folder for the reference (e.g. a Signature's reference/ folder)")
     c.add_argument("--no-speech", action="store_true")
+    dp = sub.add_parser("departments", help="music, every sound effect by family, voice and picture sync: what a channel team would know")
+    dp.add_argument("video", type=Path)
+    dp.add_argument("--out", type=Path, required=True)
+    dp.add_argument("--no-identify", action="store_true", help="skip Shazam music identification (needs network)")
+    dp.add_argument("--no-sheets", action="store_true", help="skip the per-event frame sheets")
+    mo = sub.add_parser("motion", help="every cut, transition, camera move and drawing rate, at the full frame rate")
+    mo.add_argument("video", type=Path)
+    mo.add_argument("--out", type=Path, required=True)
+    st = sub.add_parser("soundtags", help="what each second of a (voice-free) track sounds like: PANNs AudioSet labels")
+    st.add_argument("audio", type=Path, help="best on the no_vocals stem from `departments`")
+    st.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+
+    if args.cmd == "departments":
+        from style_intel import departments as dep
+        if not args.video.is_file():
+            print(f"no such file: {args.video}", file=sys.stderr)
+            return 1
+        print(dep.report(dep.analyze(args.video.resolve(), args.out, identify=not args.no_identify, sheets=not args.no_sheets)))
+        return 0
+
+    if args.cmd in ("motion", "soundtags"):
+        src = args.video if args.cmd == "motion" else args.audio
+        if not src.is_file():
+            print(f"no such file: {src}", file=sys.stderr)
+            return 1
+        if args.cmd == "motion":
+            from style_intel import motion
+            res = motion.analyze(src.resolve(), args.out)
+        else:
+            from style_intel import sound_tags
+            res = sound_tags.analyze(src.resolve(), args.out)
+        print(json.dumps(res.get("summary", res) if isinstance(res, dict) else res, indent=1)[:4000])
+        return 0
 
     if args.cmd == "compare":
         from style_intel import compare as compare_mod

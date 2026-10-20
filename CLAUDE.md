@@ -8,13 +8,17 @@ now finish.
 
 ## What this repo is
 
-Two skills live here:
+These skills live here:
 
 | Path | Skill | Role |
 |---|---|---|
 | `SKILL.md` (root) | `narrativeos-video-editor` | The evidence-gated production graph: controller, stages, research, claims, timeline IR, FFmpeg render, QA. FFmpeg is the primary renderer. |
 | `templates/narrativeos-video-templates/` | `narrativeos-video-templates` | A registry of pre-built Remotion components ("pick a template by name, fill the params, render"), a StyleProfile hub, shared motion primitives, and a rights-aware Media Library. |
 | `style_intel/` | (Python package, not a skill) | Style Intelligence: measures a reference video's editing language as Style DNA and turns it into a StyleProfile. See `style_intel/README.md`. |
+| `skills/narrativeos-watch-reference/` | `narrativeos-watch-reference` | Study a reference like an editor (experience first, then the moments that land); a multimodal watcher proposes, measurements decide. |
+| `skills/narrativeos-voiceover/` | `narrativeos-voiceover` | Realistic AI narration (Gemini TTS or Cartesia), take by take, picked by measurement and the owner's ear. |
+| `skills/narrativeos-sound-design/` | `narrativeos-sound-design` | Music by the owner's ear, levels and silences measured from real mixes, effects checked and rights-recorded, `scripts/sound_mix.py`. |
+| `skills/narrativeos-explainer-film/` | `narrativeos-explainer-film` | A faceless explainer film from a sourced script: code-rendered 3D and ink-on-paper scenes, every shot on a word. |
 
 The templates skill is **not yet wired into the controller pipeline.**
 `scripts/build_graphics.py` (the GRAPHICS stage) is still a stub that falls
@@ -104,6 +108,15 @@ Specifically:
 - **Everything built goes into the skill on GitHub.**
 
 ## Working principles established in that conversation (keep them)
+
+- **Every piece of work makes NarrativeOS better (owner, Oct 20).** Do this in the same task, never afterwards:
+  - a method becomes or updates a skill in `skills/`;
+  - a script that worked becomes a general tool with a test;
+  - every measured lesson and mistake goes into its SKILL.md;
+  - this file gets the state.
+
+  A film or analysis left only in a project folder (or in an agent's private memory) teaches the system nothing.
+  Project media and channel data stay in NarrativeOS-Data. Commit and push only with the owner's OK.
 
 - **Evidence over assertion.** A template is not done until a rendered frame
   has been looked at. Typechecking does not count. Audio claims were verified
@@ -558,6 +571,34 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
   - Current folders: ~/NarrativeOS-{VFX-Library, Models, Projects, Signatures, Remakes, Knowledge}, ~/.narrativeos
     (Gemini key), Downloads/vfx-overlays-inbox; Courier Prime installed per-user.
   - Never create a folder outside NARRATIVEOS_HOME (temporary files: the session scratchpad only).
+
+**Channel films and departments (Oct 17-20, branch `departments-analysis`; NOT committed yet).** The owner's new channel AVEN
+(Fern storytelling plus Veritasium-style explanation, faceless) became the working test.
+- **Analysis by departments** (`python -m style_intel departments|motion|soundtags`), with the limits written in `style_intel/README.md`:
+  - `departments.py`: Demucs stems, music identity (Shazam windows), every sound event by family with its picture sync,
+    and ducking;
+  - `motion.py`: cuts, transitions, camera moves with easing, and drawing rate, at the full frame rate;
+  - `sound_tags.py`: PANNs AudioSet labels per second, with models in `NarrativeOS-Data/models/panns_data`.
+  - The owner's rule: analyse music, effects, voice, picture, edit AND the feeling, not just cuts. 1 fps watching misses
+    most of it.
+- **Owner's rule (Oct 19): no text middleman.** Watching, then describing, then rebuilding from the description is wrong.
+  The real moment (clip, stems, timing) is the spec; the owner's felt moments are the labels. Skill
+  `narrativeos-watch-reference`.
+  - Tested: Gemini got the story right and invented the craft (fps, cuts per minute, music drops).
+- **Voice:** `scripts/voiceover.py` (Gemini TTS, or `--provider cartesia`).
+  - The AVEN voice is Cartesia "Ronald - Thinker", key in `~/.narrativeos/cartesia.key`.
+  - Paid credits: every run states its cost, and needs `--spend` plus the owner's OK.
+  - A per-project `pronounce.json` respells names for the voice only.
+- **Sound:** `scripts/sound_mix.py` (measured: voice 24 dB over the music, music up about 3.5 dB in gaps, no dead air),
+  `scripts/sfx_check.py` (PANNs checks library sounds; 2 of 18 Pixabay effects were mislabelled), with
+  `tests/test_sound_mix.py`.
+- **Film tools:** `scripts/word_times.py` (word timings to cut on) and `scripts/contact_sheet.py` (look at every frame).
+- **Films:** in `NarrativeOS-Data/projects/aven/`, rendered with Lemo-Opuscar (three.js in Chrome; `NarrativeOS-Data/tools/lemo-opuscar`):
+  - `test60/`, the 60 s Fresnel test;
+  - `eratosthenes/`, "The Man Who Measured the Earth With a Shadow", 1:52, with the owner's music picks and Pixabay effects
+    (rights in `media/rights.json`).
+
+  The channel style is `NarrativeOS-Data/analysis/aven_refs/AVEN_STYLE.md` (channel data, outside the repo).
 
 ## Next steps, in order
 
