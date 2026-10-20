@@ -39,7 +39,11 @@ MEASURED Oct 19: the Gemini app watched Veritasium's "The Absurd Engineering Beh
 So use a watcher to POINT at moments and to read meaning. Every claim about timing, sound or cuts is checked with:
 - `python -m style_intel departments VIDEO --out DIR`: stems, music identity, every sound event by family, ducking, picture sync;
 - `style_intel/motion.py` (in the departments run): every cut, transition, camera move and drawing rate, at full frame rate;
-- `style_intel/sound_tags.py`: what each second sounds like (PANNs; Claude cannot hear).
+- `python -m style_intel soundtags`: what each second sounds like (PANNs; Claude cannot hear);
+- `python -m style_intel avsync VIDEO --auto-crop`: whether the picture follows the sound, with what delay, and WHICH part of the
+  picture follows WHICH sound.
+  - Use it when the owner says "everything is synced". On the TB-303 clip the whole frame looked unsynced, but the rings followed
+    the bass on the same frame and the sparkle followed the hi-hats.
 
 Write each claim down as MEASURED, OBSERVED (looked at frames), INFERRED or the watcher's PROPOSAL.
 

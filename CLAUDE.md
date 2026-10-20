@@ -593,6 +593,11 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
   `scripts/sfx_check.py` (PANNs checks library sounds; 2 of 18 Pixabay effects were mislabelled), with
   `tests/test_sound_mix.py`.
 - **Film tools:** `scripts/word_times.py` (word timings to cut on) and `scripts/contact_sheet.py` (look at every frame).
+- **AV sync** (`python -m style_intel avsync`, Oct 20): measures whether the picture follows the sound, with what delay, and
+  which part of the picture follows which sound, inside the -2..+3 frame window viewers tolerate. Test:
+  `tests/test_av_sync.py`, which also rejects random flashes (the first version did not).
+  - First use: the owner's "music is code" clips. Each instrument drives its own element at 0-33 ms.
+  - Next idea, pending the owner's choice: a music-as-code score engine that writes a note list the animation reads.
 - **Films:** in `NarrativeOS-Data/projects/aven/`, rendered with Lemo-Opuscar (three.js in Chrome; `NarrativeOS-Data/tools/lemo-opuscar`):
   - `test60/`, the 60 s Fresnel test;
   - `eratosthenes/`, "The Man Who Measured the Earth With a Shadow", 1:52, with the owner's music picks and Pixabay effects

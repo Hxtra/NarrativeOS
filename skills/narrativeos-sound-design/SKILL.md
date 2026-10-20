@@ -80,7 +80,21 @@ Write a plan (JSON) and run `python scripts/sound_mix.py PLAN.json`:
 Tests: `tests/test_sound_mix.py`. A film's plan generator is example code: `projects/aven/eratosthenes/film/mix.py`. Then
 mux: `sh <lemo-opuscar>/core/render/mux.sh video.mp4 mix.wav out.mp4 24 2` (-14 LUFS, true peak -1.2).
 
-## 7. Verify by measuring, then by the owner's ear
+## 7. When the picture should follow the music (music-driven pieces)
+The two directions:
+- **Documentary (the default):** the picture leads. Its events (`events.json`) place the sounds.
+- **Music-driven pieces** (intros, logo stings, abstract sequences): the music leads. The owner's reference clips ("made with
+  Claude, the music is code") were MEASURED with `python -m style_intel avsync`:
+  - each instrument drives its own element (rings on the bass at 0 ms, sparkle on the hi-hats at +33 ms);
+  - in the light-painting clip, flashes follow the hits 1-2 frames later.
+
+  The method the creator describes: the music is rendered from a note list, and that SAME list is read by the animation, so
+  every note lands on its exact frame. A rendered frame-by-frame film (Lemo-Opuscar, HyperFrames) makes this exact.
+
+Sync tolerance: keep the picture within about -2..+3 frames of its sound. Viewers notice offsets beyond about 45-125 ms
+(ITU-R BT.1359). Check a finished piece with `avsync` against its own audio.
+
+## 8. Verify by measuring, then by the owner's ear
 - Measure the key moments in the final file's audio: the opening, every world-jump, the placed silence (room tone, not
   -240 dB), the music's entrance.
 - If two encodes write the same file, re-check that the final file has the newest mix.

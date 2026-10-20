@@ -71,6 +71,11 @@ def main() -> int:
     mo = sub.add_parser("motion", help="every cut, transition, camera move and drawing rate, at the full frame rate")
     mo.add_argument("video", type=Path)
     mo.add_argument("--out", type=Path, required=True)
+    av = sub.add_parser("avsync", help="how tightly the picture follows the sound: lag, hits, coupling (measured per frame)")
+    av.add_argument("video", type=Path)
+    av.add_argument("--out", type=Path, required=True)
+    av.add_argument("--crop", help="x,y,w,h of the picture area")
+    av.add_argument("--auto-crop", action="store_true", help="keep only the rows that move (videos inside a band of text)")
     st = sub.add_parser("soundtags", help="what each second of a (voice-free) track sounds like: PANNs AudioSet labels")
     st.add_argument("audio", type=Path, help="best on the no_vocals stem from `departments`")
     st.add_argument("--out", type=Path, required=True)
@@ -84,6 +89,15 @@ def main() -> int:
             print(f"no such file: {args.video}", file=sys.stderr)
             return 1
         print(dep.report(dep.analyze(args.video.resolve(), args.out, identify=not args.no_identify, sheets=not args.no_sheets)))
+        return 0
+
+    if args.cmd == "avsync":
+        from style_intel import av_sync
+        if not args.video.is_file():
+            print(f"no such file: {args.video}", file=sys.stderr)
+            return 1
+        crop = "auto" if args.auto_crop else (tuple(int(v) for v in args.crop.split(",")) if args.crop else None)
+        print(av_sync.summary(av_sync.analyze(args.video.resolve(), args.out, crop)))
         return 0
 
     if args.cmd in ("motion", "soundtags"):

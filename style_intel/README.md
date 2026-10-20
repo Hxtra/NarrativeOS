@@ -252,6 +252,37 @@ Tests: `tests/test_motion.py` (a synthetic film with a known cut, dissolve, cons
 jumps). Not covered: the steady-blend guard against fake dissolves, which is hard to synthesise convincingly; it was checked on real
 footage only.
 
+## AV sync: how tightly the picture follows the sound
+
+`python -m style_intel avsync VIDEO --out DIR [--auto-crop | --crop x,y,w,h]` measures per frame:
+- the sound: onsets, bass 20-150 Hz, highs 4-12 kHz, beats;
+- the picture: brightness, brightness rise (flashes), frame change.
+
+It then reports:
+- **lag and strength** per audio/picture pair, inside the sync window of -2..+3 frames. Wider offsets are noticed by viewers
+  (ITU-R BT.1359), so a match at 300 ms is not sync. Each result is tested against circularly shifted copies (a null that keeps
+  both rhythms);
+- **hits**: the share of strong onsets with a picture event within 2 frames, against random times;
+- **regions**: which of 24 picture cells follow which sound. A whole-frame average misses a small pulsing element inside a busy
+  picture.
+
+`--auto-crop` keeps only the rows that move (posts that put the video inside a band of text).
+
+**Validated** (`tests/test_av_sync.py`): flashes 1 frame after each click are found at +1 frame in the right corner, and random
+flashes are rejected. The first version reported random flashes as synced at a 333 ms lag; the sync window fixed that.
+
+**First real use** (Oct 20), two "made with Claude, music is code" clips the owner sent:
+
+| Clip | What follows the sound |
+|---|---|
+| Light painting, 128.6 BPM | The whole picture: flashes and brightness follow the hits and bass 1-2 frames later (33-67 ms); 17 of 24 regions |
+| TB-303 smoke, 100 BPM | Not the smoke mass, but particular elements: the lower half (rings, floor glow) on the bass at 0 ms, the sparkle on the hi-hats at +33 ms; 13 of 24 regions |
+
+Each instrument drives its own element: the sign of a shared note list, as the creator stated. From outside, a shared note list
+and offline audio analysis look the same; the tool measures that the sync exists and through what, not how it was built.
+PANNs heard no voice in either track (electronic music, drum machine, sampler); the "voice" a viewer hears is most likely the
+303's resonant filter sweep (INFERRED).
+
 ## Tests
 
 `tests/test_style_intel.py` builds synthetic videos with known answers:
