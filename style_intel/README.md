@@ -252,6 +252,10 @@ Tests: `tests/test_motion.py` (a synthetic film with a known cut, dissolve, cons
 jumps). Not covered: the steady-blend guard against fake dissolves, which is hard to synthesise convincingly; it was checked on real
 footage only.
 
+
+**Limit (MEASURED Oct 22, jimswormhole):** a shaped wipe that darkens the frame, here a moon "eclipse" disc sweeping across,
+is classified `dip_to_black`. 15 of 27 transitions in that film were this wipe. Check `dip_to_black` on frames before
+trusting it. A real fix would separate a uniform darkening from a moving dark edge.
 ## AV sync: how tightly the picture follows the sound
 
 `python -m style_intel avsync VIDEO --out DIR [--auto-crop | --crop x,y,w,h]` measures per frame:

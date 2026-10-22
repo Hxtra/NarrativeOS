@@ -76,6 +76,14 @@ This skill is the method.
   - a light bloom (the sun carries the cut);
   - a same-framing match cut (Syene's stick with no shadow, then Alexandria's stick with one: only the difference changes).
 
+## Patterns seen in references (OBSERVED and MEASURED; the owner decides what AVEN adopts)
+- **jimswormhole** (`NarrativeOS-Data/analysis/jimswormhole/FINDINGS.md`):
+  - a theme object (a 13-marker moon-dial) returns between every piece of evidence;
+  - a recurring branded transition (a moon eclipse wipe) carries the cuts into archival documents;
+  - one continuous star-map world the camera travels across, with a whoosh on each journey;
+  - eased push-ins (x1.20 over 4.4 s);
+  - a sound under 60 % of transitions (Fern: about 25 %).
+
 ## Look (owner-approved for AVEN, Oct 18)
 - Rich physical 3D, not flat vector ("lacks detail, like CorelDRAW 2016" was rejected).
 - Soft warm even light. Not hard shadows, heavy particles or darkness ("crime doc ... not our style" was rejected).

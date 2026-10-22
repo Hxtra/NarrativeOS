@@ -124,7 +124,7 @@ The two directions:
 Sync tolerance: keep the picture within about -2..+3 frames of its sound. Viewers notice offsets beyond about 45-125 ms
 (ITU-R BT.1359). Check a finished piece with `avsync` against its own audio.
 
-## 8. External tool evaluated: Earshot (Oct 22; NOT installed yet, pending the owner's OK)
+## 8. Earshot: the ears (installed Oct 22 at commit 925ebe5 = v0.3.0, with the owner's OK)
 https://github.com/Leonxlnx/earshot. Facts below are read from the repository, not from summaries of it.
 - **Status:** MIT, v0.3.0, "Alpha". Created Oct 15 2026 and pushed daily, so pin a commit. Python 3.10-3.12 declared (this PC runs
   3.13: use a 3.12 venv). Downloads CLAP (`laion/larger_clap_general`) and the AST AudioSet tagger from Hugging Face. CPU only.
@@ -150,6 +150,36 @@ https://github.com/Leonxlnx/earshot. Facts below are read from the repository, n
   - it does not do picture-element x instrument analysis (`av_layers.py` does);
   - it does not do the measured documentary mix levels (`sound_mix.py` does);
   - it does not do the story reasoning (`sound_design.py` does).
+
+**Install:**
+- `NarrativeOS-Data/tools/earshot`, with its own Python 3.12 venv and CPU torch.
+- Models in `tools/earshot/models_local/{clap,ast}`. The Hugging Face client stalled at 0 bytes, so the pinned files were
+  fetched with curl and their sha256 checked against the Hub.
+- NarrativeOS calls it through `scripts/earshot_bridge.py`: one process, so the models load once, plus a batch of jobs. It
+  never runs `llm_critique`, which uploads audio. Test: `tests/test_earshot_bridge.py`.
+
+**First tests on our own material (MEASURED Oct 22):**
+1. **18 Pixabay effects (`match` against what each should be, with alternatives; `realness`).**
+   - The two files rejected on PANNs' word ("pencil" = panting, "creak" = typing) were a STRONG pencil and a PLAUSIBLE creak
+     to Earshot. The "known answer" was itself one model's guess. When the models disagree, the owner's ear decides.
+   - Both models hear the creak used on "bend" as a squeak (forced choice: door-hinge squeak 95 %, wooden creak 5 %).
+   - Earshot calls the desert wind "likely code-synthesized" (p_real 0.14, closest to filtered white noise).
+   - Lesson: check every library sound with BOTH `match` (with alternatives) and `realness`, and send disagreements to the
+     owner.
+2. **Timeline against the 25 placements we know (Eratosthenes).**
+   - All 25 were heard. The distinct hits (3 booms, a hit, 3 ticks) were within 50 ms of the plan.
+   - In a busy mix (5.8 events/s), though, a random time also has an event within 1 frame 46 % of the time (77 % within
+     100 ms).
+   - So trust its sync numbers for clear hits, not for soft foley.
+3. **Critique against a profile built from 4 two-minute Fern/Veritasium excerpts.**
+   - The profile measured music in 92 % of 5 s windows, which agrees with our own 89-97 %.
+   - The film matched it on loudness, LRA, music presence, realness and gaps.
+   - Two candidate gaps to verify before adopting a rule: sound onsets under 33 % of our cuts against 61 % in the
+     references, and onset density 4.2/s against 5.1/s.
+   - INVALID checks: "first sound late" and "ending fades", because excerpts have no real start or end. Build a documentary
+     profile from WHOLE films.
+   - Earshot's bundled launch-film profile flagged the same ending. It describes SaaS launch films, not documentaries.
+   - Genre labels were wrong as documented: it called Ancient Lumina "funk music?".
 
 ## 9. Verify by measuring, then by the owner's ear
 - Measure the key moments in the final file's audio: the opening, every world-jump, the placed silence (room tone, not

@@ -47,6 +47,14 @@ So use a watcher to POINT at moments and to read meaning. Every claim about timi
 
 Write each claim down as MEASURED, OBSERVED (looked at frames), INFERRED or the watcher's PROPOSAL.
 
+**Use both sync views (MEASURED Oct 22, jimswormhole):**
+- `avsync` asks whether the PICTURE follows the music (brightness, regions, camera).
+- Earshot's `timeline --video` asks whether SOUNDS land on picture events.
+
+On that film, avsync found almost nothing: transitions darken the frame, and the picture ignores the beat. Earshot found a
+salient sound under 60 % of the transitions. The frames confirmed whooshes on the eclipse wipes and the camera journeys.
+Either tool alone would have told half the story.
+
 ## 3. The owner's feeling is the label
 The owner feels what lands, and no model does that reliably. When they mark a moment ("this hit me"), extract exactly
 that window:

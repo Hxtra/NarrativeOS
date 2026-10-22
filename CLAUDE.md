@@ -602,6 +602,11 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
     out). Borderline and low-confidence results are flagged. Test: `tests/test_av_layers.py`.
 - **Sound-design reasoning** (`scripts/sound_design.py`, Oct 20): sound, silence or nothing for every moment, with rule,
   evidence and confidence. It reproduced the hand-made Eratosthenes plan from a brief. Test: `tests/test_sound_design.py`.
+- **Earshot** (installed Oct 22, `NarrativeOS-Data/tools/earshot`, v0.3.0 at 925ebe5, MIT): the ears.
+  - Describe or match sounds by words, real versus synthesized, timeline/sync, profile/critique, a 201-sound code bank.
+  - Called through `scripts/earshot_bridge.py` (test: `tests/test_earshot_bridge.py`).
+  - First tests and their limits are in the sound-design skill §8. When two models disagree about a sound, the owner's ear
+    decides.
 - **Owner's order (Oct 20):**
   1. strengthen AV intelligence and validate it on several reference styles;
   2. the sound-design reasoning layer;
