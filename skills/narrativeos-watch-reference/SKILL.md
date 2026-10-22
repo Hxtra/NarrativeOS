@@ -74,3 +74,8 @@ measurements enter the repo (CLAUDE.md rights rules).
 For a tutorial, the watcher may take the whole video with its sound. Take the frames where the tutor shows values (1080p,
 via the owner's Chrome) and the transcript. Methods come from real editors, never invented (CLAUDE.md, "Learn from real
 editors").
+
+## 6. Record the study (so the system keeps it)
+`python scripts/catalog.py add-study ID --from NarrativeOS-Data/analysis/ID --title ... --kind ... [--findings FINDINGS.md]`
+then `build` and `check`. Only measurements and observations go into the repo; frames stay local.
+

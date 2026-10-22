@@ -1,0 +1,111 @@
+{
+ "schema_version": 1,
+ "id": "musk-profile-edit",
+ "title": "Elon Musk profile edit (76 s)",
+ "creator": null,
+ "source": {
+  "platform": "social",
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "profile_edit",
+ "picked_by_owner": false,
+ "used_for": [],
+ "format": {
+  "duration_s": 76.41,
+  "width": null,
+  "height": null,
+  "fps": 29.97,
+  "excerpt": null
+ },
+ "studied": "2026-10-22",
+ "tools": [
+  "style_intel.avsync"
+ ],
+ "measurements": {
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 76.41,
+   "strategy": "none",
+   "why": "no element follows the sound better than chance at the beat, phrase or energy scale",
+   "borderline": [],
+   "evidence": null,
+   "mapping": {},
+   "grid": {
+    "events": 96,
+    "beat_period_ms": 534,
+    "beat": {
+     "locked": false,
+     "R": 0.042,
+     "chance_95": 0.18,
+     "low_confidence": false,
+     "mean_offset_ms": 172,
+     "share_within_10pct": 0.14
+    },
+    "bar": {
+     "locked": false,
+     "R": 0.072,
+     "chance_95": 0.176,
+     "low_confidence": false,
+     "mean_offset_ms": -434,
+     "share_within_10pct": 0.23
+    }
+   },
+   "camera": {
+    "median_speed_px": 0.15,
+    "tracking_agreement": 1.0,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": NaN,
+     "chance_95": NaN,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": -0.074,
+     "chance_95": 0.18,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 65,
+     "beat_period_ms": 534,
+     "beat": {
+      "locked": false,
+      "R": 0.086,
+      "chance_95": 0.207,
+      "low_confidence": false,
+      "mean_offset_ms": 80,
+      "share_within_10pct": 0.22
+     },
+     "bar": {
+      "locked": false,
+      "R": 0.164,
+      "chance_95": 0.22,
+      "low_confidence": false,
+      "mean_offset_ms": 959,
+      "share_within_10pct": 0.22
+     }
+    }
+   },
+   "tempo_bpm": 119.8,
+   "layers": {
+    "kick": "91 hits",
+    "snare": "143 hits",
+    "hats": "145 hits",
+    "bass": "81 hits",
+    "melody": "106 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "kick and snare hit together (r=0.69): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "snare and hats hit together (r=0.76): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [
+  "MEASURED earlier (remake study): narration as loud as the music; several songs with gaps; 233 cuts follow the speech"
+ ],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/musk-profile-edit"
+}

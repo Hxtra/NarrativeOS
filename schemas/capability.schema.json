@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/capability.schema.json",
+  "title": "NarrativeOS capability (one function a person, an agent or the future app can call)",
+  "type": "object",
+  "required": ["id", "kind", "entry", "does", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,80}$"},
+    "kind": {"enum": ["command", "script", "module", "skill"]},
+    "entry": {"type": "string", "description": "Repo-relative path of the code or SKILL.md."},
+    "command": {"type": ["string", "null"], "description": "How to call it."},
+    "does": {"type": "string", "minLength": 1, "description": "One sentence: what it does (from the code's own docstring unless curated)."},
+    "area": {"type": ["string", "null"], "description": "analysis, sound, voice, picture, editing, render, pipeline, publishing, knowledge, ..."},
+    "inputs": {"type": ["string", "null"]},
+    "outputs": {"type": ["string", "null"]},
+    "status": {"enum": ["VALIDATED", "TESTED", "IMPLEMENTED", "DOCUMENTED", "BLOCKED"],
+               "description": "VALIDATED: tested AND checked on real material (say where in evidence); TESTED: a test file imports it; IMPLEMENTED: code without a test; DOCUMENTED: described only; BLOCKED: waiting on something outside the code."},
+    "tests": {"type": "array", "items": {"type": "string"}},
+    "evidence": {"type": ["string", "null"], "description": "For VALIDATED: what real material it was checked on."},
+    "docs": {"type": ["string", "null"]},
+    "curated": {"type": "boolean", "description": "true = a person checked the fields; the scanner never overwrites them."}
+  }
+}

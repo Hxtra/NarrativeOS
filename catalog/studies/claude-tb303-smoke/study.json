@@ -1,0 +1,141 @@
+{
+ "schema_version": 1,
+ "id": "claude-tb303-smoke",
+ "title": "TB-303 smoke (made with Claude, music is code)",
+ "creator": null,
+ "source": {
+  "platform": "social",
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "code_art",
+ "picked_by_owner": false,
+ "used_for": [],
+ "format": {
+  "duration_s": 16.17,
+  "width": 720,
+  "height": 1280,
+  "fps": 30.0,
+  "excerpt": null
+ },
+ "studied": "2026-10-20",
+ "tools": [
+  "style_intel.avsync"
+ ],
+ "measurements": {
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 16.17,
+   "strategy": "element_led_with_spill",
+   "why": "kick drives the cyan element (r=0.506); the rest of the image follows more weakly (r=0.377), as the element's light or glow spreads",
+   "borderline": [
+    "element vs rest 1.34 (element-led from 1.2; whole-image below)"
+   ],
+   "evidence": {
+    "strongest_layer": "kick",
+    "spread": 0.5,
+    "whole_image_corr": 0.47,
+    "element": "cyan element",
+    "element_corr": 0.506,
+    "rest_without_element_corr": 0.377,
+    "rest_follows": true,
+    "element_vs_rest": 1.34
+   },
+   "mapping": {
+    "kick": {
+     "element": "cyan element",
+     "lag_ms": 67,
+     "corr": 0.506,
+     "consistency": "intermittent",
+     "responded": 0.571,
+     "chance_95": 0.238,
+     "phrase_level": false
+    },
+    "melody": {
+     "element": "red element",
+     "lag_ms": 33,
+     "corr": 0.246,
+     "consistency": "consistent",
+     "responded": 0.6,
+     "chance_95": 0.367,
+     "phrase_level": true
+    }
+   },
+   "grid": {
+    "events": 13,
+    "beat_period_ms": 367,
+    "beat": {
+     "locked": false,
+     "R": 0.273,
+     "chance_95": 0.454,
+     "low_confidence": false,
+     "mean_offset_ms": 34,
+     "share_within_10pct": 0.5
+    },
+    "bar": {
+     "locked": false,
+     "R": 0.207,
+     "chance_95": 0.484,
+     "low_confidence": false,
+     "mean_offset_ms": 361,
+     "share_within_10pct": 0.43
+    }
+   },
+   "camera": {
+    "median_speed_px": 1.22,
+    "tracking_agreement": 0.7,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": -0.545,
+     "chance_95": 0.641,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": -0.645,
+     "chance_95": 0.535,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 10,
+     "beat_period_ms": 367,
+     "beat": {
+      "locked": true,
+      "R": 0.626,
+      "chance_95": 0.52,
+      "low_confidence": true,
+      "mean_offset_ms": 101,
+      "share_within_10pct": 0.4
+     },
+     "bar": {
+      "locked": true,
+      "R": 0.986,
+      "chance_95": 0.586,
+      "low_confidence": true,
+      "mean_offset_ms": -616,
+      "share_within_10pct": 0.0
+     }
+    }
+   },
+   "tempo_bpm": 100.0,
+   "layers": {
+    "kick": "21 hits",
+    "snare": "35 hits",
+    "hats": "43 hits",
+    "bass": "31 hits",
+    "melody": "30 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "kick and snare hit together (r=0.6): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "snare and hats hit together (r=0.78): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [
+  "INFERRED: the creator states the animation reads the music's note list; a finished video cannot prove that"
+ ],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/claude-tb303-smoke"
+}

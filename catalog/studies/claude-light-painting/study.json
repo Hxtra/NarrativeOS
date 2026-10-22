@@ -1,0 +1,143 @@
+{
+ "schema_version": 1,
+ "id": "claude-light-painting",
+ "title": "Evolution of humans in light painting (made with Claude)",
+ "creator": null,
+ "source": {
+  "platform": "social",
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "code_art",
+ "picked_by_owner": false,
+ "used_for": [],
+ "format": {
+  "duration_s": 15.97,
+  "width": 720,
+  "height": 1280,
+  "fps": 30.0,
+  "excerpt": null
+ },
+ "studied": "2026-10-20",
+ "tools": [
+  "style_intel.avsync"
+ ],
+ "measurements": {
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 15.97,
+   "strategy": "regional",
+   "why": "kick is followed in one part of the picture (around region r4c1; 46% of regions), not by a colour element or the whole image",
+   "borderline": [
+    "spread 0.46 (whole image from 0.5)"
+   ],
+   "evidence": {
+    "strongest_layer": "kick",
+    "spread": 0.46,
+    "whole_image_corr": 0.222
+   },
+   "mapping": {
+    "hats": {
+     "element": "blue element",
+     "lag_ms": -67,
+     "corr": 0.24,
+     "consistency": "intermittent",
+     "responded": 0.216,
+     "chance_95": 0.162,
+     "phrase_level": true
+    },
+    "snare": {
+     "element": "blue element",
+     "lag_ms": -67,
+     "corr": 0.208,
+     "consistency": "intermittent",
+     "responded": 0.159,
+     "chance_95": 0.14,
+     "phrase_level": true
+    },
+    "kick": {
+     "element": "region r4c1",
+     "lag_ms": 67,
+     "corr": 0.289,
+     "consistency": "intermittent",
+     "responded": 0.538,
+     "chance_95": 0.346,
+     "phrase_level": false
+    }
+   },
+   "grid": {
+    "events": 9,
+    "beat_period_ms": 700,
+    "beat": {
+     "locked": true,
+     "R": 0.573,
+     "chance_95": 0.551,
+     "low_confidence": true,
+     "mean_offset_ms": 216,
+     "share_within_10pct": 0.29
+    },
+    "bar": {
+     "locked": false,
+     "R": 0.644,
+     "chance_95": 0.651,
+     "low_confidence": true,
+     "mean_offset_ms": -1034,
+     "share_within_10pct": 0.2
+    }
+   },
+   "camera": {
+    "median_speed_px": 1.69,
+    "tracking_agreement": 0.91,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": NaN,
+     "chance_95": NaN,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": -0.384,
+     "chance_95": 0.373,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 8,
+     "beat_period_ms": 700,
+     "beat": {
+      "locked": true,
+      "R": 0.736,
+      "chance_95": 0.613,
+      "low_confidence": true,
+      "mean_offset_ms": 347,
+      "share_within_10pct": 0.0
+     },
+     "bar": {
+      "locked": true,
+      "R": 0.994,
+      "chance_95": 0.697,
+      "low_confidence": true,
+      "mean_offset_ms": -1017,
+      "share_within_10pct": 0.0
+     }
+    }
+   },
+   "tempo_bpm": 128.6,
+   "layers": {
+    "kick": "26 hits",
+    "snare": "44 hits",
+    "hats": "37 hits",
+    "bass": "20 hits",
+    "melody": "29 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "kick and snare hit together (r=0.52): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "snare and hats hit together (r=0.78): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/claude-light-painting"
+}

@@ -1,0 +1,136 @@
+{
+ "schema_version": 1,
+ "id": "capcut-documentary-cinema",
+ "title": "Documentary Cinema (CapCut template)",
+ "creator": "richjon5",
+ "source": {
+  "platform": "tiktok",
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "template_edit",
+ "picked_by_owner": false,
+ "used_for": [],
+ "format": {
+  "duration_s": 52.1,
+  "width": null,
+  "height": null,
+  "fps": 30.0,
+  "excerpt": null
+ },
+ "studied": "2026-10-22",
+ "tools": [
+  "style_intel.avsync"
+ ],
+ "measurements": {
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 52.1,
+   "strategy": "whole_image",
+   "why": "the image as a whole follows melody (r=0.138), spread over 96% of the picture",
+   "borderline": [],
+   "evidence": {
+    "strongest_layer": "melody",
+    "spread": 0.96,
+    "whole_image_corr": 0.138,
+    "element": "cyan element",
+    "element_corr": 0.143,
+    "rest_without_element_corr": 0.137,
+    "rest_follows": true,
+    "element_vs_rest": 1.05
+   },
+   "mapping": {
+    "melody": {
+     "element": "orange element",
+     "lag_ms": 0,
+     "corr": 0.118,
+     "consistency": "intermittent",
+     "responded": 0.173,
+     "chance_95": 0.111,
+     "phrase_level": true
+    },
+    "hats": {
+     "element": "region r5c1",
+     "lag_ms": 0,
+     "corr": 0.113,
+     "consistency": "intermittent",
+     "responded": 0.158,
+     "chance_95": 0.129,
+     "phrase_level": true
+    }
+   },
+   "grid": {
+    "events": 42,
+    "beat_period_ms": 500,
+    "beat": {
+     "locked": false,
+     "R": 0.093,
+     "chance_95": 0.258,
+     "low_confidence": false,
+     "mean_offset_ms": -25,
+     "share_within_10pct": 0.3
+    },
+    "bar": {
+     "locked": false,
+     "R": 0.233,
+     "chance_95": 0.268,
+     "low_confidence": false,
+     "mean_offset_ms": 26,
+     "share_within_10pct": 0.3
+    }
+   },
+   "camera": {
+    "median_speed_px": 0.22,
+    "tracking_agreement": 1.0,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": 0.052,
+     "chance_95": 0.204,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": 0.045,
+     "chance_95": 0.233,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 34,
+     "beat_period_ms": 500,
+     "beat": {
+      "locked": false,
+      "R": 0.122,
+      "chance_95": 0.301,
+      "low_confidence": false,
+      "mean_offset_ms": -9,
+      "share_within_10pct": 0.18
+     },
+     "bar": {
+      "locked": true,
+      "R": 0.371,
+      "chance_95": 0.28,
+      "low_confidence": false,
+      "mean_offset_ms": -25,
+      "share_within_10pct": 0.36
+     }
+    }
+   },
+   "tempo_bpm": 120.0,
+   "layers": {
+    "kick": "76 hits",
+    "snare": "79 hits",
+    "hats": "101 hits",
+    "bass": "83 hits",
+    "melody": "81 hits",
+    "vocals": "60 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/capcut-documentary-cinema"
+}

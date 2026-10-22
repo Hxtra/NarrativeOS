@@ -20,6 +20,19 @@ These skills live here:
 | `skills/narrativeos-sound-design/` | `narrativeos-sound-design` | Music by the owner's ear, levels and silences measured from real mixes, effects checked and rights-recorded, `scripts/sound_mix.py`. |
 | `skills/narrativeos-explainer-film/` | `narrativeos-explainer-film` | A faceless explainer film from a sourced script: code-rendered 3D and ink-on-paper scenes, every shot on a word. |
 
+**The catalog (Oct 23): what NarrativeOS knows and can do, as JSON for the future app.**
+- `catalog/capabilities.json` lists every command, script, module and skill: what it does (from its own docstring), area,
+  status (VALIDATED / TESTED / IMPLEMENTED / DOCUMENTED / BLOCKED) and tests. It is built by `python scripts/catalog.py scan`.
+  Hand-checked entries (`curated: true`, with evidence) are never overwritten.
+- `catalog/studies/<id>/study.json` holds one studied reference: measurements by department, observations and labels.
+  `index.json` and `README.md` are generated.
+- Schemas: `schemas/study.schema.json`, `schemas/capability.schema.json`.
+- Commands: `python scripts/catalog.py list|show|scan|add-study|build|check`. `check` enforces the schemas and the rights rule:
+  no media files and no local paths in the catalog. The full local analysis (frames, stems) stays in
+  NarrativeOS-Data/analysis/<id>.
+- **Rule:** every new tool gets a docstring and appears after `scan`. Every studied reference is added with `add-study`. Run
+  `check` before committing. Test: `tests/test_catalog.py`.
+
 The templates skill is **not yet wired into the controller pipeline.**
 `scripts/build_graphics.py` (the GRAPHICS stage) is still a stub that falls
 back to deterministic text overlays. Connecting the template registry to that

@@ -1,0 +1,155 @@
+{
+ "schema_version": 1,
+ "id": "fern-indian-genius",
+ "title": "The Indian Genius Nobody Understands",
+ "creator": "Fern x Veritasium",
+ "source": {
+  "platform": "youtube",
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "story_documentary",
+ "picked_by_owner": true,
+ "used_for": [
+  "AVEN"
+ ],
+ "format": {
+  "duration_s": 1963.48,
+  "width": null,
+  "height": null,
+  "fps": 25.0,
+  "excerpt": "sync: 0-70 s; motion: whole film"
+ },
+ "studied": "2026-10-20",
+ "tools": [
+  "style_intel.avsync",
+  "style_intel.motion"
+ ],
+ "measurements": {
+  "picture": {
+   "tool": "style_intel.motion",
+   "duration_s": 1963.48,
+   "transitions_per_min": 12.3,
+   "transitions": {
+    "hard_cut": 373,
+    "match_cut": 15,
+    "dissolve": 12,
+    "cut_on_zoom": 1,
+    "cut_on_pan": 1,
+    "wipe": 1
+   },
+   "gradual_median_frames": {
+    "dissolve": 10.0,
+    "wipe": 13.0
+   },
+   "camera": {
+    "push_in": 195,
+    "pan": 44,
+    "pull_out": 76,
+    "locked": 98,
+    "too_short": 4
+   },
+   "easing": {
+    "linear": 246,
+    "ease_out": 27,
+    "ease_out_strong": 6,
+    "ease_in_out": 25,
+    "ease_in": 11
+   },
+   "drawing_rate": {
+    "ones": 28,
+    "held 10 frames": 1,
+    "held 20 frames": 2,
+    "threes": 1,
+    "twos": 3
+   },
+   "push_zoom_median": 1.058,
+   "move_seconds_median": 3.8,
+   "transitions_total": 403
+  },
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 70.0,
+   "strategy": "energy_only",
+   "why": "brightness rides the music's loudness over seconds, but no element answers individual hits",
+   "borderline": [],
+   "evidence": null,
+   "mapping": {},
+   "grid": {
+    "events": 32,
+    "beat_period_ms": 440,
+    "beat": {
+     "locked": false,
+     "R": 0.225,
+     "chance_95": 0.3,
+     "low_confidence": false,
+     "mean_offset_ms": 107,
+     "share_within_10pct": 0.28
+    },
+    "bar": {
+     "locked": true,
+     "R": 0.339,
+     "chance_95": 0.307,
+     "low_confidence": true,
+     "mean_offset_ms": -373,
+     "share_within_10pct": 0.25
+    }
+   },
+   "camera": {
+    "median_speed_px": 0.22,
+    "tracking_agreement": 1.0,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": 0.029,
+     "chance_95": 0.124,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": 0.037,
+     "chance_95": 0.074,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 29,
+     "beat_period_ms": 440,
+     "beat": {
+      "locked": false,
+      "R": 0.276,
+      "chance_95": 0.317,
+      "low_confidence": false,
+      "mean_offset_ms": 185,
+      "share_within_10pct": 0.14
+     },
+     "bar": {
+      "locked": false,
+      "R": 0.259,
+      "chance_95": 0.324,
+      "low_confidence": false,
+      "mean_offset_ms": -257,
+      "share_within_10pct": 0.21
+     }
+    }
+   },
+   "tempo_bpm": 125.0,
+   "layers": {
+    "kick": "128 hits",
+    "snare": "97 hits",
+    "hats": "64 hits",
+    "bass": "118 hits",
+    "melody": "111 hits",
+    "vocals": "141 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "snare and hats hit together (r=0.56): an element following one also follows the other; the mapping names the stronger, not proven the cause",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [
+  "OBSERVED: faceless storytelling; a mystery-letter hook, then the source shown as an object before the story"
+ ],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/fern"
+}

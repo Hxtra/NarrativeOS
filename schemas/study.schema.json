@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/study.schema.json",
+  "title": "NarrativeOS reference study (what was measured in one reference video)",
+  "description": "Measurements and observations only. The reference's footage, frames, words and transcript never enter the repo (CLAUDE.md rights rules); they stay in NarrativeOS-Data/analysis/<id>/ on the owner's machine.",
+  "type": "object",
+  "required": ["schema_version", "id", "title", "kind", "format", "studied", "tools", "measurements", "labels"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$"},
+    "title": {"type": "string", "minLength": 1},
+    "creator": {"type": ["string", "null"], "description": "Channel or author, as credited on the source."},
+    "source": {"type": "object", "properties": {
+      "platform": {"type": ["string", "null"]},
+      "url": {"type": ["string", "null"]},
+      "owner_supplied_file": {"type": "boolean", "description": "The owner gave a local file; the media itself is not kept in the repo."}
+    }, "additionalProperties": false},
+    "kind": {"type": "string", "description": "story_documentary, science_documentary, documentary_short, code_art, profile_edit, template_edit, own_film, ..."},
+    "picked_by_owner": {"type": "boolean"},
+    "used_for": {"type": "array", "items": {"type": "string"}, "description": "Channels or projects this study informs, e.g. AVEN."},
+    "format": {"type": "object", "required": ["duration_s"], "properties": {
+      "duration_s": {"type": "number", "minimum": 0}, "width": {"type": ["integer", "null"]}, "height": {"type": ["integer", "null"]},
+      "fps": {"type": ["number", "null"]}, "excerpt": {"type": ["string", "null"], "description": "start-end seconds when only part was measured"}
+    }, "additionalProperties": false},
+    "studied": {"type": "string", "description": "ISO date of the analysis"},
+    "tools": {"type": "array", "items": {"type": "string"}, "description": "Capability ids that produced the measurements (catalog/capabilities.json)."},
+    "measurements": {"type": "object", "description": "MEASURED numbers by department (picture, sync, sound, ...), each from a named tool."},
+    "observations": {"type": "array", "items": {"type": "string"}, "description": "OBSERVED (looked at frames) or INFERRED statements, each labelled in its text."},
+    "labels": {"type": "string", "description": "How to read the evidence labels (MEASURED / OBSERVED / INFERRED)."},
+    "findings_doc": {"type": ["string", "null"], "description": "Repo-relative path of the written findings."},
+    "local_data": {"type": ["string", "null"], "description": "Where the full local analysis (with frames) lives, relative to NARRATIVEOS_HOME."}
+  }
+}

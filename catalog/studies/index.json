@@ -1,0 +1,122 @@
+[
+ {
+  "id": "aven-eratosthenes",
+  "title": "The Man Who Measured the Earth With a Shadow (AVEN, our own film)",
+  "creator": "AVEN",
+  "kind": "own_film",
+  "duration_s": 60.0,
+  "studied": "2026-10-22",
+  "sync_strategy": "regional",
+  "transitions_per_min": null,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": [
+   "AVEN"
+  ]
+ },
+ {
+  "id": "capcut-documentary-cinema",
+  "title": "Documentary Cinema (CapCut template)",
+  "creator": "richjon5",
+  "kind": "template_edit",
+  "duration_s": 52.1,
+  "studied": "2026-10-22",
+  "sync_strategy": "whole_image",
+  "transitions_per_min": null,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": []
+ },
+ {
+  "id": "claude-light-painting",
+  "title": "Evolution of humans in light painting (made with Claude)",
+  "creator": null,
+  "kind": "code_art",
+  "duration_s": 15.97,
+  "studied": "2026-10-20",
+  "sync_strategy": "regional",
+  "transitions_per_min": null,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": []
+ },
+ {
+  "id": "claude-tb303-smoke",
+  "title": "TB-303 smoke (made with Claude, music is code)",
+  "creator": null,
+  "kind": "code_art",
+  "duration_s": 16.17,
+  "studied": "2026-10-20",
+  "sync_strategy": "element_led_with_spill",
+  "transitions_per_min": null,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": []
+ },
+ {
+  "id": "fern-indian-genius",
+  "title": "The Indian Genius Nobody Understands",
+  "creator": "Fern x Veritasium",
+  "kind": "story_documentary",
+  "duration_s": 1963.48,
+  "studied": "2026-10-20",
+  "sync_strategy": "energy_only",
+  "transitions_per_min": 12.3,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": [
+   "AVEN"
+  ]
+ },
+ {
+  "id": "jimswormhole",
+  "title": "Why does your year have twelve months when the moon gives you thirteen?",
+  "creator": "jimswormhole",
+  "kind": "documentary_short",
+  "duration_s": 171.494,
+  "studied": "2026-10-22",
+  "sync_strategy": "regional",
+  "transitions_per_min": 9.4,
+  "accent_on_transitions": 0.207,
+  "accent_chance": 0.084,
+  "salient_hit_on_transitions": 0.6,
+  "used_for": [
+   "AVEN"
+  ]
+ },
+ {
+  "id": "musk-profile-edit",
+  "title": "Elon Musk profile edit (76 s)",
+  "creator": null,
+  "kind": "profile_edit",
+  "duration_s": 76.41,
+  "studied": "2026-10-22",
+  "sync_strategy": "none",
+  "transitions_per_min": null,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": []
+ },
+ {
+  "id": "veritasium-internet",
+  "title": "The Absurd Engineering Behind the Internet",
+  "creator": "Veritasium",
+  "kind": "science_documentary",
+  "duration_s": 2071.9,
+  "studied": "2026-10-20",
+  "sync_strategy": "regional",
+  "transitions_per_min": 13.8,
+  "accent_on_transitions": null,
+  "accent_chance": null,
+  "salient_hit_on_transitions": null,
+  "used_for": [
+   "AVEN"
+  ]
+ }
+]

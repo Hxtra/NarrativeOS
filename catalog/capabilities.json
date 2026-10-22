@@ -1,0 +1,1276 @@
+[
+ {
+  "id": "script.acquire_assets",
+  "kind": "script",
+  "entry": "scripts/acquire_assets.py",
+  "command": "python scripts/acquire_assets.py --help",
+  "does": "Ingest explicitly supplied local media into the project with provenance and hashes.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.align_audio",
+  "kind": "script",
+  "entry": "scripts/align_audio.py",
+  "command": "python scripts/align_audio.py --help",
+  "does": "Align narration with faster-whisper when installed; never fabricate timings.",
+  "area": "sound",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.align_captions",
+  "kind": "script",
+  "entry": "scripts/align_captions.py",
+  "command": "python scripts/align_captions.py --help",
+  "does": "Create captions from explicit timings; audio alignment adapters can be added later.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.audio_mix",
+  "kind": "script",
+  "entry": "scripts/audio_mix.py",
+  "command": "python scripts/audio_mix.py --help",
+  "does": "Mix real narration and optional music with FFmpeg; no synthetic audio is created.",
+  "area": "sound",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.build_beat_map",
+  "kind": "script",
+  "entry": "scripts/build_beat_map.py",
+  "command": "python scripts/build_beat_map.py --help",
+  "does": "Build explicit narration alignment and beat timing from script records.",
+  "area": "sound",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.build_claims",
+  "kind": "script",
+  "entry": "scripts/build_claims.py",
+  "command": "python scripts/build_claims.py --help",
+  "does": "Create review-required claim records from ingested source excerpts.",
+  "area": "knowledge",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.build_editorial_slice",
+  "kind": "script",
+  "entry": "scripts/build_editorial_slice.py",
+  "command": "python scripts/build_editorial_slice.py --help",
+  "does": "Build the smallest real NarrativeOS editorial vertical slice from a JSON brief.",
+  "area": "editing",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.build_graphics",
+  "kind": "script",
+  "entry": "scripts/build_graphics.py",
+  "command": "python scripts/build_graphics.py --help",
+  "does": "Register explicit graphics/icon/thumbnail inputs; never invent source provenance.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.build_provenance",
+  "kind": "script",
+  "entry": "scripts/build_provenance.py",
+  "command": "python scripts/build_provenance.py --help",
+  "does": "Collect hashes and lineage for project artifacts into a release manifest.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.build_shotspec",
+  "kind": "script",
+  "entry": "scripts/build_shotspec.py",
+  "command": "python scripts/build_shotspec.py --help",
+  "does": "Build ShotSpecs from beat_map.json or script.json, never from timeline.json.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.build_timeline",
+  "kind": "script",
+  "entry": "scripts/build_timeline.py",
+  "command": "python scripts/build_timeline.py --help",
+  "does": "Assemble a canonical timeline from approved assets and ShotSpecs.",
+  "area": "render",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_director_cli.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.build_variants",
+  "kind": "script",
+  "entry": "scripts/build_variants.py",
+  "command": "python scripts/build_variants.py --help",
+  "does": "Create deterministic A/B timeline policy variants without claiming preference wins.",
+  "area": "editing",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.catalog",
+  "kind": "script",
+  "entry": "scripts/catalog.py",
+  "command": "python scripts/catalog.py --help",
+  "does": "The NarrativeOS catalog: what the system knows (studied references) and what it can do (capabilities), as JSON an app, a CLI or an agent can list. Every record follows a schema in schemas/.",
+  "area": "knowledge",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_catalog.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.channel",
+  "kind": "script",
+  "entry": "scripts/channel.py",
+  "command": "python scripts/channel.py --help",
+  "does": "Channel profiles: the persistent identity a channel's videos are made under.",
+  "area": "publishing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.compile_timeline",
+  "kind": "script",
+  "entry": "scripts/compile_timeline.py",
+  "command": "python scripts/compile_timeline.py --help",
+  "does": "Multi-track timeline compiler: one validated timeline in, one FFmpeg render out. No stitching.",
+  "area": "render",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_compile_timeline.py",
+   "tests/test_final_cut.py",
+   "tests/test_frame_awareness.py",
+   "tests/test_signature.py",
+   "tests/test_talking_head.py",
+   "tests/test_typographic_lockup.py",
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.contact_sheet",
+  "kind": "script",
+  "entry": "scripts/contact_sheet.py",
+  "command": "python scripts/contact_sheet.py --help",
+  "does": "Contact sheet: tile rendered stills (t_<seconds>.jpg) or frames of a video into one labelled image, so a whole film can be looked at in one go. A template or a film is not done until its frames have been looked at (CLAUDE.md, evidence over assertion).",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.continuity_bible",
+  "kind": "script",
+  "entry": "scripts/continuity_bible.py",
+  "command": "python scripts/continuity_bible.py --help",
+  "does": "Create editable continuity records; unresolved facts remain review-required.",
+  "area": "knowledge",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.controller",
+  "kind": "script",
+  "entry": "scripts/controller.py",
+  "command": "python scripts/controller.py --help",
+  "does": "Evidence-gated video workflow controller.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py",
+   "tests/test_controller.py",
+   "tests/test_director_safety.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.cost_router",
+  "kind": "script",
+  "entry": "scripts/cost_router.py",
+  "command": "python scripts/cost_router.py --help",
+  "does": "Record cost/quality routing decisions before expensive provider operations.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.creative_memory",
+  "kind": "script",
+  "entry": "scripts/creative_memory.py",
+  "command": "python scripts/creative_memory.py --help",
+  "does": "Creative memory: what a human accepted, rejected or corrected, in context and with the reason.",
+  "area": "knowledge",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.delivery_review",
+  "kind": "script",
+  "entry": "scripts/delivery_review.py",
+  "command": "python scripts/delivery_review.py --help",
+  "does": "Create a release decision from real artifact presence and QA statuses.",
+  "area": "publishing",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.detect_contradictions",
+  "kind": "script",
+  "entry": "scripts/detect_contradictions.py",
+  "command": "python scripts/detect_contradictions.py --help",
+  "does": "Detect exact-key conflicts in supplied source claim records; no silent source selection.",
+  "area": "knowledge",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.director_brain",
+  "kind": "script",
+  "entry": "scripts/director_brain.py",
+  "command": "python scripts/director_brain.py --help",
+  "does": "Derive transparent editorial strategy artifacts from a brief and channel profile.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py",
+   "tests/test_director_actions.py",
+   "tests/test_director_safety.py",
+   "tests/test_editing_intelligence.py",
+   "tests/test_perception_rhythm.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.director_pipeline",
+  "kind": "script",
+  "entry": "scripts/director_pipeline.py",
+  "command": "python scripts/director_pipeline.py --help",
+  "does": "Opt-in local measurements -> Director -> immutable review proposal bundle.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_director_cli.py",
+   "tests/test_integration_flows.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.earshot_bridge",
+  "kind": "script",
+  "entry": "scripts/earshot_bridge.py",
+  "command": "python scripts/earshot_bridge.py --help",
+  "does": "Bridge to Earshot (\"ears for coding agents\", MIT, https://github.com/Leonxlnx/earshot): NarrativeOS runs a batch of listening jobs in Earshot's own Python 3.12 environment, in ONE process, so the CLAP and AudioSet models load once (each CLI call loads them again, 20-40 s).",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_earshot_bridge.py"
+  ],
+  "curated": true,
+  "area": "sound",
+  "inputs": "a jobs JSON (describe, match, realness, timeline, critique, ...)",
+  "outputs": "results JSON",
+  "evidence": "3 tests on our own sounds and film, and the jimswormhole study (skills/narrativeos-sound-design/SKILL.md section 8).",
+  "docs": null
+ },
+ {
+  "id": "script.edit_patch",
+  "kind": "module",
+  "entry": "scripts/edit_patch.py",
+  "command": null,
+  "does": "Typed edit patches against the multi-track timeline (IR 3.0): the engine behind \"change this part\".",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_edit_patch.py",
+   "tests/test_talking_head.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.editing_config",
+  "kind": "module",
+  "entry": "scripts/editing_config.py",
+  "command": null,
+  "does": "Every editing tolerance in one place, validated. Styles override any subset; nothing else hard-codes these.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_director_actions.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.editorial_analysis",
+  "kind": "script",
+  "entry": "scripts/editorial_analysis.py",
+  "command": "python scripts/editorial_analysis.py --help",
+  "does": "Analyze timeline restraint and diversity without inventing quality scores.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.editorial_repair",
+  "kind": "script",
+  "entry": "scripts/editorial_repair.py",
+  "command": "python scripts/editorial_repair.py --help",
+  "does": "Convert editorial analysis findings into scoped revision actions.",
+  "area": "editing",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.editorial_style",
+  "kind": "module",
+  "entry": "scripts/editorial_style.py",
+  "command": null,
+  "does": "One explicit editorial intent for every modality; measured DNA is not mood.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editing_intelligence.py",
+   "tests/test_generation_adapter.py",
+   "tests/test_integration_flows.py",
+   "tests/test_style_generation.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.event_graph",
+  "kind": "script",
+  "entry": "scripts/event_graph.py",
+  "command": "python scripts/event_graph.py --help",
+  "does": "Compile NarrativeOS Event Graph v0 events into a renderer-neutral timeline.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_director_actions.py",
+   "tests/test_director_safety.py",
+   "tests/test_editing_intelligence.py",
+   "tests/test_editorial_core.py",
+   "tests/test_perception_rhythm.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.evidence_links",
+  "kind": "script",
+  "entry": "scripts/evidence_links.py",
+  "command": "python scripts/evidence_links.py --help",
+  "does": "Build explicit claim→source→asset→shot links and explainability records.",
+  "area": "knowledge",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py",
+   "tests/test_integration_flows.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.extract_frames",
+  "kind": "script",
+  "entry": "scripts/extract_frames.py",
+  "command": "python scripts/extract_frames.py --help",
+  "does": "Extract timestamped evidence frames from a real media file.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.frame_awareness",
+  "kind": "script",
+  "entry": "scripts/frame_awareness.py",
+  "command": "python scripts/frame_awareness.py --help",
+  "does": "Frame awareness: where the subject is, where their hands are, which parts of the frame are empty, and a cut-out of the person, all measured from the pictures with local MediaPipe models (scripts/vision_models.py).",
+  "area": "picture",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_frame_awareness.py",
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.generate_script",
+  "kind": "script",
+  "entry": "scripts/generate_script.py",
+  "command": "python scripts/generate_script.py --help",
+  "does": "Create a transparent planning package from a brief; no fabricated web research.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.generation",
+  "kind": "module",
+  "entry": "scripts/generation.py",
+  "command": null,
+  "does": "Provider-independent generative media jobs with explicit cost and rights gates.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editing_intelligence.py",
+   "tests/test_generation_adapter.py",
+   "tests/test_integration_flows.py",
+   "tests/test_style_generation.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.generation_cli",
+  "kind": "script",
+  "entry": "scripts/generation_cli.py",
+  "command": "python scripts/generation_cli.py --help",
+  "does": "Drive generation jobs through their state machine, one explicit step at a time.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_integration_flows.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.grade_match",
+  "kind": "script",
+  "entry": "scripts/grade_match.py",
+  "command": "python scripts/grade_match.py --help",
+  "does": "Grade every shot toward a reference's measured colour, so a cut stops jumping between looks.",
+  "area": "picture",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.ingest_sources",
+  "kind": "script",
+  "entry": "scripts/ingest_sources.py",
+  "command": "python scripts/ingest_sources.py --help",
+  "does": "Ingest explicitly supplied local research files into the persistent workspace.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.media_semantics",
+  "kind": "module",
+  "entry": "scripts/media_semantics.py",
+  "command": null,
+  "does": "What a piece of media is, and whether it can stand as evidence for a factual claim.",
+  "area": "knowledge",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.model_provider",
+  "kind": "module",
+  "entry": "scripts/model_provider.py",
+  "command": null,
+  "does": "Provider-agnostic access to a reasoning model for the Director.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.narration_plan",
+  "kind": "script",
+  "entry": "scripts/narration_plan.py",
+  "command": "python scripts/narration_plan.py --help",
+  "does": "Validate a segment-level NarrativeOS narration plan.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editorial_core.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.perception",
+  "kind": "module",
+  "entry": "scripts/perception.py",
+  "command": null,
+  "does": "Adapt measured inputs to time-local evidence; never infer human emotion.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editing_intelligence.py",
+   "tests/test_perception_rhythm.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.publish_package",
+  "kind": "script",
+  "entry": "scripts/publish_package.py",
+  "command": "python scripts/publish_package.py --help",
+  "does": "The publish package: title, description, tags, thumbnail and disclosures, checked against the platform's real limits and the channel's own conventions, then approved by a human, bound to its hash.",
+  "area": "publishing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.publish_youtube",
+  "kind": "script",
+  "entry": "scripts/publish_youtube.py",
+  "command": "python scripts/publish_youtube.py --help",
+  "does": "YouTube publish adapter: plans the upload exactly, refuses until every gate is met, and does not upload.",
+  "area": "publishing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.quote",
+  "kind": "script",
+  "entry": "scripts/quote.py",
+  "command": "python scripts/quote.py --help",
+  "does": "Create a transparent, non-billable quote manifest from local project inputs.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.remotion_bridge",
+  "kind": "module",
+  "entry": "scripts/remotion_bridge.py",
+  "command": null,
+  "does": "Bridge from the multi-track compiler to the Remotion template project.",
+  "area": "render",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_frame_awareness.py",
+   "tests/test_signature.py",
+   "tests/test_talking_head.py",
+   "tests/test_typographic_lockup.py",
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.render_captions",
+  "kind": "script",
+  "entry": "scripts/render_captions.py",
+  "command": "python scripts/render_captions.py --help",
+  "does": "Burn deterministic ASS captions onto a rendered video.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.render_ffmpeg",
+  "kind": "script",
+  "entry": "scripts/render_ffmpeg.py",
+  "command": "python scripts/render_ffmpeg.py --help",
+  "does": "Render an approved shot timeline. Kept for its CLI; the work is done by compile_timeline.py.",
+  "area": "render",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_compile_timeline.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.repetition_guard",
+  "kind": "script",
+  "entry": "scripts/repetition_guard.py",
+  "command": "python scripts/repetition_guard.py --help",
+  "does": "Repetition guard: how much a new video repeats the channel's earlier ones, measured before publishing.",
+  "area": "publishing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_channel_ops.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.research_workspace",
+  "kind": "script",
+  "entry": "scripts/research_workspace.py",
+  "command": "python scripts/research_workspace.py --help",
+  "does": "Initialize a reusable research workspace; providers remain replaceable adapters.",
+  "area": "knowledge",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.retime_timeline",
+  "kind": "script",
+  "entry": "scripts/retime_timeline.py",
+  "command": "python scripts/retime_timeline.py --help",
+  "does": "Apply a duration change and propagate it through a Timeline IR artifact.",
+  "area": "render",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editorial_core.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.review_gates",
+  "kind": "script",
+  "entry": "scripts/review_gates.py",
+  "command": "python scripts/review_gates.py --help",
+  "does": "Create explicit human-review gate artifacts; never silently approve content.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.run_qa",
+  "kind": "script",
+  "entry": "scripts/run_qa.py",
+  "command": "python scripts/run_qa.py --help",
+  "does": "Run objective FFprobe QA and create an explicit editorial-review record.",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.sfx_check",
+  "kind": "script",
+  "entry": "scripts/sfx_check.py",
+  "command": "python scripts/sfx_check.py --help",
+  "does": "Check downloaded sound effects before they go into a film: measure each file and let a sound-recognition model (PANNs Cnn14, AudioSet labels; style_intel/sound_tags.py) say what it hears, because the machine cannot listen and library titles can be wrong.",
+  "area": "sound",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.signature",
+  "kind": "script",
+  "entry": "scripts/signature.py",
+  "command": "python scripts/signature.py --help",
+  "does": "Signatures: a saved style a reference edit taught, with the moves it uses, when each fires, the pipeline it drives and the rules notes have taught it. Stored outside the repo (~/NarrativeOS-Signatures/<id>/, or NARRATIVEOS_SIGNATURES), versioned on every change.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_signature.py",
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.simulate_documentary",
+  "kind": "script",
+  "entry": "scripts/simulate_documentary.py",
+  "command": "python scripts/simulate_documentary.py --help",
+  "does": "Run a deterministic NarrativeOS integration simulation.",
+  "area": "pipeline",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_controller.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.sound_design",
+  "kind": "script",
+  "entry": "scripts/sound_design.py",
+  "command": "python scripts/sound_design.py --help",
+  "does": "Sound-design reasoning: for every moment of a film, decide sound, silence or nothing, and say why.",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_sound_design.py"
+  ],
+  "curated": true,
+  "area": "sound",
+  "inputs": "a brief (shots, worlds, moments) + events, cues, words, library",
+  "outputs": "sound_proposals.json + SOUND_PROPOSALS.md (decision, rule, evidence, confidence)",
+  "evidence": "reproduced the hand-made Eratosthenes sound plan from a brief (one extra proposal for the owner to judge).",
+  "docs": null
+ },
+ {
+  "id": "script.sound_mix",
+  "kind": "script",
+  "entry": "scripts/sound_mix.py",
+  "command": "python scripts/sound_mix.py --help",
+  "does": "Sound mix from a plan: voice, music cues, placed silences and sound effects, with the levels MEASURED in real documentary mixes (Fern and Veritasium, Demucs stems, Oct 2026; skills/narrativeos-sound-design/SKILL.md):",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_sound_mix.py"
+  ],
+  "curated": true,
+  "area": "sound",
+  "inputs": "a plan JSON (voice, music cues, effects)",
+  "outputs": "mix.wav + a report with the measured levels; fails on dead air",
+  "evidence": "reproduced the hand-built Eratosthenes mix within -65 dB; music measured 24 dB under the voice as planned.",
+  "docs": null
+ },
+ {
+  "id": "script.talking_head",
+  "kind": "script",
+  "entry": "scripts/talking_head.py",
+  "command": "python scripts/talking_head.py --help",
+  "does": "Talking-head core: raw takes in, a tight cut with word-by-word captions out.",
+  "area": "editing",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_signature.py",
+   "tests/test_talking_head.py",
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.timeline_ir",
+  "kind": "script",
+  "entry": "scripts/timeline_ir.py",
+  "command": "python scripts/timeline_ir.py --help",
+  "does": "Validate/export the canonical timeline intermediate representation.",
+  "area": "render",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.tts_voiceover",
+  "kind": "script",
+  "entry": "scripts/tts_voiceover.py",
+  "command": "python scripts/tts_voiceover.py --help",
+  "does": "Register user audio or a configured TTS provider output; never synthesize placeholders.",
+  "area": "voice",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.validate_render",
+  "kind": "script",
+  "entry": "scripts/validate_render.py",
+  "command": "python scripts/validate_render.py --help",
+  "does": "Validate a rendered file with real FFprobe and optional evidence frames.",
+  "area": "render",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.validate_visual_matching",
+  "kind": "script",
+  "entry": "scripts/validate_visual_matching.py",
+  "command": "python scripts/validate_visual_matching.py --help",
+  "does": "Validate evidence records; this does not invent or calculate semantic scores.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.vision_models",
+  "kind": "script",
+  "entry": "scripts/vision_models.py",
+  "command": "python scripts/vision_models.py --help",
+  "does": "Local vision models for frame awareness, kept outside the repo (~/NarrativeOS-Models, or NARRATIVEOS_MODELS).",
+  "area": "picture",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_frame_awareness.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.visual_benchmark",
+  "kind": "script",
+  "entry": "scripts/visual_benchmark.py",
+  "command": "python scripts/visual_benchmark.py --help",
+  "does": "Evaluate completed visual evidence records; incomplete evidence stays blocked.",
+  "area": "picture",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "script.visual_coverage",
+  "kind": "script",
+  "entry": "scripts/visual_coverage.py",
+  "command": "python scripts/visual_coverage.py --help",
+  "does": "Validate visual coverage plans without treating keyword overlap as evidence.",
+  "area": "picture",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_editorial_core.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.voiceover",
+  "kind": "script",
+  "entry": "scripts/voiceover.py",
+  "command": "python scripts/voiceover.py --help",
+  "does": "Realistic AI voiceover with Gemini TTS, following a working creator's method (Isaac's \"How I Actually Make AI Voice Sound Real\", Oct 2026; notes in skills/narrativeos-voiceover/SKILL.md):",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": true,
+  "area": "voice",
+  "inputs": "a script.txt (one chunk per line)",
+  "outputs": "takes, picks.json, vo.wav, cues.json",
+  "evidence": "made the test60 (Gemini) and Eratosthenes (Cartesia) voiceovers; no automated test yet.",
+  "docs": null
+ },
+ {
+  "id": "script.voiceover_broll",
+  "kind": "module",
+  "entry": "scripts/voiceover_broll.py",
+  "command": null,
+  "does": "Voiceover + footage: a finished voice track and b-roll clips become a cut in a Signature's measured style.",
+  "area": "voice",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_voiceover_broll.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "script.word_times",
+  "kind": "script",
+  "entry": "scripts/word_times.py",
+  "command": "python scripts/word_times.py --help",
+  "does": "Word timings of a finished voiceover, so every picture event can land on a spoken word (the film's shots and effects are keyed to words, not to guessed seconds).",
+  "area": "pipeline",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "style_intel.analyze",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel analyze --help",
+  "does": "measure a reference video into style_dna.json",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_style_intel.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "style_intel.profile",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel profile --help",
+  "does": "turn style_dna.json into a StyleProfile the renderer loads",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_style_intel.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "style_intel.breakdown",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel breakdown --help",
+  "does": "timestamped list of every transition, effect and synced sound, with evidence and recipes",
+  "area": "picture",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_breakdown.py",
+   "tests/test_typography.py"
+  ],
+  "curated": true,
+  "inputs": "VIDEO",
+  "outputs": "every transition, effect and synced sound with timestamps, grouped into moments",
+  "evidence": "a synthetic edit with known answers, 4 real videos and the owner's CapCut template (CLAUDE.md).",
+  "docs": null
+ },
+ {
+  "id": "style_intel.compare",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel compare --help",
+  "does": "measure a render against its reference: every difference as numbers, and a similarity score",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_compare.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "style_intel.departments",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel departments --help",
+  "does": "music, every sound effect by family, voice and picture sync: what a channel team would know",
+  "area": "sound",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_departments.py"
+  ],
+  "curated": true,
+  "inputs": "VIDEO",
+  "outputs": "stems, music identity, every sound event by family, ducking, picture sync",
+  "evidence": "Fern and Veritasium films, frame-checked (NarrativeOS-Data/analysis/aven_refs/SOUND_NOTES.md).",
+  "docs": null
+ },
+ {
+  "id": "style_intel.motion",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel motion --help",
+  "does": "every cut, transition, camera move and drawing rate, at the full frame rate",
+  "area": "picture",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_motion.py"
+  ],
+  "curated": true,
+  "inputs": "VIDEO",
+  "outputs": "every transition, camera move with easing, drawing rate (motion.json)",
+  "evidence": "Fern, Veritasium, jimswormhole with frame checks. Limit: a shaped darkening wipe reads as dip_to_black (style_intel/README.md).",
+  "docs": null
+ },
+ {
+  "id": "style_intel.avsync",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel avsync --help",
+  "does": "how tightly the picture follows the sound: lag, hits, coupling (measured per frame)",
+  "area": "sound",
+  "status": "VALIDATED",
+  "tests": [
+   "tests/test_av_layers.py",
+   "tests/test_av_sync.py"
+  ],
+  "curated": true,
+  "inputs": "VIDEO",
+  "outputs": "lags, hit rates, which picture element follows which instrument, strategy, grid, camera (av_sync.json, av_layers.json)",
+  "evidence": "7 reference styles (code art, two documentaries, a profile edit, a template, our own film) and jimswormhole; results in style_intel/README.md. Limit: it cannot tell which side leads.",
+  "docs": null
+ },
+ {
+  "id": "style_intel.soundtags",
+  "kind": "command",
+  "entry": "style_intel/__main__.py",
+  "command": "python -m style_intel soundtags --help",
+  "does": "what each second of a (voice-free) track sounds like: PANNs AudioSet labels",
+  "area": "analysis",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.audio",
+  "kind": "module",
+  "entry": "style_intel/audio.py",
+  "command": null,
+  "does": "Tempo, beats, onsets, loudness, and whether cuts land on the beat more often than chance.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_director_actions.py",
+   "tests/test_editing_intelligence.py",
+   "tests/test_perception_rhythm.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.av_layers",
+  "kind": "module",
+  "entry": "style_intel/av_layers.py",
+  "command": null,
+  "does": "Which visual element follows which sound, how consistently, and at what scale.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_av_layers.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.av_sync",
+  "kind": "module",
+  "entry": "style_intel/av_sync.py",
+  "command": null,
+  "does": "Audio-visual sync: how tightly does the picture follow the sound, and through what?",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_av_sync.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.breakdown",
+  "kind": "module",
+  "entry": "style_intel/breakdown.py",
+  "command": null,
+  "does": "Effect breakdown: every transition, effect and synced sound in a video, with timestamps and evidence.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_breakdown.py",
+   "tests/test_typography.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.compare",
+  "kind": "module",
+  "entry": "style_intel/compare.py",
+  "command": null,
+  "does": "Compare a render with its reference: the same measurements on both, every difference as numbers, and a score.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_compare.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.departments",
+  "kind": "module",
+  "entry": "style_intel/departments.py",
+  "command": null,
+  "does": "Department analysis: what a channel team would know about a reference video's sound, lined up with its picture.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_departments.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.dna",
+  "kind": "module",
+  "entry": "style_intel/dna.py",
+  "command": null,
+  "does": "Run every analyzer on a reference video and assemble its Style DNA.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_style_intel.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.media",
+  "kind": "module",
+  "entry": "style_intel/media.py",
+  "command": null,
+  "does": "ffprobe/ffmpeg helpers shared by the analyzers.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_typography.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.motion",
+  "kind": "module",
+  "entry": "style_intel/motion.py",
+  "command": null,
+  "does": "Motion at full frame rate: how a film moves, not only what is on screen.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_motion.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.profile",
+  "kind": "module",
+  "entry": "style_intel/profile.py",
+  "command": null,
+  "does": "Turn Style DNA into a NarrativeOS StyleProfile the Remotion renderer can load.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_style_intel.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.shots",
+  "kind": "module",
+  "entry": "style_intel/shots.py",
+  "command": null,
+  "does": "Cuts, gradual transitions, shot lengths, flash frames and dips to black.",
+  "area": "analysis",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.sound_tags",
+  "kind": "module",
+  "entry": "style_intel/sound_tags.py",
+  "command": null,
+  "does": "What each sound IS: AudioSet labels second by second with PANNs Cnn14 (Kong et al. 2020; code MIT, weights CC BY 4.0).",
+  "area": "analysis",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.speech",
+  "kind": "module",
+  "entry": "style_intel/speech.py",
+  "command": null,
+  "does": "Speech pace and coverage with faster-whisper. Stores statistics only, never the transcript text.",
+  "area": "analysis",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.typography",
+  "kind": "module",
+  "entry": "style_intel/typography.py",
+  "command": null,
+  "does": "On-screen text in a video: what it says, where, how big, what colour, how it animates in and out, and what effects hit it, with every claim tied to a measurement.",
+  "area": "analysis",
+  "status": "TESTED",
+  "tests": [
+   "tests/test_typography.py"
+  ],
+  "curated": false
+ },
+ {
+  "id": "module.style_intel.visual",
+  "kind": "module",
+  "entry": "style_intel/visual.py",
+  "command": null,
+  "does": "Per-shot look (colour, contrast, grain, letterbox) and camera motion (push/pull/pan/handheld).",
+  "area": "analysis",
+  "status": "IMPLEMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-video-editor",
+  "kind": "skill",
+  "entry": "SKILL.md",
+  "command": null,
+  "does": "Build and operate NarrativeOS, an evidence-gated, channel-configurable long-form and short-form video-production workflow for Hermes. Use for structured intake, research, scripts, narration alignment, TTS, semantic asset matching, rights-aware acquisition, graphics, captions, FFmpeg rendering, audio",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-explainer-film",
+  "kind": "skill",
+  "entry": "skills/narrativeos-explainer-film/SKILL.md",
+  "command": null,
+  "does": "Build a faceless, story-driven explainer film (Fern storytelling + Veritasium-style explanation) from a sourced script - physical 3D scenes and ink-on-paper diagrams rendered with code, every shot landing on a spoken word, cuts carried by one throughline object. Use when the owner wants a new channe",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-sound-design",
+  "kind": "skill",
+  "entry": "skills/narrativeos-sound-design/SKILL.md",
+  "command": null,
+  "does": "Design, source and mix a film's sound the way real documentary channels do: music picked by a person's ear, levels and silences measured from real mixes, real recorded effects tied to picture events, every file checked and rights-recorded. Use when a NarrativeOS film needs music, sound effects or a ",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-voiceover",
+  "kind": "skill",
+  "entry": "skills/narrativeos-voiceover/SKILL.md",
+  "command": null,
+  "does": "Make a realistic AI voiceover for a NarrativeOS video with Gemini TTS, using a working creator's method (many takes per line, best take picked, edited pauses, EQ). Use when a video needs narration and the owner has not recorded their own voice.",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-watch-reference",
+  "kind": "skill",
+  "entry": "skills/narrativeos-watch-reference/SKILL.md",
+  "command": null,
+  "does": "Study a reference video or tutorial the way an editor does (experience first, then go back to the moments that land, then find why), with a multimodal watcher proposing and NarrativeOS measurements deciding. Use when the owner gives a video to learn from, copy a feeling from, or analyse \"to the last",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ },
+ {
+  "id": "skill.narrativeos-video-templates",
+  "kind": "skill",
+  "entry": "templates/narrativeos-video-templates/SKILL.md",
+  "command": null,
+  "does": "Renders documentary video segments (title cards, chapter breaks, credits rolls, subscribe CTAs, and more as they're added) from a registry of pre-built Remotion components, driven by a style profile and a params object — not generated from scratch per video. Use this whenever NarrativeOS needs to re",
+  "area": "skill",
+  "status": "DOCUMENTED",
+  "tests": [],
+  "curated": false
+ }
+]

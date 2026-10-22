@@ -1,0 +1,126 @@
+{
+ "schema_version": 1,
+ "id": "aven-eratosthenes",
+ "title": "The Man Who Measured the Earth With a Shadow (AVEN, our own film)",
+ "creator": "AVEN",
+ "source": {
+  "platform": null,
+  "url": null,
+  "owner_supplied_file": true
+ },
+ "kind": "own_film",
+ "picked_by_owner": false,
+ "used_for": [
+  "AVEN"
+ ],
+ "format": {
+  "duration_s": 60.0,
+  "width": null,
+  "height": null,
+  "fps": 24.0,
+  "excerpt": "sync: 0-60 s"
+ },
+ "studied": "2026-10-22",
+ "tools": [
+  "style_intel.avsync"
+ ],
+ "measurements": {
+  "sync": {
+   "tool": "style_intel.avsync (av_layers)",
+   "duration_s": 60.0,
+   "strategy": "regional",
+   "why": "bass is followed in one part of the picture (around region r4c3; 38% of regions), not by a colour element or the whole image",
+   "borderline": [],
+   "evidence": {
+    "strongest_layer": "bass",
+    "spread": 0.38,
+    "whole_image_corr": 0.094
+   },
+   "mapping": {
+    "bass": {
+     "element": "region r5c3",
+     "lag_ms": 125,
+     "corr": 0.138,
+     "consistency": "intermittent",
+     "responded": 0.046,
+     "chance_95": 0.035,
+     "phrase_level": true
+    }
+   },
+   "grid": {
+    "events": 12,
+    "beat_period_ms": 458,
+    "beat": {
+     "locked": true,
+     "R": 0.495,
+     "chance_95": 0.494,
+     "low_confidence": true,
+     "mean_offset_ms": -160,
+     "share_within_10pct": 0.0
+    },
+    "bar": {
+     "locked": false,
+     "R": 0.361,
+     "chance_95": 0.484,
+     "low_confidence": false,
+     "mean_offset_ms": -392,
+     "share_within_10pct": 0.25
+    }
+   },
+   "camera": {
+    "median_speed_px": 0.1,
+    "tracking_agreement": 1.0,
+    "moving": true,
+    "speed_vs_energy": {
+     "corr": 0.227,
+     "chance_95": 0.192,
+     "follows": false
+    },
+    "speed_vs_rhythm_per_bar": {
+     "corr": 0.077,
+     "chance_95": 0.194,
+     "follows": false
+    },
+    "accelerations_on_grid": {
+     "events": 8,
+     "beat_period_ms": 458,
+     "beat": {
+      "locked": false,
+      "R": 0.353,
+      "chance_95": 0.604,
+      "low_confidence": true,
+      "mean_offset_ms": -208,
+      "share_within_10pct": 0.12
+     },
+     "bar": {
+      "locked": false,
+      "R": 0.498,
+      "chance_95": 0.618,
+      "low_confidence": true,
+      "mean_offset_ms": -831,
+      "share_within_10pct": 0.0
+     }
+    }
+   },
+   "tempo_bpm": 130.9,
+   "layers": {
+    "kick": "17 hits",
+    "snare": "24 hits",
+    "hats": "11 hits",
+    "bass": "87 hits",
+    "melody": "63 hits",
+    "vocals": "116 hits"
+   },
+   "uncertainty": [
+    "layers from Demucs stems (htdemucs)",
+    "how the sync was made (a shared note list, or audio analysed after rendering) cannot be seen in the finished video"
+   ]
+  }
+ },
+ "observations": [
+  "KNOWN (we made it): low booms were placed ON the cuts, so the sound follows the picture"
+ ],
+ "labels": "MEASURED = a tool's number (the tool is named); OBSERVED = seen on frames by a person or Claude; INFERRED = reasoning from the evidence. Watcher descriptions are never evidence.",
+ "findings_doc": null,
+ "local_data": "analysis/aven-eratosthenes"
+}
