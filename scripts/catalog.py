@@ -11,6 +11,8 @@ a CLI or an agent can list. Every record follows a schema in schemas/.
 
 Layout:
   catalog/capabilities.json               every command, script, module and skill: what it does, status, tests
+  catalog/third_party.json                everything NarrativeOS uses but did not build: tools, libraries, models, services,
+                                          data sources, assets, with licence and status (hand-kept; schemas/third_party.schema.json)
   catalog/studies/<id>/study.json         one studied reference: measurements by department, observations, labels
   catalog/studies/<id>/FINDINGS.md        the written findings (measurements and observations only)
   catalog/studies/index.json, README.md   generated
@@ -294,6 +296,16 @@ def check() -> list[str]:
         for t in c.get("tests", []):
             if not (ROOT / t).is_file():
                 errs.append(f"capability {c['id']}: test {t} does not exist")
+    tps = load(ROOT / "schemas" / "third_party.schema.json"); tp = CAT / "third_party.json"
+    ids = set()
+    for t in (load(tp) if tp.is_file() else []):
+        try:
+            jsonschema.validate(t, tps)
+        except jsonschema.ValidationError as e:
+            errs.append(f"third_party {t.get('id')}: {e.message}")
+        if t.get("id") in ids:
+            errs.append(f"third_party {t['id']}: duplicate id")
+        ids.add(t.get("id"))
     for p in CAT.rglob("*"):
         if p.is_file() and p.suffix.lower() in MEDIA:
             errs.append(f"{_rel(p)}: media file in the catalog (frames and audio stay in NarrativeOS-Data)")
@@ -307,7 +319,7 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     s = ap.add_subparsers(dest="cmd", required=True)
-    p = s.add_parser("list"); p.add_argument("what", choices=["studies", "capabilities"]); p.add_argument("--area"); p.add_argument("--status")
+    p = s.add_parser("list"); p.add_argument("what", choices=["studies", "capabilities", "third-party"]); p.add_argument("--kind"); p.add_argument("--area"); p.add_argument("--status")
     p = s.add_parser("show"); p.add_argument("id")
     s.add_parser("scan"); s.add_parser("build"); s.add_parser("check")
     p = s.add_parser("add-study"); p.add_argument("id"); p.add_argument("--from", dest="src", required=True); p.add_argument("--title", required=True)
@@ -327,7 +339,12 @@ def main():
     elif a.cmd == "check":
         errs = check(); print("\n".join(errs) or "catalog OK"); sys.exit(1 if errs else 0)
     elif a.cmd == "list":
-        if a.what == "studies":
+        if a.what == "third-party":
+            for t in load(CAT / "third_party.json"):
+                if (a.kind and t["kind"] != a.kind) or (a.status and t["status"] != a.status):
+                    continue
+                print(f"{t['id']:20s} {t['kind']:15s} {t['status']:12s} {t['name'][:40]:40s} {t['licence'][:40]}")
+        elif a.what == "studies":
             for r in (load(STUDIES / "index.json") if (STUDIES / "index.json").is_file() else []):
                 print(f"{r['id']:28s} {r['kind']:20s} {r['duration_s']:6.0f} s  {r['sync_strategy'] or '-':24s} {r['title']}")
         else:

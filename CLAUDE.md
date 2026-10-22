@@ -26,7 +26,24 @@ These skills live here:
   Hand-checked entries (`curated: true`, with evidence) are never overwritten.
 - `catalog/studies/<id>/study.json` holds one studied reference: measurements by department, observations and labels.
   `index.json` and `README.md` are generated.
-- Schemas: `schemas/study.schema.json`, `schemas/capability.schema.json`.
+- `catalog/third_party.json` lists everything NarrativeOS USES but did not build: agents, tools, libraries, models, services,
+  data sources and assets, each with what it is used for, version, licence (marked "(verify)" where not confirmed) and status
+  (in_use / installed_not_current / planned / considered / dropped). It is hand-kept: add an entry whenever an outside tool,
+  model, service or source comes in. The licences matter before NarrativeOS ships as an app; Remotion needs a company licence
+  above a small team.
+- Schemas: `schemas/study.schema.json`, `schemas/capability.schema.json`, `schemas/third_party.schema.json`.
+- **Dependency protection (owner, Oct 23: "if they close their repo, our system lacks the part"):**
+  - Forks DONE: `github.com/Hxtra/earshot` (holds 925ebe5) and `github.com/Hxtra/lemo-opuscar` (holds 508848a). They are recorded
+    in `third_party.json` as `mirror`.
+  - PLANNED, when the owner's network allows: a vault in `NarrativeOS-Data/vault`, about 3-5 GB:
+    - a lock file of exact versions;
+    - wheels, models with sha256, npm tarballs, installers, git bundles;
+    - `vault.py snapshot|verify|rebuild-test`, where the rebuild-test creates a fresh environment with the network off and runs
+      the tests;
+    - `catalog.py check` warning about unprotected in-use items.
+  - Services (Gemini, Cartesia, Pixabay, Shazam) cannot be copied. Their protection is fallbacks (a local offline voice, a second
+    music identifier) and keeping every output locally with its rights record.
+  - The app is personal for now, so open-source licences and Remotion's individual licence allow all of this.
 - Commands: `python scripts/catalog.py list|show|scan|add-study|build|check`. `check` enforces the schemas and the rights rule:
   no media files and no local paths in the catalog. The full local analysis (frames, stems) stays in
   NarrativeOS-Data/analysis/<id>.

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "narrativeos/third_party.schema.json",
+  "title": "Something NarrativeOS uses but did not build: a tool, library, model, service, data source or asset",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "kind",
+    "used_for",
+    "licence",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.-]{1,63}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "enum": [
+        "agent_platform",
+        "tool",
+        "library",
+        "runtime",
+        "model",
+        "service",
+        "data_source",
+        "asset"
+      ]
+    },
+    "used_for": {
+      "type": "string",
+      "minLength": 1
+    },
+    "where": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Where it lives or how it is reached (never a key or a secret)."
+    },
+    "version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "licence": {
+      "type": "string",
+      "description": "As read from its source; '(verify)' where not yet confirmed. Matters before NarrativeOS ships as an app."
+    },
+    "status": {
+      "enum": [
+        "in_use",
+        "installed_not_current",
+        "planned",
+        "considered",
+        "dropped"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "mirror": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Where our own copy lives if the original disappears: a fork on the owner GitHub and/or a path in NarrativeOS-Data/vault, with the pinned version."
+    }
+  }
+}
