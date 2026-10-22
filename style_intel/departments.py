@@ -50,7 +50,9 @@ def stems(video: Path, work: Path) -> dict[str, Path]:
         out.mkdir(parents=True, exist_ok=True)
         wav = extract_audio(video, work / "audio.wav", sr=44100)
         with tempfile.TemporaryDirectory() as td:
-            subprocess.run([sys.executable, "-m", "demucs", "-n", "htdemucs", "-o", td, str(wav)], check=True, capture_output=True)
+            # --shifts 0: no random time shifts, so the same audio always gives the same stems (MEASURED Oct 20: with the default,
+            # two runs on one clip counted 36 vs 35 snare hits and changed downstream verdicts)
+            subprocess.run([sys.executable, "-m", "demucs", "-n", "htdemucs", "--shifts", "0", "-o", td, str(wav)], check=True, capture_output=True)
             src = next(Path(td).glob("htdemucs/*"))
             for n in names:
                 (src / f"{n}.wav").replace(out / f"{n}.wav")

@@ -572,7 +572,7 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
     (Gemini key), Downloads/vfx-overlays-inbox; Courier Prime installed per-user.
   - Never create a folder outside NARRATIVEOS_HOME (temporary files: the session scratchpad only).
 
-**Channel films and departments (Oct 17-20, branch `departments-analysis`; NOT committed yet).** The owner's new channel AVEN
+**Channel films and departments (Oct 17-22, branch `departments-analysis`, pushed; not merged into main yet).** The owner's new channel AVEN
 (Fern storytelling plus Veritasium-style explanation, faceless) became the working test.
 - **Analysis by departments** (`python -m style_intel departments|motion|soundtags`), with the limits written in `style_intel/README.md`:
   - `departments.py`: Demucs stems, music identity (Shazam windows), every sound event by family with its picture sync,
@@ -597,7 +597,19 @@ First target: `~/Downloads/6cbda51b-...mp4` (76 s Elon Musk profile edit). Plan 
   which part of the picture follows which sound, inside the -2..+3 frame window viewers tolerate. Test:
   `tests/test_av_sync.py`, which also rejects random flashes (the first version did not).
   - First use: the owner's "music is code" clips. Each instrument drives its own element at 0-33 ms.
-  - Next idea, pending the owner's choice: a music-as-code score engine that writes a note list the animation reads.
+  - Layers (`style_intel/av_layers.py`): which element answers which instrument (Demucs layers x whole/spot/regions/colour
+    elements), consistency, scale (beat/phrase/energy), the grid, the camera, and the strategy (decided by taking the element
+    out). Borderline and low-confidence results are flagged. Test: `tests/test_av_layers.py`.
+- **Sound-design reasoning** (`scripts/sound_design.py`, Oct 20): sound, silence or nothing for every moment, with rule,
+  evidence and confidence. It reproduced the hand-made Eratosthenes plan from a brief. Test: `tests/test_sound_design.py`.
+- **Owner's order (Oct 20):**
+  1. strengthen AV intelligence and validate it on several reference styles;
+  2. the sound-design reasoning layer;
+  3. then a FOCUSED music-as-code prototype (10-20 s, 303-style bass, drums, pads; one event list drives the audio and several
+     three.js elements; check sync through rendering, frame-rate and tempo changes).
+
+  Procedural music is for abstract pieces, stings and intros. Documentaries keep real music and recorded effects, and
+  NarrativeOS should learn when to synthesise, when to use existing audio, and when silence is stronger.
 - **Films:** in `NarrativeOS-Data/projects/aven/`, rendered with Lemo-Opuscar (three.js in Chrome; `NarrativeOS-Data/tools/lemo-opuscar`):
   - `test60/`, the 60 s Fresnel test;
   - `eratosthenes/`, "The Man Who Measured the Earth With a Shadow", 1:52, with the owner's music picks and Pixabay effects

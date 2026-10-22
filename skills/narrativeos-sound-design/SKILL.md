@@ -23,7 +23,37 @@ Source: Fern's "The Indian Genius Nobody Understands" and Veritasium's "The Absu
 | A bookend | Veritasium opens and closes on the same birdsong |
 | A placed silence keeps the room | never digital zero: `sound_mix.py` fails a mix with dead air |
 
-## 2. Plan from the picture
+## 2. Plan from the picture: the reasoning layer
+`python scripts/sound_design.py BRIEF.json` decides, for every moment, sound, silence or nothing. It writes:
+- `sound_proposals.json`;
+- `SOUND_PROPOSALS.md`, a table with each decision's rule, evidence and confidence.
+
+**The steps:**
+1. Observe: the picture events, the brief and the narration (lines, words, pauses).
+2. Reason with measured rules:
+   - a cut between story worlds gets a low boom, but not a cut to or from the narrator's home base;
+   - arriving at a new place gets its ambience;
+   - a visible hand action or a physical change gets its real sound;
+   - a turning point or reveal gets a hit, landing on its word;
+   - a deliberate pause stays EMPTY;
+   - a placed silence drops the music, never the room;
+   - a bookend; the channel mark.
+3. Select a checked library file (`rights.json`; rejected files are never chosen), or say what to find or synthesise.
+4. Constrain: designed hits at least 4 s apart (the more confident one stays); one sound per transition; hits moved off
+   stressed words unless they are meant to land on one.
+
+**The brief** (`projects/aven/eratosthenes/sound_brief.json` is the worked example) gives each shot's world and place, which
+shot is home, and the moments (reveal, turning_point, placed_silence, list_beat).
+
+**Honest limit:** the reference evidence is P(cut into a new world | boom). Nobody has measured how often a world-jump cut
+gets a boom. That is why home-base cuts are excluded and the density limit keeps it sparse. The list-beat ticks rule is
+Claude's own choice (confidence 0.3), not measured.
+
+**Check (Oct 20):** given only the brief, the reasoner reproduced the hand-made Eratosthenes sound plan. It added one boom (the
+Syene -> Alexandria match cut) for the owner to judge. Tests: `tests/test_sound_design.py` (a broken home-base rule makes 3 fail).
+
+## 2b. The sound list for sourcing
+
 The film's renderer writes `events.json` (every cut and picture event with its time). For each section and event, write:
 - the feeling;
 - the sound's job;
@@ -94,7 +124,34 @@ The two directions:
 Sync tolerance: keep the picture within about -2..+3 frames of its sound. Viewers notice offsets beyond about 45-125 ms
 (ITU-R BT.1359). Check a finished piece with `avsync` against its own audio.
 
-## 8. Verify by measuring, then by the owner's ear
+## 8. External tool evaluated: Earshot (Oct 22; NOT installed yet, pending the owner's OK)
+https://github.com/Leonxlnx/earshot. Facts below are read from the repository, not from summaries of it.
+- **Status:** MIT, v0.3.0, "Alpha". Created Oct 15 2026 and pushed daily, so pin a commit. Python 3.10-3.12 declared (this PC runs
+  3.13: use a 3.12 venv). Downloads CLAP (`laion/larger_clap_general`) and the AST AudioSet tagger from Hugging Face. CPU only.
+  CLI, Python API and MCP server.
+- **What it adds to NarrativeOS:**
+  - **Ears by description:** `match` / `rank` / `find` choose and trim sounds by words. Held-out precision of "strong" is
+    0.98 for the right KIND of sound, 0.61 for the exact variant. This replaces picking by Pixabay titles plus PANNs labels.
+  - **Realness:** real recording versus code-synthesized, right about 92 % of the time when firm.
+  - **Timeline:** sound-to-cut offsets.
+  - **Profile and critique:** build a profile from OUR references and score our films against it.
+  - **For music-driven pieces:** `sfx` (201 code-made sounds, aimed with `apex`) and `fit` (recording to an editable
+    recipe; the licence carries over).
+  - Its `real-sound` skill matches NarrativeOS's documentary rule: real recordings, licence audit, credits; code never
+    generates the sound.
+- **Its own documented limits** (docs/LIMITS.md):
+  - no taste or emotion;
+  - event labels inside a busy mix are right only about half the time;
+  - music mood is often wrong;
+  - the critique profile was built from 7 SaaS launch films, so build our own;
+  - validated on one sound library;
+  - documentary use is untested.
+- **Overlap:**
+  - it does not do picture-element x instrument analysis (`av_layers.py` does);
+  - it does not do the measured documentary mix levels (`sound_mix.py` does);
+  - it does not do the story reasoning (`sound_design.py` does).
+
+## 9. Verify by measuring, then by the owner's ear
 - Measure the key moments in the final file's audio: the opening, every world-jump, the placed silence (room tone, not
   -240 dB), the music's entrance.
 - If two encodes write the same file, re-check that the final file has the newest mix.

@@ -32,30 +32,42 @@ SR = 22050
 
 
 def _video_frames(video: Path, crop: tuple | None, scale_w: int = 180):
+    """Small grey frames, streamed: the crop (auto: the rows that move, found on small frames) is applied and the frame
+    shrunk as it is read. Loading full frames first needed 7.8 GB for a 76 s 1080p video (MEASURED Oct 22)."""
     import cv2
     cap = cv2.VideoCapture(str(video)); fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    W0, H0 = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    if crop == "auto":
+        k = scale_w / W0; prev = None; act = None
+        while True:
+            ok, f = cap.read()
+            if not ok:
+                break
+            g = cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), (scale_w, max(1, int(H0 * k)))).astype(np.float32)
+            if prev is not None:
+                d = np.abs(g - prev).mean(1); act = d if act is None else act + d
+            prev = g
+        if act is not None:
+            act = act / max(1, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1)
+            rows = np.where(act > max(act.max() * 0.08, 0.5))[0]
+            y0, y1 = (int(rows.min() / k), int((rows.max() + 1) / k)) if len(rows) else (0, H0)
+        else:
+            y0, y1 = 0, H0
+        crop = (0, y0, W0, min(H0, y1) - y0)
+        cap.release(); cap = cv2.VideoCapture(str(video))
     frames = []
     while True:
         ok, f = cap.read()
         if not ok:
             break
-        g = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY).astype(np.float32)
-        frames.append(g)
+        if crop:
+            x, y, w, h = crop; f = f[y:y + h, x:x + w]
+        k = scale_w / f.shape[1]
+        frames.append(cv2.resize(cv2.cvtColor(f, cv2.COLOR_BGR2GRAY), (scale_w, max(1, int(f.shape[0] * k))), interpolation=cv2.INTER_AREA).astype(np.float32))
     cap.release()
     if not frames:
         raise SystemExit(f"no frames in {video}")
-    F = np.stack(frames)
-    if crop == "auto":
-        act = np.abs(np.diff(F, axis=0)).mean(axis=(0, 2))              # motion per row
-        rows = np.where(act > max(act.max() * 0.08, 0.5))[0]
-        y0, y1 = (int(rows.min()), int(rows.max()) + 1) if len(rows) else (0, F.shape[1])
-        crop = (0, y0, F.shape[2], y1 - y0)
-    if crop:
-        x, y, w, h = crop; F = F[:, y:y + h, x:x + w]
-    import cv2
-    k = scale_w / F.shape[2]
-    F = np.stack([cv2.resize(f, (scale_w, max(1, int(f.shape[0] * k))), interpolation=cv2.INTER_AREA) for f in F])
-    return F, float(fps), crop
+    return np.stack(frames), float(fps), crop
 
 
 def _audio(video: Path) -> np.ndarray:

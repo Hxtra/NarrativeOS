@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -76,6 +77,10 @@ def main() -> int:
     av.add_argument("--out", type=Path, required=True)
     av.add_argument("--crop", help="x,y,w,h of the picture area")
     av.add_argument("--auto-crop", action="store_true", help="keep only the rows that move (videos inside a band of text)")
+    av.add_argument("--start", type=float, help="analyse an excerpt starting here (seconds)")
+    av.add_argument("--duration", type=float, help="length of the excerpt (seconds)")
+    av.add_argument("--no-layers", action="store_true", help="skip the layer x element analysis (strategy, mapping, consistency)")
+    av.add_argument("--no-stems", action="store_true", help="split the full mix by bands instead of Demucs stems (faster, less exact)")
     st = sub.add_parser("soundtags", help="what each second of a (voice-free) track sounds like: PANNs AudioSet labels")
     st.add_argument("audio", type=Path, help="best on the no_vocals stem from `departments`")
     st.add_argument("--out", type=Path, required=True)
@@ -97,7 +102,19 @@ def main() -> int:
             print(f"no such file: {args.video}", file=sys.stderr)
             return 1
         crop = "auto" if args.auto_crop else (tuple(int(v) for v in args.crop.split(",")) if args.crop else None)
-        print(av_sync.summary(av_sync.analyze(args.video.resolve(), args.out, crop)))
+        src = args.video.resolve()
+        if args.start is not None or args.duration is not None:          # an excerpt, re-encoded so frames start clean
+            args.out.mkdir(parents=True, exist_ok=True); ex = args.out / "excerpt.mp4"
+            cmd = ["ffmpeg", "-v", "error", "-y", "-ss", str(args.start or 0), "-i", str(src)]
+            cmd += (["-t", str(args.duration)] if args.duration else []) + ["-c:v", "libx264", "-crf", "16", "-c:a", "aac", str(ex)]
+            subprocess.run(cmd, check=True); src = ex
+        r = av_sync.analyze(src, args.out, crop)
+        print(av_sync.summary(r))
+        if not args.no_layers:
+            from style_intel import av_layers
+            lr = av_layers.analyze(src, args.out, tuple(r["crop"]) if r["crop"] else None, use_stems=not args.no_stems, tempo=r["tempo_bpm"])
+            (args.out / "av_layers.json").write_text(json.dumps(lr, indent=1), encoding="utf-8")
+            print(av_layers.summary(lr))
         return 0
 
     if args.cmd in ("motion", "soundtags"):

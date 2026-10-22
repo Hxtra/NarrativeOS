@@ -283,6 +283,66 @@ and offline audio analysis look the same; the tool measures that the sync exists
 PANNs heard no voice in either track (electronic music, drum machine, sampler); the "voice" a viewer hears is most likely the
 303's resonant filter sweep (INFERRED).
 
+### Layers, elements and strategy (`style_intel/av_layers.py`, part of `avsync`)
+Which visual element answers which instrument, how consistently, and at what scale.
+- **Audio layers:** from Demucs stems (`--shifts 0`, so the same audio always gives the same stems): kick, snare, hats, bass,
+  melody (the "other" stem), vocals and energy. `--no-stems` uses band splits of the mix, faster and less exact.
+- **Visual elements:**
+  - the whole image;
+  - the brightest spot (a moving light, wherever it goes);
+  - 24 regions;
+  - 7 colour elements (a cyan ring and magenta smoke are different elements even where they overlap).
+- **Per layer x element:**
+  - the lag inside the sync window;
+  - consistency (the share of the layer's hits that get a response, against random times: consistent >= 60 % and above chance,
+    intermittent, coincidental);
+  - scale (beat, phrase = one bar, energy = 2 s).
+- **Grid:** do the picture's big changes land on beats or bars (Rayleigh phase test against random times)?
+- **Camera:** speed against energy and against rhythm per bar, and accelerations on the beat grid, inside the crop. Flagged
+  unreliable when tracked points disagree.
+- **Strategy, decided by evidence:**
+  - take the strongest layer's best colour element OUT of the image; if the rest stops following, the element carries the
+    sync (`element_specific`);
+  - if the rest follows more weakly, it is `element_led_with_spill`;
+  - otherwise `moving_element`, `whole_image`, `regional`, `energy_only` or `none`.
+  - Results near a threshold are marked BORDERLINE, and grid results from few events LOW CONFIDENCE.
+- **Uncertainty, always reported:**
+  - layers that hit together (kick and snare) cannot be told apart;
+  - stems leak;
+  - how the sync was made cannot be seen in the finished video.
+
+**Mistakes that shaped it (MEASURED Oct 20):**
+- Counting regions flipped a verdict between 11 and 13 of 24.
+- One shared random stream let a new element change other tests' results.
+- Demucs' default random shifts changed hit counts between runs.
+
+The fixes are the remove-the-element test, a fixed random stream per test, and `--shifts 0`. Two runs now give identical results.
+
+| Clip | Strategy | Evidence |
+|---|---|---|
+| TB-303 smoke | element_led_with_spill (borderline 1.34) | kick -> cyan rings r=0.51, 57 % of kicks answered (chance 24 %); the rest follows at r=0.38 (the rings' glow); melody -> red smoke, consistent (60 % vs 37 %), also by phrase; camera accelerations on the beat |
+| Light painting | regional (borderline) | kick followed in part of the picture (r=0.29, intermittent); camera accelerations on the beat; big changes on the beat only weakly (9 events, low confidence) |
+
+**Validated on 7 reference styles (Oct 20-22):**
+
+| Reference | Style | Strategy measured | Reading |
+|---|---|---|---|
+| TB-303 smoke | code art | element_led_with_spill | the kick drives the cyan rings; the melody drives the red smoke; camera accelerations on the beat |
+| Light painting | code art | regional (borderline) | weak; camera accelerations on the beat |
+| Fern, 0:00-1:10 | story documentary | energy_only | no element answers hits; brightness rides the music's loudness; cuts not on the beat |
+| Veritasium, 0:00-1:00 | science documentary | regional, weak | one corner follows the hats (spread 21 %); nothing else |
+| Elon Musk profile edit, 76 s | talk-driven edit | none | 96 picture changes, not on the beat or the bar |
+| "Documentary Cinema" CapCut template, 52 s | template edit | whole_image, weak (r=0.14) | 96 % of regions follow the melody, weakly; cuts not on the beat |
+| Eratosthenes (ours), 0:00-1:00 | AVEN documentary | regional, weak | ground truth known: the booms were PLACED ON the cuts |
+
+**Limit (shown by our own film):** the analysis measures that picture and sound move together, not which one leads. When
+effects are placed on picture events (documentaries), the result reads as "the picture follows the bass". The lag sign
+cannot settle it either, because a boom placed with its peak on the cut has lag 0. Read a documentary's result as
+"sound placed to picture", and use the film's own events (`events.json`) when they exist.
+
+Tests: `tests/test_av_layers.py` (cyan on the kick and magenta on the hats are mapped correctly; a whole-frame pulse is
+whole_image; random flashes are no strategy).
+
 ## Tests
 
 `tests/test_style_intel.py` builds synthetic videos with known answers:
