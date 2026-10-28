@@ -14,6 +14,8 @@ The ambition is professional editing and motion design: deliberate storytelling,
 
 Canonical repository: [Hxtra/NarrativeOS](https://github.com/Hxtra/NarrativeOS).
 
+**Development branch:** the capabilities described below reflect work on [departments-analysis](https://github.com/Hxtra/NarrativeOS/tree/departments-analysis), including work still in progress. The default branch may contain an earlier implementation. Where a linked document has not reached `main`, its link opens the development branch.
+
 ## What NarrativeOS is for
 
 NarrativeOS is a general-purpose production system. Documentary is the first deeply developed workflow, with additional tools for talking-head editing, voiceover-and-footage edits, short-form captions, reference-driven styles, and custom explainer scenes.
@@ -67,11 +69,11 @@ python scripts/controller.py --help
 
 | Request | Start here | Important boundary |
 |---|---|---|
-| Sourced documentary or explainer | [Explainer-film workflow](skills/narrativeos-explainer-film/SKILL.md), root production contract, and `scripts/visual_strategy.py` | Sources, visual evidence, and rights must support factual scenes. |
+| Sourced documentary or explainer | [Explainer-film workflow](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/skills/narrativeos-explainer-film/SKILL.md), root production contract, and `scripts/visual_strategy.py` | Sources, visual evidence, and rights must support factual scenes. |
 | Edit talking-head footage | [Talking-head guide](references/talking-head.md), `scripts/talking_head.py` | Review take choices, speech cuts, crops, and caption placement on actual footage. |
-| Adapt an approved reference style | [Watch-reference workflow](skills/narrativeos-watch-reference/SKILL.md), [Signatures](references/signatures.md) | Measure the selected reference; check whether its edit type is supported by the apply path. |
-| Produce narration | [Voiceover workflow](skills/narrativeos-voiceover/SKILL.md) | Confirm voice, provider, consent, and any required cost approval before generation. |
-| Design or mix sound | [Sound-design workflow](skills/narrativeos-sound-design/SKILL.md) | Listen to the result; measurements alone do not establish editorial quality. |
+| Adapt an approved reference style | [Watch-reference workflow](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/skills/narrativeos-watch-reference/SKILL.md), [Signatures](references/signatures.md) | Measure the selected reference; check whether its edit type is supported by the apply path. |
+| Produce narration | [Voiceover workflow](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/skills/narrativeos-voiceover/SKILL.md) | Confirm voice, provider, consent, and any required cost approval before generation. |
+| Design or mix sound | [Sound-design workflow](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/skills/narrativeos-sound-design/SKILL.md) | Listen to the result; measurements alone do not establish editorial quality. |
 | Add graphics or transitions | [Template registry and instructions](templates/narrativeos-video-templates/SKILL.md) | Look up a registered component and its parameters before writing a new one. |
 | Render an existing timeline | [Timeline compiler](references/timeline-compiler.md), `scripts/compile_timeline.py` | Validate assets, source intervals, timeline structure, and render warnings. |
 | Review or revise a production | [Studio](timeline-editor/README.md), `scripts/edit_patch.py`, controller graph | Preserve approved artifacts and rerun gates affected by changes. |
@@ -342,12 +344,12 @@ The current reasoning-provider abstraction accepts command-based or callable int
 | [CLAUDE.md](CLAUDE.md) | Historical handoff, owner decisions, implementation notes, and known issues. |
 | [scripts/](scripts/) | Controller, planning, media, editing, rendering, QA, and provider tools. |
 | [schemas/](schemas/) | Structured artifact contracts. |
-| [skills/](skills/) | Specialist reference-study, voiceover, sound-design, and explainer workflows. |
+| [skills/](https://github.com/Hxtra/NarrativeOS/tree/departments-analysis/skills/) | Specialist reference-study, voiceover, sound-design, and explainer workflows. |
 | [style_intel/](style_intel/) | Reference-video measurement, breakdown, motion, sound, and comparison. |
 | [templates/narrativeos-video-templates/](templates/narrativeos-video-templates/) | Graphics registry, StyleProfiles, shared primitives, VFX and media-library tooling. |
 | [timeline-editor/](timeline-editor/) | Artifact APIs, Studio, and timeline review interfaces. |
-| [reconstruct/](reconstruct/) | Reference reconstruction, source/layer matching, and backend experiments. |
-| [catalog/](catalog/) | Machine-readable capabilities, reference studies, and third-party inventory. |
+| [reconstruct/](https://github.com/Hxtra/NarrativeOS/tree/departments-analysis/reconstruct/) | Reference reconstruction, source/layer matching, and backend experiments. |
+| [catalog/](https://github.com/Hxtra/NarrativeOS/tree/departments-analysis/catalog/) | Machine-readable capabilities, reference studies, and third-party inventory. |
 | [references/](references/) | Architecture, implementation guides, audits, and roadmaps. |
 | [tests/](tests/) | Component, contract, regression, and render tests. |
 | [examples/](examples/) | Minimal example configuration. |
@@ -382,7 +384,7 @@ python -m pytest tests/test_catalog.py
 
 When deliberately adding or changing cataloged capabilities, `python scripts/catalog.py scan` refreshes the capability inventory and preserves curated entries. Run relevant subsystem tests and inspect render outputs where applicable. A passing catalog check or typecheck is not proof of video quality.
 
-Third-party tools, models, services, assets, and their recorded license/status information are tracked in [catalog/third_party.json](catalog/third_party.json). Respect their individual licenses and provenance requirements. Credentials, licensed media, reference footage, generated production assets, and private machine paths do not belong in the public package.
+Third-party tools, models, services, assets, and their recorded license/status information are tracked in [catalog/third_party.json](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/catalog/third_party.json). Respect their individual licenses and provenance requirements. Credentials, licensed media, reference footage, generated production assets, and private machine paths do not belong in the public package.
 
 ## Documentation map
 
@@ -393,7 +395,7 @@ Third-party tools, models, services, assets, and their recorded license/status i
 | Render, validate, and composite a timeline | [Timeline compiler](references/timeline-compiler.md) |
 | Understand editing decisions and implementation boundaries | [Editing brain](references/editing-brain.md) and [implementation audit](references/editing-brain-implementation-audit.md) |
 | Plan narration and visual coverage | [Narration and coverage](references/narration-and-visual-coverage.md) |
-| Study a reference | [Watch-reference skill](skills/narrativeos-watch-reference/SKILL.md) and [Style Intelligence](style_intel/README.md) |
+| Study a reference | [Watch-reference skill](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/skills/narrativeos-watch-reference/SKILL.md) and [Style Intelligence](style_intel/README.md) |
 | Reuse a reference-derived editing style | [Signatures](references/signatures.md) |
 | Edit speakers and reframe footage | [Talking-head](references/talking-head.md) and [frame awareness](references/frame-awareness.md) |
 | Understand music, speech, and timing analysis | [Perception and rhythm](references/perception-and-rhythm.md) |
@@ -401,5 +403,5 @@ Third-party tools, models, services, assets, and their recorded license/status i
 | Use generation jobs and their gates | [Generative media](references/generative-media.md) |
 | Build registered motion graphics | [Template skill](templates/narrativeos-video-templates/SKILL.md) |
 | Review a project in Studio | [Timeline editor and Studio](timeline-editor/README.md) |
-| Understand reference reconstruction research | [Deep understanding](references/deep-understanding.md) |
+| Understand reference reconstruction research | [Deep understanding](https://github.com/Hxtra/NarrativeOS/blob/departments-analysis/references/deep-understanding.md) |
 | Inspect the longer implementation plan | [Roadmap v2](references/implementation-roadmap-v2.md); read alongside newer code and subsystem guides |
